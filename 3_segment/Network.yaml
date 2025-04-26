@@ -1,0 +1,27 @@
+---
+Network:
+
+- Network Name: bluenet1
+  Layer 2 Only: False
+  VRF Name: bluevrf
+  Network ID: 30000
+  VLAN ID: 2300
+  Propose VLAN: False
+  Network Template: Default_Network_Universal
+  Network Extension Template: Default_Network_Extension_Universal
+  IPv4 Gateway/NetMask: 192.168.11.1/24
+  VLAN Name: bluenet1
+  Interface Description: bluenet1
+
+- Network Name: bluenet2
+  Layer 2 Only: False
+  VRF Name: bluevrf
+  Network ID: 30001
+  VLAN ID: 2301
+  Propose VLAN: False
+  Network Template: Default_Network_Universal
+  Network Extension Template: Default_Network_Extension_Universal
+  IPv4 Gateway/NetMask: 192.168.12.1/24
+  VLAN Name: bluenet2
+  Interface Description: bluenet2
+

@@ -1,0 +1,12 @@
+---
+NDFC: {}
+spine: {}
+leaf: {}
+border spine: {}
+border gateway spine: {}
+super spine: {}
+border super spine: {}
+border gateway super spine: {}
+TOR: {}
+---
+N9K-C9300V: {}
