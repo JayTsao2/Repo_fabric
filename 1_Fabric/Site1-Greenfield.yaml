@@ -1,0 +1,25 @@
+---
+Fabric:
+  name: Site1-Greenfield
+  Location: San Jose, US
+  category: Create new LAN fabric
+  type: VXLAN
+  sub-type: Data Center VXLAN EVPN - iBGP
+  BGP ASN for spines: 65111
+  Telemetry Features: false
+  Security domain: all
+
+General Parameter:
+  Underlay Subnet IP Mask: 31
+
+Replication:
+  Underlay RP Loopback Id: 251
+
+Protocols:
+  
+Advanced:
+  Greenfield Cleanup Option: True
+
+Resources:
+
+

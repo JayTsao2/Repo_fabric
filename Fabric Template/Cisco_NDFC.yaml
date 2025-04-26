@@ -1,10 +1,12 @@
 ---
 Fabric:
-  name: Site1-Greenfield
-  Location: San Jose, US
-  type: Data Center VXLAN EVPN
+  name: 
+  Location: 
+  category: 
+  type: 
+  sub-type: 
   Overlay routing protocol: iBGP
-  BGP ASN for spines: 65111
+  BGP ASN for spines: 
 
   License Tier: Premier
 
