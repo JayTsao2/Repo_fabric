@@ -1,0 +1,14 @@
+---
+Fabric:
+  name: ISN
+  Location: San Jose, US
+  category: Create new LAN fabric
+  type: External and inter-fabric connectivity
+  BGP ASN for spines: 65444
+  Telemetry Features: false
+  Security domain: all
+
+General Parameter:
+  Fabric Monitor Mode: False
+
+

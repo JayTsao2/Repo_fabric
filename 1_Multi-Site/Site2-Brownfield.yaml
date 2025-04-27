@@ -1,4 +1,10 @@
 ---
+Seed IP: 198.18.4.201
+Username: admin
+Password: C1sco12345!
+Max Hops: 2
+Preserve Config: False
+---
 Fabric:
   name: Site2-Brownfield
   Location: San Jose, US

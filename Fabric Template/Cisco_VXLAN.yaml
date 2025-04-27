@@ -1,0 +1,82 @@
+---
+Fabric:
+  name: 
+  Location: 
+  category: 
+  type: 
+  sub-type: 
+  Overlay routing protocol: iBGP
+  BGP ASN for spines: 
+
+  License Tier: Premier
+
+  Telemetry Features: false
+  Telemetry collection: In-band
+  Telemetry streaming via: IPv4
+  Telemetry source interface: loopback0
+  Telemetry VRF: default
+
+  Security domain: all
+
+General Parameter:
+  Fabric Interface Numbering: p2p
+  Underlay Subnet IP Mask: 31
+  Underlay Routing Protocol: ospf
+  Route-Reflectors: 2
+  Anycast Gateway MAC: 2020.0000.00aa
+  Enable Performance Monitoring: False
+
+Replication:
+  Replication Mode: ingress
+  Multicast Group Subnet: 239.1.1.0/25
+  Rendezvous-Points: 2
+  RP Mode: asm
+  Underlay RP Loopback Id: 251
+
+Protocols:
+Underlay Routing Loopback Id: 0
+Underlay VTEP Loopback Id: 1
+Underlay Routing Protocol Tag: UNDERLAY
+OSPF Area Id: 0.0.0.0
+Generate BGP EVPN Neighbor Description: True
+  
+Advanced:
+  VRF Template: Default_VRF_Universal
+  Network Template: Default_Network_Universal
+  VRF Extension Template: Default_VRF_Extension_Universal
+  Network Extension Template: Default_Network_Extension_Universal
+  Allow L3VNI w/o VLAN: True
+  Site id: 65111
+  Intra Fabric Interface MTU: 9216
+  Layer 2 Host Interface MTU: 9216
+  Unshut Host Interfaces by Default: True
+  Power Supply Mode: redundant
+  CoPP Profile: strict
+  Enable VXLAN OAM: True
+  Enable Tenant DHCP: True
+  Enable NX-API: True
+  NX-API HTTPS Port Number: 443
+  Enable HTTP NX-API: True
+  NX-API HTTP Port Number: 80
+  Enable NDFC as Trap Host: True
+  Greenfield Cleanup Option: True
+  Enable TCAM Allocation: True
+
+Resources:
+  Underlay Routing Loopback IP Range: 10.2.0.0/22
+  Underlay VTEP Loopback IP Range: 10.3.0.0/22
+  Underlay RP Loopback IP Range: 10.254.254.0/24
+  Underlay Subnet IP Range: 10.4.0.0/16
+  Layer 2 VXLAN VNI Range: 30000-49000
+  Layer 3 VXLAN VNI Range: 50000-59000
+  Network VLAN Range: 2300-2999
+  VRF VLAN Range: 2000-2299
+  Subinterface Dot1q Range: 2-511
+  VRF Lite Deployment: Back2Back&ToExternal
+  VRF Lite Subnet IP Range: 10.33.0.0/16
+  VRF Lite Subnet Mask: 30
+  Service Network VLAN Range: 3000-3199
+  Route Map Sequence Number Range: 1-65534
+  Auto Deploy for Peer: True
+
+
