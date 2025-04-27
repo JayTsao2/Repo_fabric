@@ -3,6 +3,8 @@ IP Address: 198.18.4.101
 Role: Leaf
 Serial Number: 9H3NIVJ0I8O
 
+vlan: 20,2300,2301
+
 vPC Pairing: False
 vPC Peer: Site1-L2
 
@@ -10,12 +12,12 @@ Interface:
 
   - Ethernet1/5:
       policy: int_access_host
-      Access Vlan: 
+      Access Vlan: 2300
       Interface Description:
       Enable Interface: True
 
   - Ethernet1/7:
       policy: int_access_host
-      Access Vlan: 
+      Access Vlan: 20
       Interface Description:
       Enable Interface: True

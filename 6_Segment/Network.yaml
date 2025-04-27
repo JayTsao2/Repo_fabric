@@ -25,3 +25,15 @@ Network:
   VLAN Name: bluenet2
   Interface Description: bluenet2
 
+- Network Name: ExternalNetwork
+  Layer 2 Only: True
+  VRF Name: 
+  Network ID: 30002
+  VLAN ID: 20
+  Propose VLAN: False
+  Network Template: Default_Network_Universal
+  Network Extension Template: Default_Network_Extension_Universal
+  IPv4 Gateway/NetMask: 
+  VLAN Name: ExternalNetwork
+  Interface Description: ExternalNetwork
+
