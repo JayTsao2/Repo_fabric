@@ -7,8 +7,15 @@ vPC Pairing: False
 vPC Peer: Site1-L2
 
 Interface:
+
   - Ethernet1/5:
       policy: int_access_host
       Access Vlan: 
       Interface Description:
-      Enable Interface: Trues
+      Enable Interface: True
+
+  - Ethernet1/7:
+      policy: int_access_host
+      Access Vlan: 
+      Interface Description:
+      Enable Interface: True
