@@ -1,10 +1,11 @@
 ---
-Enable BPDU Guard: True
-Enable Port Type Fast: True
-MTU: jumbo
-SPEED: Auto
-Enable Auto-Negotiation: True
-Enable CDP: True
-Enable Error Detection: True
+General Parameter:
+  Enable BPDU Guard: True
+  Enable Port Type Fast: True
+  MTU: jumbo
+  SPEED: Auto
+  Enable Auto-Negotiation: True
+  Enable CDP: True
+  Enable Error Detection: True
 
-Freeform Config: test
+  Freeform Config: test
