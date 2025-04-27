@@ -1,4 +1,10 @@
 ---
+Seed IP: 198.18.4.101
+Username: admin
+Password: C1sco12345!
+Max Hops: 2
+Preserve Config: False
+---
 Fabric:
   name: Site1-Greenfield
   Location: San Jose, US
