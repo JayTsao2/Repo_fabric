@@ -1,0 +1,14 @@
+---
+IP Address: 198.18.4.201
+Role: Leaf
+Serial Number: 9EOFIIDUOAY
+
+vPC Pairing: False
+vPC Peer: 
+
+Interface:
+  - Ethernet1/5:
+      policy: int_access_host
+      Access Vlan: 
+      Interface Description:
+      Enable Interface: Trues
