@@ -1,0 +1,16 @@
+---
+Fabric Group:
+  name: MSD-1
+  type: VXLAN/Multi-Site Domain (MSD)
+
+Child Fabric:
+  Fabric:
+    - Site1-Greenfield
+    - Site2-Brownfield
+  ISN:
+    - ISN
+
+DCI:
+  Multi-Site Overlay IFC Deployment Method: directPeering
+  BGP Neighbor Description on Multi-Site Overlay IFC: True
+  Multi-Site Underlay IFC Auto Deployment Flag: True
