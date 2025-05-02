@@ -11,7 +11,7 @@ Fabric:
   category: Create new LAN fabric
   type: VXLAN
   sub-type: Data Center VXLAN EVPN - iBGP
-  BGP ASN for spines: 65111
+  BGP ASN for spines: 4201550100
   Telemetry Features: false
   Security domain: all
 

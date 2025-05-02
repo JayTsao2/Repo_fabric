@@ -2,6 +2,7 @@
 Fabric Group:
   name: MSD-1
   type: VXLAN/Multi-Site Domain (MSD)
+  version: 12.3
 
 Child Fabric:
   Fabric:

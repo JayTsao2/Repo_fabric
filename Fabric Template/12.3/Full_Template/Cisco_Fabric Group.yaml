@@ -1,0 +1,28 @@
+---
+General Parameter:
+  Layer 2 VXLAN VNI Range: 30000-49000
+  Layer 3 VXLAN VNI Range: 50000-59000
+  VRF Template: Default_VRF_Universal
+  Network Template: Default_Network_Universal
+  VRF Extension Template: Default_VRF_Extension_Universal
+  Network Extension Template: Default_Network_Extension_Universal
+  #(Common) Anycast-Gateway-MAC: 0204.0204.0204
+  Multi-Site VTEP VIP Loopback Id: 100
+  Border Gateway IP TAG: 54321
+
+DCI:
+  Multi-Site Overlay IFC Deployment Method: routeServer
+  #(Common) Multi-Site Route Server List: 192.168.240.1,192.168.240.2,192.168.240.3
+  #(Common) Multi-Site Route Server BGP ASN List: 64999,64999,64999
+  Multi-Site Underlay IFC Auto Deployment Flag: True
+
+Security:
+
+Resources:
+  #(Common) Multi-Site VTEP VIP Loopback IP Range: 192.168.230.0/24
+  #(Common) DCI Subnet IP Range: 192.168.1.0/24
+  #(Common) Subnet Target Mask: 31
+
+Configuration Backup:
+  Scheduled Fabric Backup: True
+  Scheduled Time: 04:00

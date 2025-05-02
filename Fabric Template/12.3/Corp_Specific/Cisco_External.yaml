@@ -3,10 +3,10 @@ Fabric:
   name: 
   Location: 
   category: 
-  type: 
+  type: Multisite & External Connectivity
   sub-type: 
   Overlay routing protocol: iBGP
-  BGP ASN for spines: 
+  #(Common) BGP ASN for spines: 64999
 
   License Tier: Premier
 
@@ -25,6 +25,20 @@ General Parameter:
   Route-Reflectors: 2
   Anycast Gateway MAC: 2020.0000.00aa
   Enable Performance Monitoring: False
+
+Advanced:
+  Power Supply Mode: redundant
+  Enable NDFC as Trap Host: True
+  # Fabric Freeform: Freeform_Fabric
+  # AAA Freeform Config: Freeform_AAA
+
+Resources:
+  Subinterface Dot1q Range: 2-511
+
+Configuration Backup:
+  Hourly Fabric Backup: False
+  # Scheduled Fabric Backup: True
+  # Scheduled Time: 04:00
 
 Replication:
   Replication Mode: ingress

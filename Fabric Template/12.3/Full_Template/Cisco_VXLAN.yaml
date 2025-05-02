@@ -1,0 +1,218 @@
+---
+General:
+  name: # Fabric
+  type: # Fabric
+  Location: # Fabric
+  Overlay routing protocol: # Corp_Specific
+  BGP ASN: # Corp_Specific
+  License Tier: # Corp_Specific
+  Telemetry Features: false
+  Telemetry collection: # Not_Use
+  Telemetry streaming via: # Not_Use
+  Telemetry source interface: # Not_Use
+  Telemetry VRF: # Not_Use
+  Security domain: # Corp_Specific
+
+General Parameter:
+  Enable IPv6 Underlay: # Corp_Specific
+  Enable IPv6 Link-Local Address: # Not_Use
+  Fabric Interface Numbering: # Corp_Specific
+  Underlay Subnet IP Mask: # Corp_Specific
+  Underlay Subnet IPv6 Mask: # Not_Use
+  Underlay Routing Protocol: # Corp_Specific
+  Route-Reflectors: # Corp_Specific
+  Anycast Gateway MAC: # Corp_Specific
+  Enable Performance Monitoring: # Corp_Specific
+
+Replication:
+  Replication Mode: # Corp_Specific
+  Multicast Group Subnet: # Not_Use
+  IPv6 Multicast Group Subnet: # Not_Use
+  Enable IPv4 Tenant Routed Multicast (TRM): # Not_Use
+  Enable IPv6 Tenant Routed Multicast (TRMv6): # Not_Use
+  Default MDT IPv4 Address for TRM VRFs: # Not_Use
+  Default MDT IPv6 Address for TRM VRFs: # Not_Use
+  Rendezvous-Points: # Not_Use
+  RP Mode: # Not_Use
+  Underlay RP Loopback Id: # Not_Use
+  Underlay Primary RP Loopback Id: # Not_Use
+  Underlay Backup RP Loopback Id: # Not_Use
+  Underlay Second Backup RP Loopback Id: # Not_Use
+  Underlay Third Backup RP Loopback Id: # Not_Use
+  MVPN VRI ID Range: # Not_Use
+  Enable MVPN VRI ID Re-allocation: # Not_Use
+
+vPC:
+  vPC Peer Link VLAN Range: # Corp_Specific
+  Make vPC Peer Link VLAN as Native VLAN: # Corp_Specific
+  vPC Peer Keep Alive option: # Corp_Specific
+  vPC Auto Recovery Time (In Seconds): # Corp_Specific
+  vPC Delay Restore Time (In Seconds): # Corp_Specific
+  vPC Peer Link Port Channel ID: # Corp_Specific
+  vPC IPv6 ND Synchronize: # Corp_Specific
+  vPC advertise-pip: # Corp_Specific
+  vPC advertise-pip on Border only: # Corp_Specific
+  Enable the same vPC Domain Id for all vPC Pairs: # Corp_Specific
+  vPC Domain Id: # Not_Use
+  vPC Domain Id Range: # Not_Use
+  (12.3) vPC Layer-3 Peer-Router Option: # Corp_Specific
+  Enable Qos for Fabric vPC-Peering: # Corp_Specific
+  Qos Policy Name: # Not_Use
+  Use Specific vPC/Port-Channel ID Range: # Corp_Specific
+  vPC/Port-Channel ID Range: # Not_Use
+
+
+Protocols:
+  Underlay Routing Loopback Id: # Corp_Specific
+  Underlay VTEP Loopback Id: # Corp_Specific
+  Underlay Anycast Loopback Id: # Not_Use
+  Underlay Routing Protocol Tag: # Corp_Specific
+  OSPF Area Id: # Corp_Specific
+  Enable OSPF Authentication: # Corp_Specific
+  OSPF Authentication Key ID: # Not_Use
+  OSPF Authentication Key: # Not_Use
+  IS-IS Level: # Not_Use
+  IS-IS NET Area Number: # Not_Use
+  Enable IS-IS Network Point-to-Point: # Not_Use
+  Enable IS-IS Authentication: # Not_Use
+  IS-IS Authentication Keychain Name: # Not_Use
+  IS-IS Authentication Key ID: # Not_Use
+  IS-IS Authentication Key: # Not_Use
+  Set IS-IS Overload Bit: # Not_Use
+  IS-IS Overload Bit Elapsed Time: # Not_Use
+  Enable BGP Authentication: # Corp_Specific
+  BGP Authentication Key Encryption Type: # Not_Use
+  BGP Authentication Key: # Not_Use
+  (12.3) Generate BGP EVPN Neighbor Description: # Corp_Specific
+  Enable PIM Hello Authentication: # Not_Use
+  PIM Hello Authentication Key: # Not_Use
+  Enable BFD: # Corp_Specific
+  Enable BFD For iBGP: # Corp_Specific
+  Enable BFD For OSPF: # Corp_Specific
+  Enable BFD For ISIS: # Not_Use
+  Enable BFD For PIM: # Not_Use
+  Enable BFD Authentication: # Corp_Specific
+  iBGP Peer-Template Config:
+    Template: # Corp_Specific
+
+  Leaf/Border/Border Gateway iBGP Peer-Template Config:
+    Template: # Corp_Specific
+
+Security:
+  Enable Security Groups: # Corp_Specific
+  Security Group Name Prefix: # Not_Use
+  Security Group Tag (SGT) ID Range: # Not_Use
+  Security Groups Pre-provision: # Not_Use
+  Enable MACsec: # Corp_Specific
+  MACsec Cipher Suite: # Not_Use
+  MACsec Primary Key String: # Not_Use
+  MACsec Primary Cryptographic Algorithm: # Not_Use
+  MACsec Fallback Key String: # Not_Use
+  MACsec Fallback Cryptographic Algorithm: # Not_Use
+  Enable DCI MACsec: False
+  Enable QKD: # Not_Use
+  DCI MACsec Cipher Suite: # Not_Use
+  DCI MACsec Primary Key String: # Not_Use
+  DCI MACsec Primary Cryptographic Algorithm: # Not_Use
+  DCI MACsec Fallback Key String: # Not_Use
+  DCI MACsec Fallback Cryptographic Algorithm: # Not_Use
+  QKD Profile Name: # Not_Use
+  KME Server IP: # Not_Use
+  KME Server Port Number: # Not_Use
+  Trustpoint Label: # Not_Use
+  Ignore Certificate: # Not_Use
+  MACsec Status Report Timer: # Not_Use
+  
+Advanced:
+  VRF Template: # Corp_Specific
+  Network Template: # Corp_Specific
+  VRF Extension Template: # Corp_Specific
+  Network Extension Template: # Corp_Specific
+  Overlay Mode: # Corp_Specific
+  (12.3) Allow L3VNI w/o VLAN: # Corp_Specific
+  Enable L3VNI w/o VLAN: # Corp_Specific
+  Enable Private VLAN (PVLAN): # Corp_Specific
+  PVLAN Secondary Network Template: # Not_Use
+  Site id: # Fabric
+  Intra Fabric Interface MTU: # Corp_Specific
+  Layer 2 Host Interface MTU: # Corp_Specific
+  Unshut Host Interfaces by Default: # Corp_Specific
+  Power Supply Mode: # Corp_Specific
+  CoPP Profile: # Corp_Specific
+  VTEP HoldDown Time: # Corp_Specific
+  Brownfield Overlay Network Name Format: # Corp_Specific
+  Skip Overlay Network Interface Attachments: # Corp_Specific
+  Enable CDP for Bootstrapped Switch: # Corp_Specific
+  Enable VXLAN OAM: # Corp_Specific
+  Enable Tenant DHCP: # Corp_Specific
+  Enable NX-API: # Corp_Specific
+  NX-API HTTPS Port Number: # Corp_Specific
+  Enable HTTP NX-API: # Corp_Specific
+  NX-API HTTP Port Number: # Corp_Specific
+  Enable L4-L7 Services Re-direction: # Corp_Specific
+  Enable Strict Config Compliance: # Corp_Specific
+  Enable AAA IP Authorization: # Corp_Specific
+  Enable NDFC as Trap Host: # Corp_Specific
+  Anycast Border Gateway advertise-pip: # Corp_Specific
+  Greenfield Cleanup Option: # Corp_Specific
+  Enable Precision Time Protocol (PTP): # Corp_Specific
+  PTP Source Loopback Id: # Not_Use
+  PTP Domain Id: # Not_Use
+  PTP Source VLAN Id: # Not_Use
+  Enable MPLS Handoff: # Corp_Specific
+  Underlay MPLS Loopback Id: # Not_Use
+  IS-IS NET Area Number for MPLS Handoff: # Not_Use
+  Enable TCAM Allocation: # Corp_Specific
+  Enable Default Queuing Policies: # Corp_Specific
+  N9K Cloud Scale Platform Queuing Policy: # Not_Use
+  N9K R-Series Platform Queuing Policy: # Not_Use
+  Other N9K Platform Queuing Policy: # Not_Use
+  Enable AI/ML QoS and Queuing Policies: # Corp_Specific
+  AI/ML QoS & Queuing Policy: # Not_Use
+  Priority flow control watch-dog interval: # Not_Use
+  Enable Real Time Interface Statistics Collection: # Corp_Specific
+  Interface Statistics Load Interval: # Not_Use
+  Spanning Tree Root Bridge Protocol: # Corp_Specific
+  Spanning Tree VLAN Range: # Not_Use
+  MST Instance Range: # Not_Use
+  Spanning Tree Bridge Priority: # Not_Use
+
+Freeform:
+  # Leaf Pre-Interfaces Freeform Config: Freeform_Leaf
+  # Spine Pre-Interfaces Freeform Config: Freeform_Spine
+
+Resources:
+  #(外層) Underlay Routing Loopback IP Range: 192.168.246.0/24
+  #(外層) Underlay VTEP Loopback IP Range: 192.168.236.0/24
+  Underlay RP Loopback IP Range: 
+  #(外層) Underlay Subnet IP Range: 192.168.51.0/24
+  #(Default) Layer 2 VXLAN VNI Range: 30000-49000
+  #(Default) Layer 3 VXLAN VNI Range: 50000-59000
+  #(Default) Network VLAN Range: 2300-2999
+  #(Default) VRF VLAN Range: 2000-2299
+  #(Default) Subinterface Dot1q Range: 2-511
+  #(Default) VRF Lite Deployment: manual
+  #(Default) VRF Lite Subnet IP Range: 10.33.0.0/16
+  #(Default) VRF Lite Subnet Mask: 30
+  #(Default) Service Network VLAN Range: 3000-3199
+  #(Default) Route Map Sequence Number Range: 1-65534
+  #(Default) Auto Deploy for Peer: False
+
+Manageability:
+  # DNS Server IPs: 10.10.1.1,10.10.2.2
+  # DNS Server VRFs: management
+  # NTP Server IPs: 10.11.194.31,10.11.195.31
+  # NTP Server VRFs: management
+  # Syslog Server IPs: 10.70.32.141,10.70.32.147
+  # Syslog Server Severity: 6
+  # Syslog Server VRFs: management
+  # AAA Freeform Config: Freeform_AAA
+  Banner:
+  
+Bootstrap:
+
+# Configuration Backup:
+  # Hourly Fabric Backup: False
+  # Scheduled Fabric Backup: True
+  # Scheduled Time: 04:00
+
