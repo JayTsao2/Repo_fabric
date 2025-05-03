@@ -1,20 +1,7 @@
 ---
-Seed IP: 198.18.4.151
-Username: admin
-Password: C1sco12345!
-Max Hops: 0
-Preserve Config: False
----
 Fabric:
   name: ISN
+  type: Multisite & External Connectivity
   Location: San Jose, US
-  category: Create new LAN fabric
-  type: External and inter-fabric connectivity
-  BGP ASN for spines: 65444
-  Telemetry Features: false
-  Security domain: all
-
-General Parameter:
-  Fabric Monitor Mode: False
 
 

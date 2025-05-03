@@ -1,96 +1,70 @@
 ---
 Fabric:
-  name: 
-  Location: 
-  category: 
-  type: Multisite & External Connectivity
-  sub-type: 
-  Overlay routing protocol: iBGP
-  #(Common) BGP ASN for spines: 64999
-
-  License Tier: Premier
-
-  Telemetry Features: false
-  Telemetry collection: In-band
-  Telemetry streaming via: IPv4
-  Telemetry source interface: loopback0
-  Telemetry VRF: default
-
-  Security domain: all
+  name: # Inter-Site Network
+  type: # Inter-Site Network
+  Location: # Inter-Site Network
+  BGP ASN for spines: # Corp_Specific
+  License Tier: # Corp_Specific
+  Telemetry Features: # Corp_Specific
+  Security domain: # Corp_Specific
+  Telemetry Features: # Corp_Specific
+  Telemetry collection: # Not_Use
+  Telemetry streaming via: # Not_Use
+  Telemetry source interface: # Not_Use
+  Telemetry VRF: # Not_Use
+  Security domain: # Corp_Specific
 
 General Parameter:
-  Fabric Interface Numbering: p2p
-  Underlay Subnet IP Mask: 31
-  Underlay Routing Protocol: ospf
-  Route-Reflectors: 2
-  Anycast Gateway MAC: 2020.0000.00aa
-  Enable Performance Monitoring: False
+  Fabric Monitor Mode: # Corp_Specific
+  Enable Performance Monitoring (For NX-OS and IOS XE Switches Only): # Corp_Specific
 
 Advanced:
-  Power Supply Mode: redundant
-  Enable NDFC as Trap Host: True
-  # Fabric Freeform: Freeform_Fabric
-  # AAA Freeform Config: Freeform_AAA
+  Power Supply Mode: # Corp_Specific
+  Enable MPLS Handoff: # Corp_Specific
+  Underlay MPLS Loopback Id: # Not_Use
+  Enable AAA IP Authorization: # Corp_Specific
+  Enable NDFC as Trap Host: # Corp_Specific
+  Enable CDP for Bootstrapped Switch: # Corp_Specific
+  Enable NX-API: # Corp_Specific
+  NX-API HTTPS Port Number: # Not_Use
+  Enable HTTP NX-API: # Not_Use
+  NX-API HTTP Port Number: # Not_Use
+  Inband Mgmt: # Corp_Specific
+  Enable Precision Time Protocol (PTP): # Corp_Specific
+  PTP Source Loopback Id: # Not_Use
+  PTP Domain Id: # Not_Use
+  Enable Real Time Interface Statistics Collection: # Corp_Specific
+  Interface Statistics Load Interval: # Not_Use
+  Fabric Freeform: 
+    freeform: # Corp_Specific
+  AAA Freeform Config: 
+    Freeform: # Corp_Specific
 
 Resources:
-  Subinterface Dot1q Range: 2-511
+  Subinterface Dot1q Range: # Corp_Specific
+  Underlay MPLS Loopback IP Range: # Not_Use
 
 Configuration Backup:
-  Hourly Fabric Backup: False
-  # Scheduled Fabric Backup: True
-  # Scheduled Time: 04:00
+  Hourly Fabric Backup: # Corp_Specific
+  Scheduled Fabric Backup: # Corp_Specific
+  Scheduled Time: # Corp_Specific
 
-Replication:
-  Replication Mode: ingress
-  Multicast Group Subnet: 239.1.1.0/25
-  Rendezvous-Points: 2
-  RP Mode: asm
-  Underlay RP Loopback Id: 251
+Bootstrap:
+  Enable Bootstrap: # Corp_Specific
+  Enable Inband POAP: # Not_Use
+  Enable Local DHCP Server: # Not_Use
+  Enable Plug n Play for Cat9K: # Not_Use
+  DHCP Version: # Not_Use
+  Domain name: # Not_Use
+  DHCP Scope Start Address: # Not_Use
+  DHCP Scope End Address: # Not_Use
+  Switch Mgmt Default Gateway: # Not_Use
+  Switch Mgmt IP Subnet Prefix: # Not_Use
+  Switch Mgmt IPv6 Subnet Prefix: # Not_Use
+  Enable AAA Config: # Not_Use
+  Bootstrap Freeform Config (NX-OS): # Not_Use
+  Bootstrap Freeform Config (IOS XE): # Not_Use
+  DHCPv4 Multi Subnet Scope: # Not_Use
 
-Protocols:
-Underlay Routing Loopback Id: 0
-Underlay VTEP Loopback Id: 1
-Underlay Routing Protocol Tag: UNDERLAY
-OSPF Area Id: 0.0.0.0
-Generate BGP EVPN Neighbor Description: True
-  
-Advanced:
-  VRF Template: Default_VRF_Universal
-  Network Template: Default_Network_Universal
-  VRF Extension Template: Default_VRF_Extension_Universal
-  Network Extension Template: Default_Network_Extension_Universal
-  Allow L3VNI w/o VLAN: True
-  Site id: 65111
-  Intra Fabric Interface MTU: 9216
-  Layer 2 Host Interface MTU: 9216
-  Unshut Host Interfaces by Default: True
-  Power Supply Mode: redundant
-  CoPP Profile: strict
-  Enable VXLAN OAM: True
-  Enable Tenant DHCP: True
-  Enable NX-API: True
-  NX-API HTTPS Port Number: 443
-  Enable HTTP NX-API: True
-  NX-API HTTP Port Number: 80
-  Enable NDFC as Trap Host: True
-  Greenfield Cleanup Option: True
-  Enable TCAM Allocation: True
-
-Resources:
-  Underlay Routing Loopback IP Range: 10.2.0.0/22
-  Underlay VTEP Loopback IP Range: 10.3.0.0/22
-  Underlay RP Loopback IP Range: 10.254.254.0/24
-  Underlay Subnet IP Range: 10.4.0.0/16
-  Layer 2 VXLAN VNI Range: 30000-49000
-  Layer 3 VXLAN VNI Range: 50000-59000
-  Network VLAN Range: 2300-2999
-  VRF VLAN Range: 2000-2299
-  Subinterface Dot1q Range: 2-511
-  VRF Lite Deployment: Back2Back&ToExternal
-  VRF Lite Subnet IP Range: 10.33.0.0/16
-  VRF Lite Subnet Mask: 30
-  Service Network VLAN Range: 3000-3199
-  Route Map Sequence Number Range: 1-65534
-  Auto Deploy for Peer: True
-
-
+Flow Monitor:
+  Enable Netflow: # Corp_Specific  
