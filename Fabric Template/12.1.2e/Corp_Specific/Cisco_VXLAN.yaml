@@ -84,7 +84,6 @@ Advanced:
   VRF Extension Template: Default_VRF_Extension_Universal
   Network Extension Template: Default_Network_Extension_Universal
   Overlay Mode: cli
-  
   Enable Private VLAN (PVLAN): False
   PVLAN Secondary Network Template: # Not_Use
   Site id: # Corp_Specific
@@ -100,10 +99,8 @@ Advanced:
   Enable VXLAN OAM: True
   Enable Tenant DHCP: True
   Enable NX-API: True
-  NX-API HTTPS Port Number: 443
-  Enable HTTP NX-API: True
-  NX-API HTTP Port Number: 80
-  Enable L4-L7 Services Re-direction: False
+  Enable NX-API on HTTP Port: True
+  Enable Policy-Based Routing (PBR): False
   Enable Strict Config Compliance: False
   Enable AAA IP Authorization: False
   Enable NDFC as Trap Host: True
@@ -112,47 +109,43 @@ Advanced:
   Enable Precision Time Protocol (PTP): False
   PTP Source Loopback Id: # Not_Use
   PTP Domain Id: # Not_Use
-  PTP Source VLAN Id: # Not_Use
   Enable MPLS Handoff: False
   Underlay MPLS Loopback Id: # Not_Use
-  IS-IS NET Area Number for MPLS Handoff: # Not_Use
   Enable TCAM Allocation: True
   Enable Default Queuing Policies: False
   N9K Cloud Scale Platform Queuing Policy: # Not_Use
   N9K R-Series Platform Queuing Policy: # Not_Use
   Other N9K Platform Queuing Policy: # Not_Use
-  Enable AI/ML QoS and Queuing Policies: False
-  AI/ML QoS & Queuing Policy: # Not_Use
-  Priority flow control watch-dog interval: # Not_Use
-  Enable Real Time Interface Statistics Collection: False
-  Interface Statistics Load Interval: # Not_Use
+  Enable MACsec: False
+  MACsec Primary Key String: # Not_Use
+  MACsec Primary Cryptographic Algorithm: # Not_Use
+  MACsec Fallback Key String: # Not_Use
+  MACsec Fallback Cryptographic Algorithm: # Not_Use
+  MACsec Cipher Suite: # Not_Use
+  MACsec Status Report Timer: # Not_Use
   Spanning Tree Root Bridge Protocol: unmanaged
   Spanning Tree VLAN Range: # Not_Use
   MST Instance Range: # Not_Use
   Spanning Tree Bridge Priority: # Not_Use
-
-Freeform:
-  Leaf Pre-Interfaces Freeform Config: 
-    Freeform: Freeform_Leaf_Pre-Int
-  Spine Pre-Interfaces Freeform Config: 
-    Freeform: Freeform_Spine_Pre-Int
-  ToR Pre-Interfaces Freeform Config: # Not_Use
-  Leaf Post-Interfaces Freeform Config: # Not_Use
-  Spine Post-Interfaces Freeform Config: # Not_Use
-  ToR Post-Interfaces Freeform Config: # Not_Use
-  Intra-fabric Links Additional Config: # Not_Use
+  Leaf Freeform Config: 
+    Freeform: Freeform_Leaf
+  Spine Freeform Config: 
+    Freeform: Freeform_Spine
+  ToR Freeform Config: 
+    Freeform: # Not_Use
+  Intra-fabric Links Additional Config: 
+    Freeform: # Not_Use
 
 Resources:
   Manual Underlay IP Address Allocation: False
   Underlay Routing Loopback IP Range: # Fabric
   Underlay VTEP Loopback IP Range: # Fabric
-  Underlay RP Loopback IP Range: 10.254.254.0/24
+  Underlay RP Loopback IP Range: # Not_Use
   Underlay Subnet IP Range: # Fabric
   Underlay MPLS Loopback IP Range: # Not_Use
   Underlay Routing Loopback IPv6 Range: # Not_Use
   Underlay VTEP Loopback IPv6 Range: # Not_Use
   Underlay Subnet IPv6 Range: # Not_Use
-  Underlay RP Loopback IPv6 Range: # Not_Use
   BGP Router ID Range for IPv6 Underlay: # Not_Use
   Layer 2 VXLAN VNI Range: 30000-49000
   Layer 3 VXLAN VNI Range: 50000-59000
@@ -166,11 +159,6 @@ Resources:
   Redistribute BGP Route-map Name: # Not_Use
   VRF Lite Subnet IP Range: 10.33.0.0/16
   VRF Lite Subnet Mask: 30
-  Auto Allocation of Unique IP on VRF Extension over VRF Lite IFC: False
-  Per VRF Per VTEP Loopback IPv4 Auto-Provisioning: False
-  Per VRF Per VTEP IPv6 Pool for Loopbacks: # Not_Use
-  Service Level Agreement (SLA) ID Range: 10000-19999
-  Tracked Object ID Range: 100-299
   Service Network VLAN Range: 3000-3199
   Route Map Sequence Number Range: 1-65534
 
@@ -185,8 +173,6 @@ Manageability:
   Syslog Server VRFs: management
   AAA Freeform Config: 
     Freeform: Freeform_AAA
-  Banner: 
-    Freeform: Banner
   
 Bootstrap:
   Enable Bootstrap: False
@@ -196,7 +182,6 @@ Bootstrap:
   DHCP Scope End Address: # Not_Use
   Switch Mgmt Default Gateway: # Not_Use
   Switch Mgmt IP Subnet Prefix: # Not_Use
-  Switch Mgmt IPv6 Subnet Prefix: # Not_Use
   DHCPv4 Multi Subnet Scope: # Not_Use
   Seed Switch Fabric Interfaces: # Not_Use
   Spine Switch Fabric Interfaces: # Not_Use
@@ -205,7 +190,8 @@ Bootstrap:
   Switch Loopback DHCP Scope Start Address: # Not_Use
   Switch Loopback DHCP Scope End Address: # Not_Use
   Enable AAA Config: # Not_Use
-  Bootstrap Freeform Config: # Not_Use
+  Bootstrap Freeform Config: 
+    Freeform: # Not_Use
 
 Configuration Backup:
   Hourly Fabric Backup: False

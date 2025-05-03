@@ -192,7 +192,7 @@ Resources:
   Manual Underlay IP Address Allocation: False
   Underlay Routing Loopback IP Range: # Fabric
   Underlay VTEP Loopback IP Range: # Fabric
-  Underlay RP Loopback IP Range: 10.254.254.0/24
+  Underlay RP Loopback IP Range: # Not_Use
   Underlay Subnet IP Range: # Fabric
   Underlay MPLS Loopback IP Range: # Not_Use
   Underlay Routing Loopback IPv6 Range: # Not_Use
