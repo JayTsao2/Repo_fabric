@@ -54,7 +54,7 @@ vPC:
   vPC advertise-pip on Border only: # Corp_Specific
   Enable the same vPC Domain Id for all vPC Pairs: # Corp_Specific
   vPC Domain Id: # Not_Use
-  vPC Domain Id Range: # Not_Use
+  vPC Domain Id Range: # Corp_Specific
   vPC Layer-3 Peer-Router Option: # Corp_Specific
   Enable Qos for Fabric vPC-Peering: # Corp_Specific
   Qos Policy Name: # Not_Use
@@ -91,6 +91,8 @@ Protocols:
   Enable BFD For ISIS: # Not_Use
   Enable BFD For PIM: # Not_Use
   Enable BFD Authentication: # Corp_Specific
+  BFD Authentication Key ID: # Not_Use
+  BFD Authentication Key: # Not_Use
   iBGP Peer-Template Config:
     Template: # Corp_Specific
   Leaf/Border/Border Gateway iBGP Peer-Template Config:

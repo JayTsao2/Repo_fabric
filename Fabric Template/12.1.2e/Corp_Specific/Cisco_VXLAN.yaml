@@ -2,18 +2,9 @@
 Fabric:
   name: # Fabric
   type: # Fabric
-  Location: # Fabric
-  Overlay routing protocol: iBGP
-  BGP ASN: 64999
-  License Tier: Premier
-  Telemetry Features: false
-  Telemetry collection: # Not_Use
-  Telemetry streaming via: # Not_Use
-  Telemetry source interface: # Not_Use
-  Telemetry VRF: # Not_Use
-  Security domain: all
 
 General Parameter:
+  BGP ASN: 64999
   Enable IPv6 Underlay: False
   Enable IPv6 Link-Local Address: # Not_Use
   Fabric Interface Numbering: p2p
@@ -27,11 +18,8 @@ General Parameter:
 Replication:
   Replication Mode: ingress
   Multicast Group Subnet: # Not_Use
-  IPv6 Multicast Group Subnet: # Not_Use
-  Enable IPv4 Tenant Routed Multicast (TRM): # Not_Use
-  Enable IPv6 Tenant Routed Multicast (TRMv6): # Not_Use
-  Default MDT IPv4 Address for TRM VRFs: # Not_Use
-  Default MDT IPv6 Address for TRM VRFs: # Not_Use
+  Enable Tenant Routed Multicast (TRM): # Not_Use
+  Default MDT Address for TRM VRFs: # Not_Use
   Rendezvous-Points: # Not_Use
   RP Mode: # Not_Use
   Underlay RP Loopback Id: # Not_Use
@@ -39,8 +27,6 @@ Replication:
   Underlay Backup RP Loopback Id: # Not_Use
   Underlay Second Backup RP Loopback Id: # Not_Use
   Underlay Third Backup RP Loopback Id: # Not_Use
-  MVPN VRI ID Range: # Not_Use
-  Enable MVPN VRI ID Re-allocation: # Not_Use
 
 vPC:
   vPC Peer Link VLAN Range: 3899
@@ -51,14 +37,11 @@ vPC:
   vPC Peer Link Port Channel ID: 1
   vPC IPv6 ND Synchronize: True
   vPC advertise-pip: True
-  vPC advertise-pip on Border only: False
   Enable the same vPC Domain Id for all vPC Pairs: False
   vPC Domain Id: # Not_Use
-  vPC Domain Id Range: # Not_Use
+  vPC Domain Id Range: 1-1000
   Enable Qos for Fabric vPC-Peering: False
   Qos Policy Name: # Not_Use
-  Use Specific vPC/Port-Channel ID Range: False
-  vPC/Port-Channel ID Range: # Not_Use
 
 Protocols:
   Underlay Routing Loopback Id: 1
@@ -70,7 +53,6 @@ Protocols:
   OSPF Authentication Key ID: # Not_Use
   OSPF Authentication Key: # Not_Use
   IS-IS Level: # Not_Use
-  IS-IS NET Area Number: # Not_Use
   Enable IS-IS Network Point-to-Point: # Not_Use
   Enable IS-IS Authentication: # Not_Use
   IS-IS Authentication Keychain Name: # Not_Use
@@ -89,35 +71,12 @@ Protocols:
   Enable BFD For ISIS: # Not_Use
   Enable BFD For PIM: # Not_Use
   Enable BFD Authentication: False
+  BFD Authentication Key ID: # Not_Use
+  BFD Authentication Key: # Not_Use
   iBGP Peer-Template Config:
     Template: iBGP-PEER-Template
   Leaf/Border/Border Gateway iBGP Peer-Template Config:
     Template: Leaf_Border_Border Gateyway_iBGP-PEER-Template
-
-Security:
-  Enable Security Groups: False
-  Security Group Name Prefix: # Not_Use
-  Security Group Tag (SGT) ID Range: # Not_Use
-  Security Groups Pre-provision: # Not_Use
-  Enable MACsec: False
-  MACsec Cipher Suite: # Not_Use
-  MACsec Primary Key String: # Not_Use
-  MACsec Primary Cryptographic Algorithm: # Not_Use
-  MACsec Fallback Key String: # Not_Use
-  MACsec Fallback Cryptographic Algorithm: # Not_Use
-  Enable DCI MACsec: False
-  Enable QKD: # Not_Use
-  DCI MACsec Cipher Suite: # Not_Use
-  DCI MACsec Primary Key String: # Not_Use
-  DCI MACsec Primary Cryptographic Algorithm: # Not_Use
-  DCI MACsec Fallback Key String: # Not_Use
-  DCI MACsec Fallback Cryptographic Algorithm: # Not_Use
-  QKD Profile Name: # Not_Use
-  KME Server IP: # Not_Use
-  KME Server Port Number: # Not_Use
-  Trustpoint Label: # Not_Use
-  Ignore Certificate: # Not_Use
-  MACsec Status Report Timer: # Not_Use
   
 Advanced:
   VRF Template: Default_VRF_Universal
@@ -125,14 +84,14 @@ Advanced:
   VRF Extension Template: Default_VRF_Extension_Universal
   Network Extension Template: Default_Network_Extension_Universal
   Overlay Mode: cli
-  Enable L3VNI w/o VLAN: False
+  
   Enable Private VLAN (PVLAN): False
   PVLAN Secondary Network Template: # Not_Use
-  Site id: # Fabric
+  Site id: # Corp_Specific
   Intra Fabric Interface MTU: 9100
   Layer 2 Host Interface MTU: 9216
   Unshut Host Interfaces by Default: True
-  Power Supply Mode: redundant
+  Power Supply Mode: ps-redundant
   CoPP Profile: strict
   VTEP HoldDown Time: 180
   Brownfield Overlay Network Name Format: Auto_Net_VNI$$VNI$$_VLAN$$VLAN_ID$$
