@@ -1,5 +1,5 @@
 ---
-General:
+Fabric:
   name: # Fabric
   type: # Fabric
   Location: # Fabric
@@ -61,7 +61,6 @@ vPC:
   Use Specific vPC/Port-Channel ID Range: # Corp_Specific
   vPC/Port-Channel ID Range: # Not_Use
 
-
 Protocols:
   Underlay Routing Loopback Id: # Corp_Specific
   Underlay VTEP Loopback Id: # Corp_Specific
@@ -94,7 +93,6 @@ Protocols:
   Enable BFD Authentication: # Corp_Specific
   iBGP Peer-Template Config:
     Template: # Corp_Specific
-
   Leaf/Border/Border Gateway iBGP Peer-Template Config:
     Template: # Corp_Specific
 
@@ -178,41 +176,87 @@ Advanced:
   Spanning Tree Bridge Priority: # Not_Use
 
 Freeform:
-  # Leaf Pre-Interfaces Freeform Config: Freeform_Leaf
-  # Spine Pre-Interfaces Freeform Config: Freeform_Spine
+  Leaf Pre-Interfaces Freeform Config: 
+    Freeform: # Corp_Specific
+  Spine Pre-Interfaces Freeform Config: 
+    Freeform: # Corp_Specific
+  ToR Pre-Interfaces Freeform Config: # Not_Use
+  Leaf Post-Interfaces Freeform Config: # Not_Use
+  Spine Post-Interfaces Freeform Config: # Not_Use
+  ToR Post-Interfaces Freeform Config: # Not_Use
+  Intra-fabric Links Additional Config: # Not_Use
 
 Resources:
-  #(外層) Underlay Routing Loopback IP Range: 192.168.246.0/24
-  #(外層) Underlay VTEP Loopback IP Range: 192.168.236.0/24
-  Underlay RP Loopback IP Range: 
-  #(外層) Underlay Subnet IP Range: 192.168.51.0/24
-  #(Default) Layer 2 VXLAN VNI Range: 30000-49000
-  #(Default) Layer 3 VXLAN VNI Range: 50000-59000
-  #(Default) Network VLAN Range: 2300-2999
-  #(Default) VRF VLAN Range: 2000-2299
-  #(Default) Subinterface Dot1q Range: 2-511
-  #(Default) VRF Lite Deployment: manual
-  #(Default) VRF Lite Subnet IP Range: 10.33.0.0/16
-  #(Default) VRF Lite Subnet Mask: 30
-  #(Default) Service Network VLAN Range: 3000-3199
-  #(Default) Route Map Sequence Number Range: 1-65534
-  #(Default) Auto Deploy for Peer: False
+  Manual Underlay IP Address Allocation: # Corp_Specific
+  Underlay Routing Loopback IP Range: # Fabric
+  Underlay VTEP Loopback IP Range: # Fabric
+  Underlay RP Loopback IP Range: # Corp_Specific
+  Underlay Subnet IP Range: # Fabric
+  Underlay MPLS Loopback IP Range: # Not_Use
+  Underlay Routing Loopback IPv6 Range: # Not_Use
+  Underlay VTEP Loopback IPv6 Range: # Not_Use
+  Underlay Subnet IPv6 Range: # Not_Use
+  Underlay RP Loopback IPv6 Range: # Not_Use
+  BGP Router ID Range for IPv6 Underlay: # Not_Use
+  Layer 2 VXLAN VNI Range: # Corp_Specific
+  Layer 3 VXLAN VNI Range: # Corp_Specific
+  Network VLAN Range: # Corp_Specific
+  VRF VLAN Range: # Corp_Specific
+  Subinterface Dot1q Range: # Corp_Specific
+  VRF Lite Deployment: # Corp_Specific
+  Auto Deploy for Peer: # Corp_Specific
+  Auto Deploy Default VRF: # Corp_Specific
+  Auto Deploy Default VRF for Peer: # Not_Use
+  Redistribute BGP Route-map Name: # Not_Use
+  VRF Lite Subnet IP Range: # Corp_Specific
+  VRF Lite Subnet Mask: # Corp_Specific
+  Auto Allocation of Unique IP on VRF Extension over VRF Lite IFC: # Corp_Specific
+  Per VRF Per VTEP Loopback IPv4 Auto-Provisioning: # Corp_Specific
+  Per VRF Per VTEP IPv6 Pool for Loopbacks: # Not_Use
+  Service Level Agreement (SLA) ID Range: # Corp_Specific
+  Tracked Object ID Range: # Corp_Specific
+  Service Network VLAN Range: # Corp_Specific
+  Route Map Sequence Number Range: # Corp_Specific
 
 Manageability:
-  # DNS Server IPs: 10.10.1.1,10.10.2.2
-  # DNS Server VRFs: management
-  # NTP Server IPs: 10.11.194.31,10.11.195.31
-  # NTP Server VRFs: management
-  # Syslog Server IPs: 10.70.32.141,10.70.32.147
-  # Syslog Server Severity: 6
-  # Syslog Server VRFs: management
-  # AAA Freeform Config: Freeform_AAA
-  Banner:
+  Inband Management: # Corp_Specific
+  DNS Server IPs: # Corp_Specific
+  DNS Server VRFs: # Corp_Specific
+  NTP Server IPs: # Fabric
+  NTP Server VRFs: # Corp_Specific
+  Syslog Server IPs: # Fabric
+  Syslog Server Severity: # Corp_Specific
+  Syslog Server VRFs: # Corp_Specific
+  AAA Freeform Config: 
+    Freeform: # Corp_Specific
+  Banner: 
+    Freeform: # Corp_Specific
   
 Bootstrap:
+  Enable Bootstrap: False
+  Enable Local DHCP Server: # Not_Use
+  DHCP Version: # Not_Use
+  DHCP Scope Start Address: # Not_Use
+  DHCP Scope End Address: # Not_Use
+  Switch Mgmt Default Gateway: # Not_Use
+  Switch Mgmt IP Subnet Prefix: # Not_Use
+  Switch Mgmt IPv6 Subnet Prefix: # Not_Use
+  DHCPv4 Multi Subnet Scope: # Not_Use
+  Seed Switch Fabric Interfaces: # Not_Use
+  Spine Switch Fabric Interfaces: # Not_Use
+  External DHCP Server IP Addresses: # Not_Use
+  Bootstrap Seed Switch Loopback Interface ID: # Not_Use
+  Switch Loopback DHCP Scope Start Address: # Not_Use
+  Switch Loopback DHCP Scope End Address: # Not_Use
+  Enable AAA Config: # Not_Use
+  Bootstrap Freeform Config: # Not_Use
 
-# Configuration Backup:
-  # Hourly Fabric Backup: False
-  # Scheduled Fabric Backup: True
-  # Scheduled Time: 04:00
+Configuration Backup:
+  Hourly Fabric Backup: # Corp_Specific
+  Scheduled Fabric Backup: # Corp_Specific
+  Scheduled Time: # Corp_Specific
+
+Flow Monitor:
+  Enable Netflow: # Corp_Specific
+
 
