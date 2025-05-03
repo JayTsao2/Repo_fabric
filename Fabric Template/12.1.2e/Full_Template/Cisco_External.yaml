@@ -2,19 +2,9 @@
 Fabric:
   name: # Inter-Site Network
   type: # Inter-Site Network
-  Location: # Inter-Site Network
-  BGP ASN for spines: # Corp_Specific
-  License Tier: # Corp_Specific
-  Telemetry Features: # Corp_Specific
-  Security domain: # Corp_Specific
-  Telemetry Features: # Corp_Specific
-  Telemetry collection: # Not_Use
-  Telemetry streaming via: # Not_Use
-  Telemetry source interface: # Not_Use
-  Telemetry VRF: # Not_Use
-  Security domain: # Corp_Specific
 
 General Parameter:
+  BGP ASN for spines: # Corp_Specific
   Fabric Monitor Mode: # Corp_Specific
   Enable Performance Monitoring (For NX-OS and IOS XE Switches Only): # Corp_Specific
 
@@ -26,15 +16,11 @@ Advanced:
   Enable NDFC as Trap Host: # Corp_Specific
   Enable CDP for Bootstrapped Switch: # Corp_Specific
   Enable NX-API: # Corp_Specific
-  NX-API HTTPS Port Number: # Not_Use
-  Enable HTTP NX-API: # Not_Use
-  NX-API HTTP Port Number: # Not_Use
+  Enable NX-API on HTTP port: # Not_Use
   Inband Mgmt: # Corp_Specific
   Enable Precision Time Protocol (PTP): # Corp_Specific
   PTP Source Loopback Id: # Not_Use
   PTP Domain Id: # Not_Use
-  Enable Real Time Interface Statistics Collection: # Corp_Specific
-  Interface Statistics Load Interval: # Not_Use
   Fabric Freeform: 
     freeform: # Corp_Specific
   AAA Freeform Config: 
@@ -50,10 +36,9 @@ Configuration Backup:
   Scheduled Time: # Corp_Specific
 
 Bootstrap:
-  Enable Bootstrap: # Corp_Specific
+  Enable Bootstrap (For NX-OS Switches Only): # Corp_Specific
   Enable Inband POAP: # Not_Use
   Enable Local DHCP Server: # Not_Use
-  Enable Plug n Play for Cat9K: # Not_Use
   DHCP Version: # Not_Use
   Domain name: # Not_Use
   DHCP Scope Start Address: # Not_Use
