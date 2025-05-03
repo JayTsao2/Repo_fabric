@@ -40,15 +40,13 @@ Bootstrap:
   Enable Inband POAP: # Not_Use
   Enable Local DHCP Server: # Not_Use
   DHCP Version: # Not_Use
-  Domain name: # Not_Use
   DHCP Scope Start Address: # Not_Use
   DHCP Scope End Address: # Not_Use
   Switch Mgmt Default Gateway: # Not_Use
   Switch Mgmt IP Subnet Prefix: # Not_Use
-  Switch Mgmt IPv6 Subnet Prefix: # Not_Use
   Enable AAA Config: # Not_Use
-  Bootstrap Freeform Config (NX-OS): # Not_Use
-  Bootstrap Freeform Config (IOS XE): # Not_Use
+  Bootstrap Freeform Config : 
+    Freeform: # Not_Use
   DHCPv4 Multi Subnet Scope: # Not_Use
 
 Flow Monitor:
