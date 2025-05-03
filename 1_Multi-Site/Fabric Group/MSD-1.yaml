@@ -13,11 +13,5 @@ Child Fabric:
     - ISN
 
 DCI:
-  Multi-Site Overlay IFC Deployment Method: directPeering
-  BGP Neighbor Description on Multi-Site Overlay IFC: True
-  Multi-Site Underlay IFC Auto Deployment Flag: True
-
-DCI:
-  Multi-Site Overlay IFC Deployment Method: routeServer
   Multi-Site Route Server List: 192.168.240.1,192.168.240.2,192.168.240.3
   Multi-Site Route Server BGP ASN List: 64999,64999,64999

@@ -1,0 +1,70 @@
+---
+Fabric:
+  name: # Inter-Site Network
+  type: # Inter-Site Network
+  Location: # Inter-Site Network
+  BGP ASN for spines: 64999
+  License Tier: Premier
+  Telemetry Features: false
+  Security domain: all
+  Telemetry Features: false
+  Telemetry collection: # Not_Use
+  Telemetry streaming via: # Not_Use
+  Telemetry source interface: # Not_Use
+  Telemetry VRF: # Not_Use
+  Security domain: all
+
+General Parameter:
+  Fabric Monitor Mode: False
+  Enable Performance Monitoring (For NX-OS and IOS XE Switches Only): False
+
+Advanced:
+  Power Supply Mode: redundant
+  Enable MPLS Handoff: False
+  Underlay MPLS Loopback Id: # Not_Use
+  Enable AAA IP Authorization: False
+  Enable NDFC as Trap Host: True
+  Enable CDP for Bootstrapped Switch: False
+  Enable NX-API: False
+  NX-API HTTPS Port Number: # Not_Use
+  Enable HTTP NX-API: # Not_Use
+  NX-API HTTP Port Number: # Not_Use
+  Inband Mgmt: False
+  Enable Precision Time Protocol (PTP): False
+  PTP Source Loopback Id: # Not_Use
+  PTP Domain Id: # Not_Use
+  Enable Real Time Interface Statistics Collection: False
+  Interface Statistics Load Interval: # Not_Use
+  Fabric Freeform: 
+    freeform: Freeform_Fabric
+  AAA Freeform Config: 
+    Freeform: Freeform_AAA
+
+Resources:
+  Subinterface Dot1q Range: 2-511
+  Underlay MPLS Loopback IP Range: # Not_Use
+
+Configuration Backup:
+  Hourly Fabric Backup: False
+  Scheduled Fabric Backup: True
+  Scheduled Time: 04:00
+
+Bootstrap:
+  Enable Bootstrap: False
+  Enable Inband POAP: # Not_Use
+  Enable Local DHCP Server: # Not_Use
+  Enable Plug n Play for Cat9K: # Not_Use
+  DHCP Version: # Not_Use
+  Domain name: # Not_Use
+  DHCP Scope Start Address: # Not_Use
+  DHCP Scope End Address: # Not_Use
+  Switch Mgmt Default Gateway: # Not_Use
+  Switch Mgmt IP Subnet Prefix: # Not_Use
+  Switch Mgmt IPv6 Subnet Prefix: # Not_Use
+  Enable AAA Config: # Not_Use
+  Bootstrap Freeform Config (NX-OS): # Not_Use
+  Bootstrap Freeform Config (IOS XE): # Not_Use
+  DHCPv4 Multi Subnet Scope: # Not_Use
+
+Flow Monitor:
+  Enable Netflow: False  

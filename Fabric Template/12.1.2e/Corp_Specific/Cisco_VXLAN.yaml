@@ -55,7 +55,6 @@ vPC:
   Enable the same vPC Domain Id for all vPC Pairs: False
   vPC Domain Id: # Not_Use
   vPC Domain Id Range: # Not_Use
-  vPC Layer-3 Peer-Router Option: True
   Enable Qos for Fabric vPC-Peering: False
   Qos Policy Name: # Not_Use
   Use Specific vPC/Port-Channel ID Range: False
@@ -82,7 +81,6 @@ Protocols:
   Enable BGP Authentication: False
   BGP Authentication Key Encryption Type: # Not_Use
   BGP Authentication Key: # Not_Use
-  Generate BGP EVPN Neighbor Description: True
   Enable PIM Hello Authentication: # Not_Use
   PIM Hello Authentication Key: # Not_Use
   Enable BFD: True
@@ -127,7 +125,6 @@ Advanced:
   VRF Extension Template: Default_VRF_Extension_Universal
   Network Extension Template: Default_Network_Extension_Universal
   Overlay Mode: cli
-  Allow L3VNI w/o VLAN: True
   Enable L3VNI w/o VLAN: False
   Enable Private VLAN (PVLAN): False
   PVLAN Secondary Network Template: # Not_Use

@@ -55,7 +55,7 @@ vPC:
   Enable the same vPC Domain Id for all vPC Pairs: # Corp_Specific
   vPC Domain Id: # Not_Use
   vPC Domain Id Range: # Not_Use
-  (12.3) vPC Layer-3 Peer-Router Option: # Corp_Specific
+  vPC Layer-3 Peer-Router Option: # Corp_Specific
   Enable Qos for Fabric vPC-Peering: # Corp_Specific
   Qos Policy Name: # Not_Use
   Use Specific vPC/Port-Channel ID Range: # Corp_Specific
@@ -82,7 +82,7 @@ Protocols:
   Enable BGP Authentication: # Corp_Specific
   BGP Authentication Key Encryption Type: # Not_Use
   BGP Authentication Key: # Not_Use
-  (12.3) Generate BGP EVPN Neighbor Description: # Corp_Specific
+  Generate BGP EVPN Neighbor Description: # Corp_Specific
   Enable PIM Hello Authentication: # Not_Use
   PIM Hello Authentication Key: # Not_Use
   Enable BFD: # Corp_Specific
@@ -127,7 +127,7 @@ Advanced:
   VRF Extension Template: # Corp_Specific
   Network Extension Template: # Corp_Specific
   Overlay Mode: # Corp_Specific
-  (12.3) Allow L3VNI w/o VLAN: # Corp_Specific
+  Allow L3VNI w/o VLAN: # Corp_Specific
   Enable L3VNI w/o VLAN: # Corp_Specific
   Enable Private VLAN (PVLAN): # Corp_Specific
   PVLAN Secondary Network Template: # Not_Use
