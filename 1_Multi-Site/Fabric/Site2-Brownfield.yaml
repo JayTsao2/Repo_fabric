@@ -1,35 +1,15 @@
 ---
-Seed IP: 198.18.4.201
-Username: admin
-Password: C1sco12345!
-Max Hops: 2
-Preserve Config: False
----
 Fabric:
   name: Site2-Brownfield
-  Location: San Jose, US
-  category: Onboard existing LAN fabric
   type: VXLAN
-  sub-type: Enhanced Data Center
-  BGP ASN for spines: 65222
-  Telemetry Features: false
-  Security domain: all
-
-General Parameter:
-  Underlay Subnet IP Mask: 31
-
-Replication:
-  Underlay RP Loopback Id: 252
-
-Protocols:
-  
-Advanced:
-  Greenfield Cleanup Option: True
+  Location: San Jose, US
 
 Resources:
-  Underlay Routing Loopback IP Range: 10.22.0.0/22
-  Underlay VTEP Loopback IP Range: 10.222.0.0/22
-  Underlay RP Loopback IP Range: 10.252.254.0/24
-  Underlay Subnet IP Range: 10.2.0.0/16
-  VRF Lite Subnet IP Range: 20.33.0.0/16
+  Underlay Routing Loopback IP Range: 192.168.246.0/24
+  Underlay VTEP Loopback IP Range: 192.168.236.0/24
+  Underlay Subnet IP Range: 192.168.51.0/24
+
+Manageability:
+  NTP Server IPs: 10.11.194.31,10.11.195.31
+  Syslog Server IPs: 10.70.32.141,10.70.32.147
 
