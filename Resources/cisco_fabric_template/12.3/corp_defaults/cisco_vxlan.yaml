@@ -94,9 +94,9 @@ Protocols:
   BFD Authentication Key ID: # unused
   BFD Authentication Key: # unused
   iBGP Peer-Template Config:
-    Template: iBGP-PEER-Template
+    Template: iBGP Peer-Template Config
   Leaf/Border/Border Gateway iBGP Peer-Template Config:
-    Template: Leaf_Border_Border Gateyway_iBGP-PEER-Template
+    Template: Leaf_Border_Border Gateway iBGP Peer-Template Config
 
 Security:
   Enable Security Groups: False
