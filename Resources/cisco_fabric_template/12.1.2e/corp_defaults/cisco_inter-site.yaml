@@ -22,9 +22,9 @@ Advanced:
   PTP Source Loopback Id: # unused
   PTP Domain Id: # unused
   Fabric Freeform: 
-    freeform: Freeform_Fabric
+    freeform: Fabric Freeform
   AAA Freeform Config: 
-    Freeform: Freeform_AAA
+    Freeform: AAA Freeform Config
 
 Resources:
   Subinterface Dot1q Range: 2-511

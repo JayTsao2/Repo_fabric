@@ -36,9 +36,9 @@ Advanced:
   Enable Real Time Interface Statistics Collection: False
   Interface Statistics Load Interval: # unused
   Fabric Freeform: 
-    freeform: Freeform_Fabric
+    freeform: Fabric Freeform
   AAA Freeform Config: 
-    Freeform: Freeform_AAA
+    Freeform: AAA Freeform Config
 
 Resources:
   Subinterface Dot1q Range: 2-511
