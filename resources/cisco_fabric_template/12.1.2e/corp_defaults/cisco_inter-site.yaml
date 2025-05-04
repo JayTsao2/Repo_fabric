@@ -1,0 +1,53 @@
+---
+Fabric:
+  name: # Inter-Site Network
+  type: # Inter-Site Network
+
+General Parameter:
+  BGP ASN for spines: 64999
+  Fabric Monitor Mode: False
+  Enable Performance Monitoring (For NX-OS and IOS XE Switches Only): False
+
+Advanced:
+  Power Supply Mode: ps-redundant
+  Enable MPLS Handoff: False
+  Underlay MPLS Loopback Id: # unused
+  Enable AAA IP Authorization: False
+  Enable NDFC as Trap Host: True
+  Enable CDP for Bootstrapped Switch: False
+  Enable NX-API: False
+  Enable NX-API on HTTP port: # unused
+  Inband Mgmt: False
+  Enable Precision Time Protocol (PTP): False
+  PTP Source Loopback Id: # unused
+  PTP Domain Id: # unused
+  Fabric Freeform: 
+    freeform: Fabric Freeform
+  AAA Freeform Config: 
+    Freeform: AAA Freeform Config
+
+Resources:
+  Subinterface Dot1q Range: 2-511
+  Underlay MPLS Loopback IP Range: # unused
+
+Configuration Backup:
+  Hourly Fabric Backup: False
+  Scheduled Fabric Backup: True
+  Scheduled Time: 04:00
+
+Bootstrap:
+  Enable Bootstrap (For NX-OS Switches Only): False
+  Enable Inband POAP: # unused
+  Enable Local DHCP Server: # unused
+  DHCP Version: # unused
+  DHCP Scope Start Address: # unused
+  DHCP Scope End Address: # unused
+  Switch Mgmt Default Gateway: # unused
+  Switch Mgmt IP Subnet Prefix: # unused
+  Enable AAA Config: # unused
+  Bootstrap Freeform Config : 
+    Freeform: # unused
+  DHCPv4 Multi Subnet Scope: # unused
+
+Flow Monitor:
+  Enable Netflow: False

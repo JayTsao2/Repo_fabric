@@ -1,0 +1,12 @@
+---
+General Parameter:
+  Port Channel Member Interfaces: 
+  Port Channel Mode: active
+  Enable BPDU Guard: False
+  Enable Port Type Fast: False
+  Trunk allowed VLANs: 
+  Enable Port Channel: 
+
+  MTU: jumbo
+  Enable Auto-Negotiation: True
+  Enable CDP: True

@@ -1,0 +1,17 @@
+---
+IP Address: 198.18.4.111
+Role: Edge Router
+Serial Number: 95GOTIM45XH
+
+Port Channel:
+  - 501:
+      Policy: 
+        Name: int_port_channel_trunk_host
+
+        General Parameter:
+          Port Channel Member Interfaces: e1/2,e1/4
+          Port Channel Mode: active
+          Enable BPDU Guard: False
+          Enable Port Type Fast: False
+          Trunk allowed VLANs: 20
+          Enable Port Channel: True

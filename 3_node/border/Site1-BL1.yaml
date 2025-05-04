@@ -1,0 +1,16 @@
+---
+IP Address: 198.18.4.103
+Role: Border
+Serial Number: 9J2I4VEVXV7
+
+VRF Attachment: 
+  - VRF: bluevrf
+    VLAN: 2000
+    Extend: VRF_LITE
+
+Configuration Policies:
+  - bgp_vrf_network:
+      Priority: 500
+      BGP AS: 65333
+      VRF Name: bluevrf
+      IP prefix to advertise: 192.168.20.0/24

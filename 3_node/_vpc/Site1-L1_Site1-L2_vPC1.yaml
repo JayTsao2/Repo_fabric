@@ -1,0 +1,15 @@
+---
+Policy: 
+  Name: int_vpc_trunk_host
+
+  General Parameter:
+    Peer-1 Port-Channel ID: 1
+    Peer-2 Port-Channel ID: 1
+
+    Peer-1 Member Interfaces: eth1/6
+    Peer-2 Member Interfaces: eth1/6
+
+    Port Channel Mode: active
+
+    Peer-1 Trunk Allowed Vlans: 20
+    Peer-2 Trunk Allowed Vlans: 20

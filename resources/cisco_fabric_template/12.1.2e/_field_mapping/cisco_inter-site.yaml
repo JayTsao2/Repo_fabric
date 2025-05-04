@@ -1,0 +1,53 @@
+---
+Fabric:
+  name: # Inter-Site Network
+  type: # Inter-Site Network
+
+General Parameter:
+  BGP ASN for spines: # Corp_Defaults
+  Fabric Monitor Mode: # Corp_Defaults
+  Enable Performance Monitoring (For NX-OS and IOS XE Switches Only): # Corp_Defaults
+
+Advanced:
+  Power Supply Mode: # Corp_Defaults
+  Enable MPLS Handoff: # Corp_Defaults
+  Underlay MPLS Loopback Id: # unused
+  Enable AAA IP Authorization: # Corp_Defaults
+  Enable NDFC as Trap Host: # Corp_Defaults
+  Enable CDP for Bootstrapped Switch: # Corp_Defaults
+  Enable NX-API: # Corp_Defaults
+  Enable NX-API on HTTP port: # unused
+  Inband Mgmt: # Corp_Defaults
+  Enable Precision Time Protocol (PTP): # Corp_Defaults
+  PTP Source Loopback Id: # unused
+  PTP Domain Id: # unused
+  Fabric Freeform: 
+    freeform: # Corp_Defaults
+  AAA Freeform Config: 
+    Freeform: # Corp_Defaults
+
+Resources:
+  Subinterface Dot1q Range: # Corp_Defaults
+  Underlay MPLS Loopback IP Range: # unused
+
+Configuration Backup:
+  Hourly Fabric Backup: # Corp_Defaults
+  Scheduled Fabric Backup: # Corp_Defaults
+  Scheduled Time: # Corp_Defaults
+
+Bootstrap:
+  Enable Bootstrap (For NX-OS Switches Only): # Corp_Defaults
+  Enable Inband POAP: # unused
+  Enable Local DHCP Server: # unused
+  DHCP Version: # unused
+  DHCP Scope Start Address: # unused
+  DHCP Scope End Address: # unused
+  Switch Mgmt Default Gateway: # unused
+  Switch Mgmt IP Subnet Prefix: # unused
+  Enable AAA Config: # unused
+  Bootstrap Freeform Config : 
+    Freeform: # unused
+  DHCPv4 Multi Subnet Scope: # unused
+
+Flow Monitor:
+  Enable Netflow: # Corp_Defaults  

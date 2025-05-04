@@ -1,0 +1,17 @@
+---
+NDFC: 12.3
+
+Fabric Group:
+  name: MSD-1
+  type: vxlan
+
+Child Fabric:
+  Fabric:
+    - Site1-Greenfield
+    - Site2-Brownfield
+  ISN:
+    - ISN
+
+DCI:
+  Multi-Site Route Server List: 192.168.240.1,192.168.240.2,192.168.240.3
+  Multi-Site Route Server BGP ASN List: 64999,64999,64999

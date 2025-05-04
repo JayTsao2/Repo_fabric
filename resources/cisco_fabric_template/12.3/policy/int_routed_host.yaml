@@ -1,0 +1,25 @@
+---
+General Parameter:
+  Interface VRF: # Node
+  Interface IP: # Node
+  IP Netmask Length: # Node
+  Routing TAG: # Node
+  MTU: 9216
+  SPEED: Auto
+  Interface Description: # Node
+  Disable IP Redirects: False
+  Enable PIM Sparse-mode: False
+  PIM DR Priority: 1
+  Forwarding Error Correction: auto
+
+  Freeform Config: 
+    Freeform: # unused
+  
+  Enable Interface:  # Node
+  Enable Netflow: False
+  Netflow Monitor: # unused
+  Netflow Sampler: # unused
+  Enable priority flow control: False
+  Enable QoS Configuration: False
+  Custom QoS Policy: # unused
+  Custom Queuing Policy: # unused

@@ -1,0 +1,16 @@
+---
+IP Address: 198.18.4.102
+Role: Leaf
+Serial Number: 9XPIFKSI4N7
+
+vlan: 20,2300,2301
+
+vPC Pairing: False
+vPC Peer: Site1-L2
+
+Interface:
+  - Ethernet1/5:
+      policy: int_access_host
+      Access Vlan: 2301
+      Interface Description:
+      Enable Interface: True

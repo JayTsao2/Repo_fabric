@@ -1,0 +1,35 @@
+---
+Fabric builder:
+  hostname: 198.18.133.100
+  groups:
+    - NDFC
+
+Site1-BL1:
+  hostname: 192.168.4.103
+  groups:
+    - Border gateway
+
+Site1-BGW1:
+  hostname: 192.168.4.106
+  groups:
+    - Border gateway
+
+Site1-S1:
+  hostname: 192.168.4.104
+  groups:
+    - Spine
+
+Site1-S1:
+  hostname: 192.168.4.105
+  groups:
+    - Spine
+
+Site1-L1:
+  hostname: 192.168.4.101
+  groups:
+    - Spine
+
+Site1-L2:
+  hostname: 192.168.4.102
+  groups:
+    - Spine

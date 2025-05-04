@@ -1,0 +1,17 @@
+---
+NDFC: 12.3
+
+Fabric:
+  name: Site2-Brownfield
+  type: VXLAN
+  Location: San Jose, US
+
+Resources:
+  Underlay Routing Loopback IP Range: 192.168.246.0/24
+  Underlay VTEP Loopback IP Range: 192.168.236.0/24
+  Underlay Subnet IP Range: 192.168.51.0/24
+
+Manageability:
+  NTP Server IPs: 10.11.194.31,10.11.195.31
+  Syslog Server IPs: 10.70.32.141,10.70.32.147
+

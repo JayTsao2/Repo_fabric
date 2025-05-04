@@ -1,0 +1,16 @@
+---
+General Parameter:
+  Enable BPDU Guard: No
+  Enable Port Type Fast: True
+  MTU: jumbo
+  SPEED: Auto
+  Trunk Allowed Vlans: 20,2300,2301
+  Native Vlan: # unused
+  Interface Description: # Node
+
+  Freeform Config: 
+    Freeform: # unused
+  
+  Enable Interface:  # Node
+  Enable Netflow: False
+  Netflow Monitor: # unused

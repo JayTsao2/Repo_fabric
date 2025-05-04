@@ -1,0 +1,16 @@
+---
+NDFC: {}
+spine: {}
+leaf: {}
+border spine: {}
+border gateway spine: {}
+super spine: {}
+border super spine: {}
+border gateway super spine: {}
+TOR: {}
+Edge Router: {}
+Core Router: {}
+---
+N9K-C9300V: {}
+test2: {}
+test3: {}

@@ -1,0 +1,4 @@
+---
+VRF:
+  VRF Template: Default_VRF_Universal
+  VRF Extension Template: Default_VRF_Extension_Universal

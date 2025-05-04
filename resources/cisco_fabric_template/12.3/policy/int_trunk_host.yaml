@@ -1,0 +1,44 @@
+---
+General Parameter:
+  Enable BPDU Guard: True
+  Configure BPDU Filter: no
+  Spanning-tree Link-type: auto
+  Enable Port Type Fast: True
+  MTU: jumbo
+  SPEED: Auto
+  Trunk Allowed Vlans: none
+  Native Vlan: # unused
+  Interface Description: # Node
+  Enable Auto-Negotiation: True
+  Enable CDP: True
+  Enable vPC Orphan Port: False
+  Port Duplex Mode: auto
+  Bandwidth in kilobits: # unused
+  Inherit Bandwidth in kilobits: # unused
+  Debounce Timer: 100
+  Debounce Link-up Timer: # unused
+  Enable Error Detection: True
+  Forwarding Error Correction: auto
+
+  Freeform Config: 
+    Freeform: # unused
+  
+  Enable Interface:  #Node
+  Enable Netflow: False
+  Netflow Monitor: # unused
+  Netflow Sampler: # unused
+  Enable priority flow control: False
+  Enable QoS Configuration: False
+  Custom QoS Policy: # unused
+  Custom Queuing Policy: # unused
+  Switchport monitor: False
+
+Storm Control:
+  Configure Traffic Storm Control: False
+  Storm Control Action: # unused
+  Broadcast Storm Control Level in Percentage: # unused
+  Multicast Storm Control Level in Percentage: # unused
+  Unicast Storm Control Level in Percentage: # unused
+  Broadcast Storm Control Level in PPS: # unused
+  Multicast Storm Control Level in PPS: # unused
+  Unicast Storm Control Level in PPS: # unused
