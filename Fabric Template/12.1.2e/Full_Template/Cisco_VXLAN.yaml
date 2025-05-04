@@ -6,10 +6,10 @@ Fabric:
 General Parameter:
   BGP ASN: # Corp_Specific
   Enable IPv6 Underlay: # Corp_Specific
-  Enable IPv6 Link-Local Address: # Not_Use
+  Enable IPv6 Link-Local Address: # unused
   Fabric Interface Numbering: # Corp_Specific
   Underlay Subnet IP Mask: # Corp_Specific
-  Underlay Subnet IPv6 Mask: # Not_Use
+  Underlay Subnet IPv6 Mask: # unused
   Underlay Routing Protocol: # Corp_Specific
   Route-Reflectors: # Corp_Specific
   Anycast Gateway MAC: # Corp_Specific
@@ -17,16 +17,16 @@ General Parameter:
 
 Replication:
   Replication Mode: # Corp_Specific
-  Multicast Group Subnet: # Not_Use
-  Enable Tenant Routed Multicast (TRM): # Not_Use
-  Default MDT Address for TRM VRFs: # Not_Use
-  Rendezvous-Points: # Not_Use
-  RP Mode: # Not_Use
-  Underlay RP Loopback Id: # Not_Use
-  Underlay Primary RP Loopback Id: # Not_Use
-  Underlay Backup RP Loopback Id: # Not_Use
-  Underlay Second Backup RP Loopback Id: # Not_Use
-  Underlay Third Backup RP Loopback Id: # Not_Use
+  Multicast Group Subnet: # unused
+  Enable Tenant Routed Multicast (TRM): # unused
+  Default MDT Address for TRM VRFs: # unused
+  Rendezvous-Points: # unused
+  RP Mode: # unused
+  Underlay RP Loopback Id: # unused
+  Underlay Primary RP Loopback Id: # unused
+  Underlay Backup RP Loopback Id: # unused
+  Underlay Second Backup RP Loopback Id: # unused
+  Underlay Third Backup RP Loopback Id: # unused
 
 vPC:
   vPC Peer Link VLAN Range: # Corp_Specific
@@ -38,41 +38,41 @@ vPC:
   vPC IPv6 ND Synchronize: # Corp_Specific
   vPC advertise-pip: # Corp_Specific
   Enable the same vPC Domain Id for all vPC Pairs: # Corp_Specific
-  vPC Domain Id: # Not_Use
+  vPC Domain Id: # unused
   vPC Domain Id Range: # Corp_Specific
   Enable Qos for Fabric vPC-Peering: # Corp_Specific
-  Qos Policy Name: # Not_Use
+  Qos Policy Name: # unused
 
 Protocols:
   Underlay Routing Loopback Id: # Corp_Specific
   Underlay VTEP Loopback Id: # Corp_Specific
-  Underlay Anycast Loopback Id: # Not_Use
+  Underlay Anycast Loopback Id: # unused
   Underlay Routing Protocol Tag: # Corp_Specific
   OSPF Area Id: # Corp_Specific
   Enable OSPF Authentication: # Corp_Specific
-  OSPF Authentication Key ID: # Not_Use
-  OSPF Authentication Key: # Not_Use
-  IS-IS Level: # Not_Use
-  Enable IS-IS Network Point-to-Point: # Not_Use
-  Enable IS-IS Authentication: # Not_Use
-  IS-IS Authentication Keychain Name: # Not_Use
-  IS-IS Authentication Key ID: # Not_Use
-  IS-IS Authentication Key: # Not_Use
-  Set IS-IS Overload Bit: # Not_Use
-  IS-IS Overload Bit Elapsed Time: # Not_Use
+  OSPF Authentication Key ID: # unused
+  OSPF Authentication Key: # unused
+  IS-IS Level: # unused
+  Enable IS-IS Network Point-to-Point: # unused
+  Enable IS-IS Authentication: # unused
+  IS-IS Authentication Keychain Name: # unused
+  IS-IS Authentication Key ID: # unused
+  IS-IS Authentication Key: # unused
+  Set IS-IS Overload Bit: # unused
+  IS-IS Overload Bit Elapsed Time: # unused
   Enable BGP Authentication: # Corp_Specific
-  BGP Authentication Key Encryption Type: # Not_Use
-  BGP Authentication Key: # Not_Use
-  Enable PIM Hello Authentication: # Not_Use
-  PIM Hello Authentication Key: # Not_Use
+  BGP Authentication Key Encryption Type: # unused
+  BGP Authentication Key: # unused
+  Enable PIM Hello Authentication: # unused
+  PIM Hello Authentication Key: # unused
   Enable BFD: # Corp_Specific
   Enable BFD For iBGP: # Corp_Specific
   Enable BFD For OSPF: # Corp_Specific
-  Enable BFD For ISIS: # Not_Use
-  Enable BFD For PIM: # Not_Use
+  Enable BFD For ISIS: # unused
+  Enable BFD For PIM: # unused
   Enable BFD Authentication: # Corp_Specific
-  BFD Authentication Key ID: # Not_Use
-  BFD Authentication Key: # Not_Use
+  BFD Authentication Key ID: # unused
+  BFD Authentication Key: # unused
   iBGP Peer-Template Config:
     Template: # Corp_Specific
   Leaf/Border/Border Gateway iBGP Peer-Template Config:
@@ -85,7 +85,7 @@ Advanced:
   Network Extension Template: # Corp_Specific
   Overlay Mode: # Corp_Specific
   Enable Private VLAN (PVLAN): # Corp_Specific
-  PVLAN Secondary Network Template: # Not_Use
+  PVLAN Secondary Network Template: # unused
   Site id: # Corp_Specific
   Intra Fabric Interface MTU: # Corp_Specific
   Layer 2 Host Interface MTU: # Corp_Specific
@@ -107,46 +107,46 @@ Advanced:
   Anycast Border Gateway advertise-pip: # Corp_Specific
   Greenfield Cleanup Option: # Corp_Specific
   Enable Precision Time Protocol (PTP): # Corp_Specific
-  PTP Source Loopback Id: # Not_Use
-  PTP Domain Id: # Not_Use
+  PTP Source Loopback Id: # unused
+  PTP Domain Id: # unused
   Enable MPLS Handoff: # Corp_Specific
-  Underlay MPLS Loopback Id: # Not_Use
+  Underlay MPLS Loopback Id: # unused
   Enable TCAM Allocation: # Corp_Specific
   Enable Default Queuing Policies: # Corp_Specific
-  N9K Cloud Scale Platform Queuing Policy: # Not_Use
-  N9K R-Series Platform Queuing Policy: # Not_Use
-  Other N9K Platform Queuing Policy: # Not_Use
+  N9K Cloud Scale Platform Queuing Policy: # unused
+  N9K R-Series Platform Queuing Policy: # unused
+  Other N9K Platform Queuing Policy: # unused
   Enable MACsec: # Corp_Specific
-  MACsec Primary Key String: # Not_Use
-  MACsec Primary Cryptographic Algorithm: # Not_Use
-  MACsec Fallback Key String: # Not_Use
-  MACsec Fallback Cryptographic Algorithm: # Not_Use
-  MACsec Cipher Suite: # Not_Use
-  MACsec Status Report Timer: # Not_Use
+  MACsec Primary Key String: # unused
+  MACsec Primary Cryptographic Algorithm: # unused
+  MACsec Fallback Key String: # unused
+  MACsec Fallback Cryptographic Algorithm: # unused
+  MACsec Cipher Suite: # unused
+  MACsec Status Report Timer: # unused
   Spanning Tree Root Bridge Protocol: # Corp_Specific
-  Spanning Tree VLAN Range: # Not_Use
-  MST Instance Range: # Not_Use
-  Spanning Tree Bridge Priority: # Not_Use
+  Spanning Tree VLAN Range: # unused
+  MST Instance Range: # unused
+  Spanning Tree Bridge Priority: # unused
   Leaf Freeform Config: 
     Freeform: # Corp_Specific
   Spine Freeform Config: 
     Freeform: # Corp_Specific
   ToR Freeform Config: 
-    Freeform: # Not_Use
+    Freeform: # unused
   Intra-fabric Links Additional Config: 
-    Freeform: # Not_Use
+    Freeform: # unused
 
 Resources:
   Manual Underlay IP Address Allocation: # Corp_Specific
   Underlay Routing Loopback IP Range: # Fabric
   Underlay VTEP Loopback IP Range: # Fabric
-  Underlay RP Loopback IP Range: # Not_Use
+  Underlay RP Loopback IP Range: # unused
   Underlay Subnet IP Range: # Fabric
-  Underlay MPLS Loopback IP Range: # Not_Use
-  Underlay Routing Loopback IPv6 Range: # Not_Use
-  Underlay VTEP Loopback IPv6 Range: # Not_Use
-  Underlay Subnet IPv6 Range: # Not_Use
-  BGP Router ID Range for IPv6 Underlay: # Not_Use
+  Underlay MPLS Loopback IP Range: # unused
+  Underlay Routing Loopback IPv6 Range: # unused
+  Underlay VTEP Loopback IPv6 Range: # unused
+  Underlay Subnet IPv6 Range: # unused
+  BGP Router ID Range for IPv6 Underlay: # unused
   Layer 2 VXLAN VNI Range: # Corp_Specific
   Layer 3 VXLAN VNI Range: # Corp_Specific
   Network VLAN Range: # Corp_Specific
@@ -155,8 +155,8 @@ Resources:
   VRF Lite Deployment: # Corp_Specific
   Auto Deploy for Peer: # Corp_Specific
   Auto Deploy Default VRF: # Corp_Specific
-  Auto Deploy Default VRF for Peer: # Not_Use
-  Redistribute BGP Route-map Name: # Not_Use
+  Auto Deploy Default VRF for Peer: # unused
+  Redistribute BGP Route-map Name: # unused
   VRF Lite Subnet IP Range: # Corp_Specific
   VRF Lite Subnet Mask: # Corp_Specific
   Service Network VLAN Range: # Corp_Specific
@@ -176,22 +176,22 @@ Manageability:
   
 Bootstrap:
   Enable Bootstrap: # Corp_Specific
-  Enable Local DHCP Server: # Not_Use
-  DHCP Version: # Not_Use
-  DHCP Scope Start Address: # Not_Use
-  DHCP Scope End Address: # Not_Use
-  Switch Mgmt Default Gateway: # Not_Use
-  Switch Mgmt IP Subnet Prefix: # Not_Use
-  DHCPv4 Multi Subnet Scope: # Not_Use
-  Seed Switch Fabric Interfaces: # Not_Use
-  Spine Switch Fabric Interfaces: # Not_Use
-  External DHCP Server IP Addresses: # Not_Use
-  Bootstrap Seed Switch Loopback Interface ID: # Not_Use
-  Switch Loopback DHCP Scope Start Address: # Not_Use
-  Switch Loopback DHCP Scope End Address: # Not_Use
-  Enable AAA Config: # Not_Use
+  Enable Local DHCP Server: # unused
+  DHCP Version: # unused
+  DHCP Scope Start Address: # unused
+  DHCP Scope End Address: # unused
+  Switch Mgmt Default Gateway: # unused
+  Switch Mgmt IP Subnet Prefix: # unused
+  DHCPv4 Multi Subnet Scope: # unused
+  Seed Switch Fabric Interfaces: # unused
+  Spine Switch Fabric Interfaces: # unused
+  External DHCP Server IP Addresses: # unused
+  Bootstrap Seed Switch Loopback Interface ID: # unused
+  Switch Loopback DHCP Scope Start Address: # unused
+  Switch Loopback DHCP Scope End Address: # unused
+  Enable AAA Config: # unused
   Bootstrap Freeform Config: 
-    Freeform: # Not_Use
+    Freeform: # unused
 
 Configuration Backup:
   Hourly Fabric Backup: # Corp_Specific

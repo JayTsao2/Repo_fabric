@@ -1,4 +1,6 @@
 ---
+NDFC: 12.3
+
 Fabric:
   name: Site1-Greenfield
   type: VXLAN

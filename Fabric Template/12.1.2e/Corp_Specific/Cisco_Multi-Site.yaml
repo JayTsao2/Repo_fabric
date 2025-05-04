@@ -7,7 +7,7 @@ General Parameter:
   VRF Extension Template: Default_VRF_Extension_Universal
   Network Extension Template: Default_Network_Extension_Universal
   Enable Private VLAN (PVLAN): False
-  PVLAN Secondary Network Template: # Not_Use
+  PVLAN Secondary Network Template: # unused
   Anycast-Gateway-MAC: 0204.0204.0204
   Multi-Site VTEP VIP Loopback Id: 100
   Border Gateway IP TAG: 54321
@@ -18,20 +18,20 @@ DCI:
   Multi-Site Route Server List: # Fabric Group
   Multi-Site Route Server BGP ASN List: # Fabric Group
   Enable 'redistribute direct' on Route Servers: False
-  Route Server IP TAG: # Not_Use
+  Route Server IP TAG: # unused
   Multi-Site Underlay IFC Auto Deployment Flag: True
-  BGP Send-community on Multi-Site Underlay IFC: # Not_Use
-  BGP log neighbor change on Multi-Site Underlay IFC: # Not_Use
-  BGP BFD on Multi-Site Underlay IFC: # Not_Use
+  BGP Send-community on Multi-Site Underlay IFC: # unused
+  BGP log neighbor change on Multi-Site Underlay IFC: # unused
+  BGP BFD on Multi-Site Underlay IFC: # unused
   Delay Restore time: 300
   Multi-Site CloudSec: False
-  CloudSec Key String: # Not_Use
-  CloudSec Cryptographic Algorithm: # Not_Use
-  CloudSec Enforcement: # Not_Use
-  CloudSec Status Report Timer: # Not_Use
+  CloudSec Key String: # unused
+  CloudSec Cryptographic Algorithm: # unused
+  CloudSec Enforcement: # unused
+  CloudSec Status Report Timer: # unused
   Enable Multi-Site eBGP Password: False
-  eBGP Password: # Not_Use
-  eBGP Authentication Key Encryption Type: # Not_Use
+  eBGP Password: # unused
+  eBGP Authentication Key Encryption Type: # unused
 
 Resources:
   Multi-Site VTEP VIP Loopback IP Range: 192.168.230.0/24

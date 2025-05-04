@@ -3,15 +3,15 @@ General Parameter:
   Layer 2 VXLAN VNI Range: # Corp_Specific
   Layer 3 VXLAN VNI Range: # Corp_Specific
   Enable Downstream VNI: # Corp_Specific
-  Layer 2 VXLAN VNI Global Range: # Not_Use
-  Layer 3 VXLAN VNI Global Range: # Not_Use
+  Layer 2 VXLAN VNI Global Range: # unused
+  Layer 3 VXLAN VNI Global Range: # unused
   Enable IPv6 Underlay for VXLAN Fabric: # Corp_Specific
   VRF Template: # Corp_Specific
   Network Template: # Corp_Specific
   VRF Extension Template: # Corp_Specific
   Network Extension Template: # Corp_Specific
   Enable Private VLAN (PVLAN): # Corp_Specific
-  PVLAN Secondary Network Template: # Not_Use
+  PVLAN Secondary Network Template: # unused
   Anycast-Gateway-MAC: # Corp_Specific
   Multi-Site VTEP VIP Loopback Id: # Corp_Specific
   Border Gateway IP TAG: # Corp_Specific
@@ -21,36 +21,36 @@ DCI:
   Multi-Site Route Server List: # Fabric Group
   Multi-Site Route Server BGP ASN List: # Fabric Group
   Enable 'redistribute direct' on Route Servers: # Corp_Specific
-  Route Server IP TAG: # Not_Use
+  Route Server IP TAG: # unused
   BGP Neighbor Description on Multi-Site Overlay IFC: # Corp_Specific
   Multi-Site Underlay IFC Auto Deployment Flag: # Corp_Specific
-  BGP Send-community on Multi-Site Underlay IFC: # Not_Use
-  BGP log neighbor change on Multi-Site Underlay IFC: # Not_Use
-  BGP BFD on Multi-Site Underlay IFC: # Not_Use
-  Delay Restore time: # Not_Use
+  BGP Send-community on Multi-Site Underlay IFC: # unused
+  BGP log neighbor change on Multi-Site Underlay IFC: # unused
+  BGP BFD on Multi-Site Underlay IFC: # unused
+  Delay Restore time: # unused
   Enable Multi-Site eBGP Password: # Corp_Specific
-  eBGP Password: # Not_Use
-  eBGP Authentication Key Encryption Type: # Not_Use
+  eBGP Password: # unused
+  eBGP Authentication Key Encryption Type: # unused
   Enable IPv4 and/or IPv6 Tenant Routed Multicast across sites: # Corp_Specific
 
 Security:
   Enable Security Groups: # Corp_Specific
-  Security Group Name Prefix: # Not_Use
-  Security Group Tag (SGT) ID Range: # Not_Use
-  Security Groups Pre-provision: # Not_Use
+  Security Group Name Prefix: # unused
+  Security Group Tag (SGT) ID Range: # unused
+  Security Groups Pre-provision: # unused
   Multi-Site CloudSec: False
-  CloudSec Key String: # Not_Use
-  CloudSec Cryptographic Algorithm: # Not_Use
-  CloudSec Enforcement: # Not_Use
-  CloudSec Status Report Timer: # Not_Use
+  CloudSec Key String: # unused
+  CloudSec Cryptographic Algorithm: # unused
+  CloudSec Enforcement: # unused
+  CloudSec Status Report Timer: # unused
 
 Resources:
   Multi-Site VTEP VIP Loopback IP Range: # Corp_Specific
   DCI Subnet IP Range: # Corp_Specific
   Subnet Target Mask: # Corp_Specific
-  Multi-Site VTEP VIP Loopback IPv6 Range: # Not_Use
-  DCI Subnet IPv6 Range: # Not_Use
-  Subnet Target IPv6 Mask: # Not_Use
+  Multi-Site VTEP VIP Loopback IPv6 Range: # unused
+  DCI Subnet IPv6 Range: # unused
+  Subnet Target IPv6 Mask: # unused
 
 Configuration Backup:
   Scheduled Fabric Backup: # Corp_Specific

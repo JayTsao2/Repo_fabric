@@ -11,16 +11,16 @@ General Parameter:
 Advanced:
   Power Supply Mode: # Corp_Specific
   Enable MPLS Handoff: # Corp_Specific
-  Underlay MPLS Loopback Id: # Not_Use
+  Underlay MPLS Loopback Id: # unused
   Enable AAA IP Authorization: # Corp_Specific
   Enable NDFC as Trap Host: # Corp_Specific
   Enable CDP for Bootstrapped Switch: # Corp_Specific
   Enable NX-API: # Corp_Specific
-  Enable NX-API on HTTP port: # Not_Use
+  Enable NX-API on HTTP port: # unused
   Inband Mgmt: # Corp_Specific
   Enable Precision Time Protocol (PTP): # Corp_Specific
-  PTP Source Loopback Id: # Not_Use
-  PTP Domain Id: # Not_Use
+  PTP Source Loopback Id: # unused
+  PTP Domain Id: # unused
   Fabric Freeform: 
     freeform: # Corp_Specific
   AAA Freeform Config: 
@@ -28,7 +28,7 @@ Advanced:
 
 Resources:
   Subinterface Dot1q Range: # Corp_Specific
-  Underlay MPLS Loopback IP Range: # Not_Use
+  Underlay MPLS Loopback IP Range: # unused
 
 Configuration Backup:
   Hourly Fabric Backup: # Corp_Specific
@@ -37,17 +37,17 @@ Configuration Backup:
 
 Bootstrap:
   Enable Bootstrap (For NX-OS Switches Only): # Corp_Specific
-  Enable Inband POAP: # Not_Use
-  Enable Local DHCP Server: # Not_Use
-  DHCP Version: # Not_Use
-  DHCP Scope Start Address: # Not_Use
-  DHCP Scope End Address: # Not_Use
-  Switch Mgmt Default Gateway: # Not_Use
-  Switch Mgmt IP Subnet Prefix: # Not_Use
-  Enable AAA Config: # Not_Use
+  Enable Inband POAP: # unused
+  Enable Local DHCP Server: # unused
+  DHCP Version: # unused
+  DHCP Scope Start Address: # unused
+  DHCP Scope End Address: # unused
+  Switch Mgmt Default Gateway: # unused
+  Switch Mgmt IP Subnet Prefix: # unused
+  Enable AAA Config: # unused
   Bootstrap Freeform Config : 
-    Freeform: # Not_Use
-  DHCPv4 Multi Subnet Scope: # Not_Use
+    Freeform: # unused
+  DHCPv4 Multi Subnet Scope: # unused
 
 Flow Monitor:
   Enable Netflow: # Corp_Specific  
