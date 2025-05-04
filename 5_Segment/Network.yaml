@@ -1,6 +1,5 @@
 ---
 Network:
-
 - Network Name: bluenet1
   Layer 2 Only: False
   VRF Name: bluevrf
