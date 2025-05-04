@@ -1,12 +1,8 @@
 ---
 VRF:
-
 - VRF Name: bluevrf
   VRF ID: 50000
   VLAN ID: 2000
-  Propose VLAN: False
-  VRF Template: Default_VRF_Universal
-  VRF Extension Template: Default_VRF_Extension_Universal
   VRF VLAN Name: bluevrf
   VRF Interface Description: bluevrf
   VRF Description: bluevrf
