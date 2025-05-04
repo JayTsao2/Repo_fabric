@@ -1,5 +1,5 @@
 template peer iBGP-PEER-Template
-  remote-as ${my_var:-default_value}
+  remote-as 4201550100
   log-neighbor-changes
   update-source loopback1
   address-family l2vpn evpn
