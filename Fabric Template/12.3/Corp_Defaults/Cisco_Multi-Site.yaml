@@ -18,8 +18,8 @@ General Parameter:
 
 DCI:
   Multi-Site Overlay IFC Deployment Method: routeServer
-  Multi-Site Route Server List: # Fabric Group
-  Multi-Site Route Server BGP ASN List: # Fabric Group
+  Multi-Site Route Server List: # Multi-Site Deployment
+  Multi-Site Route Server BGP ASN List: # Multi-Site Deployment
   Enable 'redistribute direct' on Route Servers: False
   Route Server IP TAG: # unused
   BGP Neighbor Description on Multi-Site Overlay IFC: True
