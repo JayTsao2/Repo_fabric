@@ -3,54 +3,54 @@ Fabric:
   name: # Inter-Site Network
   type: # Inter-Site Network
   Location: # Inter-Site Network
-  BGP ASN for spines: # Corp_Specific
-  License Tier: # Corp_Specific
-  Telemetry Features: # Corp_Specific
-  Security domain: # Corp_Specific
-  Telemetry Features: # Corp_Specific
+  BGP ASN for spines: # Corp_Defaults
+  License Tier: # Corp_Defaults
+  Telemetry Features: # Corp_Defaults
+  Security domain: # Corp_Defaults
+  Telemetry Features: # Corp_Defaults
   Telemetry collection: # unused
   Telemetry streaming via: # unused
   Telemetry source interface: # unused
   Telemetry VRF: # unused
-  Security domain: # Corp_Specific
+  Security domain: # Corp_Defaults
 
 General Parameter:
-  Fabric Monitor Mode: # Corp_Specific
-  Enable Performance Monitoring (For NX-OS and IOS XE Switches Only): # Corp_Specific
+  Fabric Monitor Mode: # Corp_Defaults
+  Enable Performance Monitoring (For NX-OS and IOS XE Switches Only): # Corp_Defaults
 
 Advanced:
-  Power Supply Mode: # Corp_Specific
-  Enable MPLS Handoff: # Corp_Specific
+  Power Supply Mode: # Corp_Defaults
+  Enable MPLS Handoff: # Corp_Defaults
   Underlay MPLS Loopback Id: # unused
-  Enable AAA IP Authorization: # Corp_Specific
-  Enable NDFC as Trap Host: # Corp_Specific
-  Enable CDP for Bootstrapped Switch: # Corp_Specific
-  Enable NX-API: # Corp_Specific
+  Enable AAA IP Authorization: # Corp_Defaults
+  Enable NDFC as Trap Host: # Corp_Defaults
+  Enable CDP for Bootstrapped Switch: # Corp_Defaults
+  Enable NX-API: # Corp_Defaults
   NX-API HTTPS Port Number: # unused
   Enable HTTP NX-API: # unused
   NX-API HTTP Port Number: # unused
-  Inband Mgmt: # Corp_Specific
-  Enable Precision Time Protocol (PTP): # Corp_Specific
+  Inband Mgmt: # Corp_Defaults
+  Enable Precision Time Protocol (PTP): # Corp_Defaults
   PTP Source Loopback Id: # unused
   PTP Domain Id: # unused
-  Enable Real Time Interface Statistics Collection: # Corp_Specific
+  Enable Real Time Interface Statistics Collection: # Corp_Defaults
   Interface Statistics Load Interval: # unused
   Fabric Freeform: 
-    freeform: # Corp_Specific
+    freeform: # Corp_Defaults
   AAA Freeform Config: 
-    Freeform: # Corp_Specific
+    Freeform: # Corp_Defaults
 
 Resources:
-  Subinterface Dot1q Range: # Corp_Specific
+  Subinterface Dot1q Range: # Corp_Defaults
   Underlay MPLS Loopback IP Range: # unused
 
 Configuration Backup:
-  Hourly Fabric Backup: # Corp_Specific
-  Scheduled Fabric Backup: # Corp_Specific
-  Scheduled Time: # Corp_Specific
+  Hourly Fabric Backup: # Corp_Defaults
+  Scheduled Fabric Backup: # Corp_Defaults
+  Scheduled Time: # Corp_Defaults
 
 Bootstrap:
-  Enable Bootstrap: # Corp_Specific
+  Enable Bootstrap: # Corp_Defaults
   Enable Inband POAP: # unused
   Enable Local DHCP Server: # unused
   Enable Plug n Play for Cat9K: # unused
@@ -67,4 +67,4 @@ Bootstrap:
   DHCPv4 Multi Subnet Scope: # unused
 
 Flow Monitor:
-  Enable Netflow: # Corp_Specific  
+  Enable Netflow: # Corp_Defaults  
