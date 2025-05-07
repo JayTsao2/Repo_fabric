@@ -7,9 +7,9 @@ Fabric:
   Location: San Jose, US
 
 Resources:
-  Underlay Routing Loopback IP Range: 192.168.246.0/24
-  Underlay VTEP Loopback IP Range: 192.168.236.0/24
-  Underlay Subnet IP Range: 192.168.51.0/24
+  Underlay Routing Loopback IP Range: 192.168.246.0/24 # Typically Loopback0 IP Address Range
+  Underlay VTEP Loopback IP Range: 192.168.236.0/24 # Typically Loopback1 IP Address Range
+  Underlay Subnet IP Range: 192.168.51.0/24 # Address range to assign Numbered and Peer Link SVI IPs
 
 Manageability:
   NTP Server IPs: 10.11.194.31,10.11.195.31

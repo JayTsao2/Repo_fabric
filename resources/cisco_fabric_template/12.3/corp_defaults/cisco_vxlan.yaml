@@ -43,14 +43,14 @@ Replication:
   Enable MVPN VRI ID Re-allocation: # unused
 
 vPC:
-  vPC Peer Link VLAN Range: 3899
+  vPC Peer Link VLAN Range: 3899 # VLAN range for vPC Peer Link SVI (Min:2, Max:4094)
   Make vPC Peer Link VLAN as Native VLAN: False
-  vPC Peer Keep Alive option: loopback
-  vPC Auto Recovery Time (In Seconds): 360
-  vPC Delay Restore Time (In Seconds): 240
-  vPC Peer Link Port Channel ID: 1
-  vPC IPv6 ND Synchronize: True
-  vPC advertise-pip: True
+  vPC Peer Keep Alive option: loopback # Use vPC Peer Keep Alive with Loopback or Management
+  vPC Auto Recovery Time (In Seconds): 360 # (Min:240, Max:3600)
+  vPC Delay Restore Time (In Seconds): 240 # (Min:1, Max:3600)
+  vPC Peer Link Port Channel ID: 1 # (Min:1, Max:4096)
+  vPC IPv6 ND Synchronize: True # Enable IPv6 ND synchronization between vPC peers
+  vPC advertise-pip: True # For Primary VTEP IP Advertisement As Next-Hop Of Prefix Routes
   vPC advertise-pip on Border only: False
   Enable the same vPC Domain Id for all vPC Pairs: False
   vPC Domain Id: # unused
