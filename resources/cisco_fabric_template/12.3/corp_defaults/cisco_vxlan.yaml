@@ -16,16 +16,16 @@ Fabric:
 General Parameter:
   Enable IPv6 Underlay: False
   Enable IPv6 Link-Local Address: # unused
-  Fabric Interface Numbering: p2p
-  Underlay Subnet IP Mask: 31
+  Fabric Interface Numbering: p2p # Numbered(Point-to-Point) or Unnumbered
+  Underlay Subnet IP Mask: 31 # Mask for Underlay Subnet IP Range
   Underlay Subnet IPv6 Mask: # unused
   Underlay Routing Protocol: ospf
-  Route-Reflectors: 4
-  Anycast Gateway MAC: 0204.0204.0204
+  Route-Reflectors: 4 # Number of spines acting as Route-Reflectors
+  Anycast Gateway MAC: 0204.0204.0204 # Shared MAC address for all leafs (xxxx.xxxx.xxxx)
   Enable Performance Monitoring: False
 
 Replication:
-  Replication Mode: ingress
+  Replication Mode: ingress # Replication Mode for BUM Traffic
   Multicast Group Subnet: # unused
   IPv6 Multicast Group Subnet: # unused
   Enable IPv4 Tenant Routed Multicast (TRM): # unused

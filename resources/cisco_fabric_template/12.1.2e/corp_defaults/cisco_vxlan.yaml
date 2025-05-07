@@ -7,16 +7,16 @@ General Parameter:
   BGP ASN: 64999
   Enable IPv6 Underlay: False
   Enable IPv6 Link-Local Address: # unused
-  Fabric Interface Numbering: p2p
-  Underlay Subnet IP Mask: 31
+  Fabric Interface Numbering: p2p # Numbered(Point-to-Point) or Unnumbered
+  Underlay Subnet IP Mask: 31 # Mask for Underlay Subnet IP Range
   Underlay Subnet IPv6 Mask: # unused
   Underlay Routing Protocol: ospf
-  Route-Reflectors: 4
-  Anycast Gateway MAC: 0204.0204.0204
+  Route-Reflectors: 4 # Number of spines acting as Route-Reflectors
+  Anycast Gateway MAC: 0204.0204.0204 # Shared MAC address for all leafs (xxxx.xxxx.xxxx)
   Enable Performance Monitoring: False
 
 Replication:
-  Replication Mode: ingress
+  Replication Mode: ingress # Replication Mode for BUM Traffic
   Multicast Group Subnet: # unused
   Enable Tenant Routed Multicast (TRM): # unused
   Default MDT Address for TRM VRFs: # unused
@@ -29,26 +29,26 @@ Replication:
   Underlay Third Backup RP Loopback Id: # unused
 
 vPC:
-  vPC Peer Link VLAN Range: 3899
+  vPC Peer Link VLAN Range: 3899 # VLAN range for vPC Peer Link SVI (Min:2, Max:4094)
   Make vPC Peer Link VLAN as Native VLAN: False
-  vPC Peer Keep Alive option: loopback
-  vPC Auto Recovery Time (In Seconds): 360
-  vPC Delay Restore Time (In Seconds): 240
-  vPC Peer Link Port Channel ID: 1
-  vPC IPv6 ND Synchronize: True
-  vPC advertise-pip: True
-  Enable the same vPC Domain Id for all vPC Pairs: False
+  vPC Peer Keep Alive option: loopback # Use vPC Peer Keep Alive with Loopback or Management
+  vPC Auto Recovery Time (In Seconds): 360 # (Min:240, Max:3600)
+  vPC Delay Restore Time (In Seconds): 240 # (Min:1, Max:3600)
+  vPC Peer Link Port Channel ID: 1 # (Min:1, Max:4096)
+  vPC IPv6 ND Synchronize: True # Enable IPv6 ND synchronization between vPC peers
+  vPC advertise-pip: True # For Primary VTEP IP Advertisement As Next-Hop Of Prefix Routes
+  Enable the same vPC Domain Id for all vPC Pairs: False # (Not Recommended)
   vPC Domain Id: # unused
-  vPC Domain Id Range: 1-1000
-  Enable Qos for Fabric vPC-Peering: False
+  vPC Domain Id Range: 1-1000 # vPC Domain id range to use for new pairings
+  Enable Qos for Fabric vPC-Peering: False # Qos on spines for guaranteed delivery of vPC Fabric Peering communication
   Qos Policy Name: # unused
 
 Protocols:
-  Underlay Routing Loopback Id: 1
-  Underlay VTEP Loopback Id: 0
+  Underlay Routing Loopback Id: 1 # (Min:0, Max:1023)
+  Underlay VTEP Loopback Id: 0 # (Min:0, Max:1023)
   Underlay Anycast Loopback Id: # unused
-  Underlay Routing Protocol Tag: 100
-  OSPF Area Id: 192.168.0.0
+  Underlay Routing Protocol Tag: 100 # Underlay Routing Process Tag
+  OSPF Area Id: 192.168.0.0 # OSPF Area Id in IP address format
   Enable OSPF Authentication: False
   OSPF Authentication Key ID: # unused
   OSPF Authentication Key: # unused
@@ -73,45 +73,45 @@ Protocols:
   Enable BFD Authentication: False
   BFD Authentication Key ID: # unused
   BFD Authentication Key: # unused
-  iBGP Peer-Template Config:
+  iBGP Peer-Template Config: # Speficies the iBGP Peer-Template config used for RR and spines with border role.
     Template: iBGP Peer-Template Config
-  Leaf/Border/Border Gateway iBGP Peer-Template Config:
+  Leaf/Border/Border Gateway iBGP Peer-Template Config: # Specifies the config used for leaf, border or border gateway. If this field is empty, the peer template defined in iBGP Peer-Template Config is used on all BGP enabled devices (RRs,leafs, border or border gateway roles.
     Template: Leaf_Border_Border Gateway iBGP Peer-Template Config
   
 Advanced:
-  VRF Template: Default_VRF_Universal
-  Network Template: Default_Network_Universal
-  VRF Extension Template: Default_VRF_Extension_Universal
-  Network Extension Template: Default_Network_Extension_Universal
-  Overlay Mode: cli
+  VRF Template: Default_VRF_Universal # Default Overlay VRF Template For Leafs
+  Network Template: Default_Network_Universal # Default Overlay Network Template For Leafs
+  VRF Extension Template: Default_VRF_Extension_Universal # Default Overlay VRF Template For Borders
+  Network Extension Template: Default_Network_Extension_Universal # Default Overlay Network Template For Borders
+  Overlay Mode: cli # VRF/Network configuration using config-profile or CLI
   Enable Private VLAN (PVLAN): False
   PVLAN Secondary Network Template: # unused
-  Site id: # Corp_Specific
-  Intra Fabric Interface MTU: 9100
-  Layer 2 Host Interface MTU: 9216
+  Site id: # Corp_Specific # For EVPN Multi-Site Support (Min:1, Max: 281474976710655). Defaults to Fabric ASN
+  Intra Fabric Interface MTU: 9100 # (Min:576, Max:9216). Must be an even number
+  Layer 2 Host Interface MTU: 9216 # (Min:1500, Max:9216). Must be an even number
   Unshut Host Interfaces by Default: True
-  Power Supply Mode: ps-redundant
-  CoPP Profile: strict
-  VTEP HoldDown Time: 180
-  Brownfield Overlay Network Name Format: Auto_Net_VNI$$VNI$$_VLAN$$VLAN_ID$$
-  Skip Overlay Network Interface Attachments: False
-  Enable CDP for Bootstrapped Switch: False
-  Enable VXLAN OAM: True
+  Power Supply Mode: ps-redundant # Default Power Supply Mode For The Fabric
+  CoPP Profile: strict # Fabric Wide CoPP Policy. Customized CoPP policy should be provided when 'manual' is selected
+  VTEP HoldDown Time: 180 # NVE Source Inteface HoldDown Time (Min:1, Max:1500) in seconds
+  Brownfield Overlay Network Name Format: Auto_Net_VNI$$VNI$$_VLAN$$VLAN_ID$$ # Generated network name should be < 64 characters
+  Skip Overlay Network Interface Attachments: False # Enable to skip overlay network interface attachments for Brownfield and Host Port Resync cases
+  Enable CDP for Bootstrapped Switch: False # Enable CDP on management interface
+  Enable VXLAN OAM: True # Enable the Next Generation (NG) OAM feature for all switches in the fabric to aid in trouble-shooting VXLAN EVPN fabrics
   Enable Tenant DHCP: True
-  Enable NX-API: True
+  Enable NX-API: True # Enable HTTPS NX-API
   Enable NX-API on HTTP Port: True
   Enable Policy-Based Routing (PBR): False
   Enable Strict Config Compliance: False
   Enable AAA IP Authorization: False
-  Enable NDFC as Trap Host: True
-  Anycast Border Gateway advertise-pip: False
-  Greenfield Cleanup Option: Disable
+  Enable NDFC as Trap Host: True # Configure NDFC as a receiver for SNMP traps
+  Anycast Border Gateway advertise-pip: False # To advertise Anycast Border Gateway PIP as VTEP. Effective on MSD fabric 'Recalculate Config'
+  Greenfield Cleanup Option: Disable # Enable to clean switch configuration without reload when PreserveConfig=no
   Enable Precision Time Protocol (PTP): False
   PTP Source Loopback Id: # unused
   PTP Domain Id: # unused
   Enable MPLS Handoff: False
   Underlay MPLS Loopback Id: # unused
-  Enable TCAM Allocation: True
+  Enable TCAM Allocation: True # TCAM commands are automatically generated for VxLAN and vPC Fabric Peering when Enabled
   Enable Default Queuing Policies: False
   N9K Cloud Scale Platform Queuing Policy: # unused
   N9K R-Series Platform Queuing Policy: # unused
@@ -123,11 +123,11 @@ Advanced:
   MACsec Fallback Cryptographic Algorithm: # unused
   MACsec Cipher Suite: # unused
   MACsec Status Report Timer: # unused
-  Spanning Tree Root Bridge Protocol: unmanaged
+  Spanning Tree Root Bridge Protocol: unmanaged # Which protocol to use for configuring root bridge? rpvst+: Rapid Per-VLAN Spanning Tree, mst: Multiple Spanning Tree, unmanaged (default): STP Root not managed by NDFC
   Spanning Tree VLAN Range: # unused
   MST Instance Range: # unused
   Spanning Tree Bridge Priority: # unused
-  Leaf Freeform Config: 
+  Leaf Freeform Config: # Additional CLIs, added before interface configurations, for all Leafs as captured from Show Running Configuration
     Freeform: Leaf Freeform Config
   Spine Freeform Config: 
     Freeform: Spine Freeform Config
@@ -137,7 +137,7 @@ Advanced:
     Freeform: # unused
 
 Resources:
-  Manual Underlay IP Address Allocation: False
+  Manual Underlay IP Address Allocation: False # Checking this will disable Dynamic Underlay IP Address Allocations
   Underlay Routing Loopback IP Range: # Fabric
   Underlay VTEP Loopback IP Range: # Fabric
   Underlay RP Loopback IP Range: # unused
@@ -147,20 +147,20 @@ Resources:
   Underlay VTEP Loopback IPv6 Range: # unused
   Underlay Subnet IPv6 Range: # unused
   BGP Router ID Range for IPv6 Underlay: # unused
-  Layer 2 VXLAN VNI Range: 30000-49000
-  Layer 3 VXLAN VNI Range: 50000-59000
-  Network VLAN Range: 2300-2999
-  VRF VLAN Range: 2000-2299
-  Subinterface Dot1q Range: 2-511
-  VRF Lite Deployment: manual
-  Auto Deploy for Peer: False
+  Layer 2 VXLAN VNI Range: 30000-49000 # Overlay Network Identifier Range (Min:1, Max:16777214)
+  Layer 3 VXLAN VNI Range: 50000-59000 # Overlay VRF Identifier Range (Min:1, Max:16777214)
+  Network VLAN Range: 2300-2999 # Per Switch Overlay Network VLAN Range (Min:2, Max:4094)
+  VRF VLAN Range: 2000-2299 # Per Switch Overlay VRF VLAN Range (Min:2, Max:4094)
+  Subinterface Dot1q Range: 2-511 # Per Border Dot1q Range For VRF Lite Connectivity (Min:2, Max:4093)
+  VRF Lite Deployment: manual # VRF Lite Inter-Fabric Connection Deployment Options. If 'Back2Back&ToExternal' is selected, VRF Lite IFCs are auto created between border devices of two Easy Fabrics, and between border devices in Easy Fabric and edge routers in External Fabric. The IP address is taken from the 'VRF Lite Subnet IP Range' pool.
+  Auto Deploy for Peer: False # Whether to auto generate VRF LITE sub-interface and BGP peering configuration on managed neighbor devices. If set, auto created VRF Lite IFC links will have 'Auto Deploy for Peer' enabled.
   Auto Deploy Default VRF: False
   Auto Deploy Default VRF for Peer: # unused
   Redistribute BGP Route-map Name: # unused
-  VRF Lite Subnet IP Range: 10.33.0.0/16
+  VRF Lite Subnet IP Range: 10.33.0.0/16 # Address range to assign P2P Interfabric Connections
   VRF Lite Subnet Mask: 30
-  Service Network VLAN Range: 3000-3199
-  Route Map Sequence Number Range: 1-65534
+  Service Network VLAN Range: 3000-3199 # Per Switch Overlay Service Network VLAN Range (Min:2, Max:4094)
+  Route Map Sequence Number Range: 1-65534 # (Min:1, Max:65534)
 
 Manageability:
   Inband Management: False
