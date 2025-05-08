@@ -3,6 +3,12 @@ VRF:
 - VRF Name: bluevrf
   VRF ID: 50000
   VLAN ID: 2000
-  VRF VLAN Name: bluevrf
-  VRF Interface Description: bluevrf
-  VRF Description: bluevrf
+
+  General Parameters:
+    VRF VLAN Name: bluevrf
+    VRF Interface Description: bluevrf
+    VRF Description: bluevrf
+
+  Route Target:
+    Import: 
+    Export:
