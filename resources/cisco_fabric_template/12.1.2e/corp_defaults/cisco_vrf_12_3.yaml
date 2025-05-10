@@ -1,0 +1,53 @@
+---
+VRF Name: # vrf
+VRF ID: # vrf
+VLAN ID: # vrf
+
+General Parameters:
+  VRF VLAN Name: # vrf
+  VRF Interface Description: # vrf
+  VRF Description: # vrf
+  Downstream VNI: # unused
+
+Advanced:
+  VRF Interface MTU: 9216
+  Loopback Routing Tag: 12345
+  Redistribute Direct Route Map: fabric-rmap-redist-subnet
+  IPv6 Redistribute Direct Route Map: fabric-rmap-redist-subnet
+  Max BGP Paths: 1
+  Max iBGP Paths: 2
+  Enable IPv6 link-local Option: True
+  Enable L3VNI w/o VLAN: False
+  Enable BGP Best-path As-path Multipath-relax: False
+  Advertise Host Routes: False
+  Advertise Default Route: True
+  Config Static 0/0 Route: True
+  BGP Neighbor Password: # unused
+  BGP Password Key Encryption Type: # unused
+  Enable Netflow: False
+  NetFlow Monitor: # unused
+
+TRM:
+  IPv4 TRM Enable: False
+  No RP: # unused
+  Is RP External: # unused
+  RP Address: # unused
+  RP Loopback ID: # unused
+  Underlay Mcast Address: # unused
+  Overlay Mcast Groups: # unused
+  TRMv6 Enable: False
+  TRMv6 No RP: # unused
+  Is TRMv6 RP External: # unused
+  TRMv6 RP Address: # unused
+  Overlay IPv6 Mcast Groups: # unused
+  Enable MVPN inter-as: # unused
+  Enable IPv4/IPv6 TRM BGW MSite: # unused
+
+Route Target:
+  Disable RT Auto-Generate: False
+  Import: # vrf
+  Export: # vrf
+  Import EVPN: # unused
+  Export EVPN: # unused
+  Import MVPN: # unused
+  Export MVPN: # unused
