@@ -28,7 +28,26 @@ Advanced:
   NetFlow Monitor: # unused
 
 TRM:
+  IPv4 TRM Enable: False
+  No RP: # unused
+  Is RP External: # unused
+  RP Address: # unused
+  RP Loopback ID: # unused
+  Underlay Mcast Address: # unused
+  Overlay Mcast Groups: # unused
+  TRMv6 Enable: False
+  TRMv6 No RP: # unused
+  Is TRMv6 RP External: # unused
+  TRMv6 RP Address: # unused
+  Overlay IPv6 Mcast Groups: # unused
+  Enable MVPN inter-as: # unused
+  Enable IPv4/IPv6 TRM BGW MSite: # unused
 
 Route Target:
+  Disable RT Auto-Generate: False
   Import: # vrf
   Export: # vrf
+  Import EVPN: # unused
+  Export EVPN: # unused
+  Import MVPN: # unused
+  Export MVPN: # unused
