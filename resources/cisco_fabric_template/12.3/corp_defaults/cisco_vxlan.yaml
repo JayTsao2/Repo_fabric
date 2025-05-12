@@ -6,41 +6,59 @@ Fabric:
   Overlay routing protocol: iBGP
   BGP ASN: 64999
   License Tier: Premier
-  Telemetry Features: false
-  Telemetry collection: # unused
-  Telemetry streaming via: # unused
-  Telemetry source interface: # unused
-  Telemetry VRF: # unused
+  Telemetry Features: 
+    is_enabled: false
+    
+    settings_if_enabled:
+      Telemetry collection: # unused
+      Telemetry streaming via: # unused
+      Telemetry source interface: # unused
+      Telemetry VRF: # unused
   Security domain: all
 
 General Parameter:
-  Enable IPv6 Underlay: False
-  Enable IPv6 Link-Local Address: # unused
-  Fabric Interface Numbering: p2p # Numbered(Point-to-Point) or Unnumbered
-  Underlay Subnet IP Mask: 31 # Mask for Underlay Subnet IP Range
-  Underlay Subnet IPv6 Mask: # unused
+  Enable IPv6 Underlay: 
+    is_enabled: False
+
+    settings_if_enabled:
+      Enable IPv6 Link-Local Address:
+        is_enabled: # unused
+
+        settings_if_enabled:
+        settings_if_disabled: 
+          Underlay Subnet IPv6 Mask: # unused
+
+    settings_if_disabled: 
+      Fabric Interface Numbering: p2p # Numbered(Point-to-Point) or Unnumbered
+      Underlay Subnet IP Mask: 31 # Mask for Underlay Subnet IP Range
+
   Underlay Routing Protocol: ospf
   Route-Reflectors: 4 # Number of spines acting as Route-Reflectors
   Anycast Gateway MAC: 0204.0204.0204 # Shared MAC address for all leafs (xxxx.xxxx.xxxx)
   Enable Performance Monitoring: False
 
 Replication:
-  Replication Mode: ingress # Replication Mode for BUM Traffic
-  Multicast Group Subnet: # unused
-  IPv6 Multicast Group Subnet: # unused
-  Enable IPv4 Tenant Routed Multicast (TRM): # unused
-  Enable IPv6 Tenant Routed Multicast (TRMv6): # unused
-  Default MDT IPv4 Address for TRM VRFs: # unused
-  Default MDT IPv6 Address for TRM VRFs: # unused
-  Rendezvous-Points: # unused
-  RP Mode: # unused
-  Underlay RP Loopback Id: # unused
-  Underlay Primary RP Loopback Id: # unused
-  Underlay Backup RP Loopback Id: # unused
-  Underlay Second Backup RP Loopback Id: # unused
-  Underlay Third Backup RP Loopback Id: # unused
-  MVPN VRI ID Range: # unused
-  Enable MVPN VRI ID Re-allocation: # unused
+  Replication Mode: 
+    mode: ingress # Replication Mode for BUM Traffic
+
+    ingress_settings:
+
+    multicast_settings:
+      Multicast Group Subnet: # unused
+      IPv6 Multicast Group Subnet: # unused
+      Enable IPv4 Tenant Routed Multicast (TRM): # unused
+      Enable IPv6 Tenant Routed Multicast (TRMv6): # unused
+      Default MDT IPv4 Address for TRM VRFs: # unused
+      Default MDT IPv6 Address for TRM VRFs: # unused
+      Rendezvous-Points: # unused
+      RP Mode: # unused
+      Underlay RP Loopback Id: # unused
+      Underlay Primary RP Loopback Id: # unused
+      Underlay Backup RP Loopback Id: # unused
+      Underlay Second Backup RP Loopback Id: # unused
+      Underlay Third Backup RP Loopback Id: # unused
+      MVPN VRI ID Range: # unused
+      Enable MVPN VRI ID Re-allocation: # unused
 
 vPC:
   vPC Peer Link VLAN Range: 3899 # VLAN range for vPC Peer Link SVI (Min:2, Max:4094)
