@@ -1,0 +1,43 @@
+---
+General Parameter:
+  Layer 2 VXLAN VNI Range: 30000-49000
+  Layer 3 VXLAN VNI Range: 50000-59000
+  VRF Template: Default_VRF_Universal
+  Network Template: Default_Network_Universal
+  VRF Extension Template: Default_VRF_Extension_Universal
+  Network Extension Template: Default_Network_Extension_Universal
+  Enable Private VLAN (PVLAN): False
+  PVLAN Secondary Network Template: # unused
+  Anycast-Gateway-MAC: 0204.0204.0204
+  Multi-Site VTEP VIP Loopback Id: 100
+  Border Gateway IP TAG: 54321
+  ToR Auto-deploy Flag: False
+
+DCI:
+  Multi-Site Overlay IFC Deployment Method: Centralized_To_Route_Server
+  Multi-Site Route Server List: # Multi-Site Deployment
+  Multi-Site Route Server BGP ASN List: # Multi-Site Deployment
+  Enable 'redistribute direct' on Route Servers: False
+  Route Server IP TAG: # unused
+  Multi-Site Underlay IFC Auto Deployment Flag: True
+  BGP Send-community on Multi-Site Underlay IFC: # unused
+  BGP log neighbor change on Multi-Site Underlay IFC: # unused
+  BGP BFD on Multi-Site Underlay IFC: # unused
+  Delay Restore time: 300
+  Multi-Site CloudSec: False
+  CloudSec Key String: # unused
+  CloudSec Cryptographic Algorithm: # unused
+  CloudSec Enforcement: # unused
+  CloudSec Status Report Timer: # unused
+  Enable Multi-Site eBGP Password: False
+  eBGP Password: # unused
+  eBGP Authentication Key Encryption Type: # unused
+
+Resources:
+  Multi-Site VTEP VIP Loopback IP Range: 192.168.230.0/24
+  DCI Subnet IP Range: 192.168.1.0/24
+  Subnet Target Mask: 31
+
+Configuration Backup:
+  Scheduled Fabric Backup: True
+  Scheduled Time: 04:00

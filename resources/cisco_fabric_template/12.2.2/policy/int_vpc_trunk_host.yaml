@@ -1,0 +1,18 @@
+---
+General Parameter:
+  Peer-1 Port-Channel ID: 1
+  Peer-2 Port-Channel ID: 1
+
+  Peer-1 Member Interfaces: 
+  Peer-2 Member Interfaces: 
+
+  Port Channel Mode: active
+  Enable BPDU Guard: False
+  Enable Port Type Fast: False
+
+  MTU: jumbo
+  Peer-1 Trunk Allowed Vlans: 20
+  Peer-2 Trunk Allowed Vlans: 20
+  Enable Auto-Negotiation: True
+  Enable CDP: True
+  Enable VPC Port Channe: True

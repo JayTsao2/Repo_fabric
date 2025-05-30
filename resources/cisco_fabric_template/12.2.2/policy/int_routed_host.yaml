@@ -1,0 +1,16 @@
+---
+General Parameter:
+  Interface VRF: # Node
+  Interface IP: # Node
+  IP Netmask Length: # Node
+  Routing TAG: # Node
+  MTU: 9216
+  SPEED: Auto
+  Interface Description: # Node
+
+  Freeform Config: 
+    Freeform: # unused
+  
+  Enable Interface:  # Node
+  Enable Netflow: False
+  Netflow Monitor: # unused
