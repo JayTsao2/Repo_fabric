@@ -232,6 +232,8 @@ Resources:
   VRF Lite Subnet Mask: 30
   Auto Allocation of Unique IP on VRF Extension over VRF Lite IFC: False
   Per VRF Per VTEP Loopback IPv4 Auto-Provisioning: False
+  Per VRF Per VTEP IPv4 Pool for Loopbacks: # unused
+  Per VRF Per VTEP Loopback IPv6 Auto-Provisioning: # unused
   Per VRF Per VTEP IPv6 Pool for Loopbacks: # unused
   Service Level Agreement (SLA) ID Range: 10000-19999
   Tracked Object ID Range: 100-299
