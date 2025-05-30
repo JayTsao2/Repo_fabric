@@ -1,261 +1,260 @@
 ---
 Fabric:
-  name: # Fabric
-  type: # Fabric
-  Location: # Fabric
-  Overlay routing protocol: # Corp_Defaults
-  BGP ASN: # Corp_Defaults
-  License Tier: # Corp_Defaults
-  Telemetry Features: false
+  name: FABRIC_NAME # Fabric
+  type: FABRIC_TYPE # Fabric
+  Location: FABRIC_LOCATION # Fabric
+  Overlay routing protocol: OVERLAY_ROUTING_PROTOCOL # Corp_Defaults
+  BGP ASN: BGP_AS # Corp_Defaults
+  License Tier: LICENSE_TIER # Corp_Defaults
+  Telemetry Features: false # Default value, not from 12.1.2e mapping
   Telemetry collection: # unused
   Telemetry streaming via: # unused
   Telemetry source interface: # unused
   Telemetry VRF: # unused
-  Security domain: # Corp_Defaults
+  Security domain: SECURITY_DOMAIN_NAME # Corp_Defaults (Assuming mapping)
 
 General Parameter:
-  Enable IPv6 Underlay: # Corp_Defaults
-  Enable IPv6 Link-Local Address: # unused
-  Fabric Interface Numbering: # Corp_Defaults
-  Underlay Subnet IP Mask: # Corp_Defaults
-  Underlay Subnet IPv6 Mask: # unused
-  Underlay Routing Protocol: # Corp_Defaults
-  Route-Reflectors: # Corp_Defaults
-  Anycast Gateway MAC: # Corp_Defaults
-  Enable Performance Monitoring: # Corp_Defaults
+  Enable IPv6 Underlay: ENABLE_IPV6_UNDERLAY # Corp_Defaults
+  Enable IPv6 Link-Local Address: ENABLE_IPV6_LINK_LOCAL # unused
+  Fabric Interface Numbering: FABRIC_INTERFACE_NUMBERING # Corp_Defaults
+  Underlay Subnet IP Mask: UNDERLAY_SUBINTERFACE_IP_MASK # Corp_Defaults
+  Underlay Subnet IPv6 Mask: UNDERLAY_SUBINTERFACE_IPV6_MASK # unused
+  Underlay Routing Protocol: UNDERLAY_ROUTING_PROTOCOL # Corp_Defaults
+  Route-Reflectors: ROUTE_REFLECTORS # Corp_Defaults
+  Anycast Gateway MAC: ANYCAST_GW_MAC # Corp_Defaults
+  Enable Performance Monitoring: ENABLE_PERFORMANCE_MONITORING # Corp_Defaults
 
 Replication:
-  Replication Mode: # Corp_Defaults
-  Multicast Group Subnet: # unused
-  IPv6 Multicast Group Subnet: # unused
-  Enable IPv4 Tenant Routed Multicast (TRM): # unused
-  Enable IPv6 Tenant Routed Multicast (TRMv6): # unused
-  Default MDT IPv4 Address for TRM VRFs: # unused
-  Default MDT IPv6 Address for TRM VRFs: # unused
-  Rendezvous-Points: # unused
-  RP Mode: # unused
-  Underlay RP Loopback Id: # unused
-  Underlay Primary RP Loopback Id: # unused
-  Underlay Backup RP Loopback Id: # unused
-  Underlay Second Backup RP Loopback Id: # unused
-  Underlay Third Backup RP Loopback Id: # unused
-  MVPN VRI ID Range: # unused
-  Enable MVPN VRI ID Re-allocation: # unused
+  Replication Mode: REPLICATION_MODE # Corp_Defaults
+  Multicast Group Subnet: MCAST_GROUP_SUBNET # unused
+  IPv6 Multicast Group Subnet: IPV6_MCAST_GROUP_SUBNET # unused
+  Enable IPv4 Tenant Routed Multicast (TRM): ENABLE_TRM # unused
+  Enable IPv6 Tenant Routed Multicast (TRMv6): ENABLE_TRM_V6 # unused
+  Default MDT IPv4 Address for TRM VRFs: DEFAULT_MDT_ADDR_TRM_VRFS # unused
+  Default MDT IPv6 Address for TRM VRFs: DEFAULT_MDT_ADDR_TRM_VRFS_V6 # unused
+  Rendezvous-Points: RP_SERVER_IP # unused
+  RP Mode: RP_MODE # unused
+  Underlay RP Loopback Id: UNDERLAY_RP_LOOPBACK_ID # unused
+  Underlay Primary RP Loopback Id: UNDERLAY_PRIMARY_RP_LOOPBACK_ID # unused
+  Underlay Backup RP Loopback Id: UNDERLAY_BACKUP_RP_LOOPBACK_ID # unused
+  Underlay Second Backup RP Loopback Id: UNDERLAY_SECOND_BACKUP_RP_LOOPBACK_ID # unused
+  Underlay Third Backup RP Loopback Id: UNDERLAY_THIRD_BACKUP_RP_LOOPBACK_ID # unused
+  MVPN VRI ID Range: MVPN_VRI_ID_RANGE # unused
+  Enable MVPN VRI ID Re-allocation: ENABLE_MVPN_VRI_ID_REALLOC # unused
 
 vPC:
-  vPC Peer Link VLAN Range: # Corp_Defaults
-  Make vPC Peer Link VLAN as Native VLAN: # Corp_Defaults
-  vPC Peer Keep Alive option: # Corp_Defaults
-  vPC Auto Recovery Time (In Seconds): # Corp_Defaults
-  vPC Delay Restore Time (In Seconds): # Corp_Defaults
-  vPC Peer Link Port Channel ID: # Corp_Defaults
-  vPC IPv6 ND Synchronize: # Corp_Defaults
-  vPC advertise-pip: # Corp_Defaults
-  vPC advertise-pip on Border only: # Corp_Defaults
-  Enable the same vPC Domain Id for all vPC Pairs: # Corp_Defaults
-  vPC Domain Id: # unused
-  vPC Domain Id Range: # unused
-  vPC Layer-3 Peer-Router Option: # Corp_Defaults
-  Enable Qos for Fabric vPC-Peering: # Corp_Defaults
-  Qos Policy Name: # unused
-  Use Specific vPC/Port-Channel ID Range: # Corp_Defaults
-  vPC/Port-Channel ID Range: # unused
+  vPC Peer Link VLAN Range: VPC_PEER_LINK_VLAN_RANGE # Corp_Defaults
+  Make vPC Peer Link VLAN as Native VLAN: VPC_PEER_LINK_NATIVE_VLAN # Corp_Defaults
+  vPC Peer Keep Alive option: VPC_PEER_KEEP_ALIVE_OPTION # Corp_Defaults
+  vPC Auto Recovery Time (In Seconds): VPC_AUTO_RECOVERY_TIME # Corp_Defaults
+  vPC Delay Restore Time (In Seconds): VPC_DELAY_RESTORE_TIME # Corp_Defaults
+  vPC Peer Link Port Channel ID: VPC_PEER_LINK_PO_ID # Corp_Defaults
+  vPC IPv6 ND Synchronize: VPC_IPV6_ND_SYNCHRONIZE # Corp_Defaults
+  vPC advertise-pip: VPC_ADVERTISE_PIP # Corp_Defaults
+  vPC advertise-pip on Border only: VPC_ADVERTISE_PIP_BORDER_ONLY # Corp_Defaults
+  Enable the same vPC Domain Id for all vPC Pairs: ENABLE_SAME_VPC_DOMAIN_ID_ALL_PAIRS # Corp_Defaults
+  vPC Domain Id: VPC_DOMAIN_ID # unused
+  vPC Domain Id Range: VPC_DOMAIN_ID_RANGE # unused (Note: 12.1.2e had this as Corp_Defaults, 12.3 has it as unused. Using 12.3's comment preference)
+  vPC Layer-3 Peer-Router Option: VPC_L3_PEER_ROUTER_OPTION # Corp_Defaults
+  Enable Qos for Fabric vPC-Peering: ENABLE_QOS_FABRIC_VPC_PEERING # Corp_Defaults
+  Qos Policy Name: QOS_POLICY_NAME # unused
+  Use Specific vPC/Port-Channel ID Range: USE_SPECIFIC_VPC_PO_ID_RANGE # Corp_Defaults
+  vPC/Port-Channel ID Range: VPC_PO_ID_RANGE # unused
 
 Protocols:
-  Underlay Routing Loopback Id: # Corp_Defaults
-  Underlay VTEP Loopback Id: # Corp_Defaults
-  Underlay Anycast Loopback Id: # unused
-  Underlay Routing Protocol Tag: # Corp_Defaults
-  OSPF Area Id: # Corp_Defaults
-  Enable OSPF Authentication: # Corp_Defaults
-  OSPF Authentication Key ID: # unused
-  OSPF Authentication Key: # unused
-  IS-IS Level: # unused
-  IS-IS NET Area Number: # unused
-  Enable IS-IS Network Point-to-Point: # unused
-  Enable IS-IS Authentication: # unused
-  IS-IS Authentication Keychain Name: # unused
-  IS-IS Authentication Key ID: # unused
-  IS-IS Authentication Key: # unused
-  Set IS-IS Overload Bit: # unused
-  IS-IS Overload Bit Elapsed Time: # unused
-  Enable BGP Authentication: # Corp_Defaults
-  BGP Authentication Key Encryption Type: # unused
-  BGP Authentication Key: # unused
-  Generate BGP EVPN Neighbor Description: # Corp_Defaults
-  Enable PIM Hello Authentication: # unused
-  PIM Hello Authentication Key: # unused
-  Enable BFD: # Corp_Defaults
-  Enable BFD For iBGP: # Corp_Defaults
-  Enable BFD For OSPF: # Corp_Defaults
-  Enable BFD For ISIS: # unused
-  Enable BFD For PIM: # unused
-  Enable BFD Authentication: # Corp_Defaults
+  Underlay Routing Loopback Id: UNDERLAY_ROUTING_LOOPBACK_ID # Corp_Defaults
+  Underlay VTEP Loopback Id: UNDERLAY_VTEP_LOOPBACK_ID # Corp_Defaults
+  Underlay Anycast Loopback Id: ANYCAST_LOOPBACK_ID # unused
+  Underlay Routing Protocol Tag: UNDERLAY_ROUTING_PROTOCOL_TAG # Corp_Defaults
+  OSPF Area Id: OSPF_AREA_ID # Corp_Defaults
+  Enable OSPF Authentication: OSPF_AUTH_ENABLE # Corp_Defaults
+  OSPF Authentication Key ID: OSPF_AUTH_KEY_ID # unused
+  OSPF Authentication Key: OSPF_AUTH_KEY # unused
+  IS-IS Level: ISIS_LEVEL # unused
+  IS-IS NET Area Number: ISIS_NET_AREA_NUMBER # unused
+  Enable IS-IS Network Point-to-Point: ISIS_NETWORK_P2P_ENABLE # unused
+  Enable IS-IS Authentication: ISIS_AUTH_ENABLE # unused
+  IS-IS Authentication Keychain Name: ISIS_AUTH_KEYCHAIN_NAME # unused
+  IS-IS Authentication Key ID: ISIS_AUTH_KEY_ID # unused
+  IS-IS Authentication Key: ISIS_AUTH_KEY # unused
+  Set IS-IS Overload Bit: ISIS_OVERLOAD_BIT_ENABLE # unused
+  IS-IS Overload Bit Elapsed Time: ISIS_OVERLOAD_BIT_ELAPSED_TIME # unused
+  Enable BGP Authentication: BGP_AUTH_ENABLE # Corp_Defaults
+  BGP Authentication Key Encryption Type: BGP_AUTH_KEY_ENCRYPTION_TYPE # unused
+  BGP Authentication Key: BGP_AUTH_KEY # unused
+  Generate BGP EVPN Neighbor Description: GENERATE_BGP_EVPN_NEIGHBOR_DESC # Corp_Defaults
+  Enable PIM Hello Authentication: PIM_HELLO_AUTH_ENABLE # unused
+  PIM Hello Authentication Key: PIM_HELLO_AUTH_KEY # unused
+  Enable BFD: BFD_ENABLE # Corp_Defaults
+  Enable BFD For iBGP: BFD_ENABLE_IBGP # Corp_Defaults
+  Enable BFD For OSPF: BFD_ENABLE_OSPF # Corp_Defaults
+  Enable BFD For ISIS: BFD_ENABLE_ISIS # unused
+  Enable BFD For PIM: BFD_ENABLE_PIM # unused
+  Enable BFD Authentication: BFD_AUTH_ENABLE # Corp_Defaults
   iBGP Peer-Template Config:
-    Template: # Corp_Defaults
+    Template: IBGP_PEER_TEMPLATE_NAME # Corp_Defaults
   Leaf/Border/Border Gateway iBGP Peer-Template Config:
-    Template: # Corp_Defaults
+    Template: LEAF_BORDER_IBGP_PEER_TEMPLATE_NAME # Corp_Defaults
 
 Security:
-  Enable Security Groups: # Corp_Defaults
-  Security Group Name Prefix: # unused
-  Security Group Tag (SGT) ID Range: # unused
-  Security Groups Pre-provision: # unused
-  Enable MACsec: # Corp_Defaults
-  MACsec Cipher Suite: # unused
-  MACsec Primary Key String: # unused
-  MACsec Primary Cryptographic Algorithm: # unused
-  MACsec Fallback Key String: # unused
-  MACsec Fallback Cryptographic Algorithm: # unused
-  Enable DCI MACsec: False
-  Enable QKD: # unused
-  DCI MACsec Cipher Suite: # unused
-  DCI MACsec Primary Key String: # unused
-  DCI MACsec Primary Cryptographic Algorithm: # unused
-  DCI MACsec Fallback Key String: # unused
-  DCI MACsec Fallback Cryptographic Algorithm: # unused
-  QKD Profile Name: # unused
-  KME Server IP: # unused
-  KME Server Port Number: # unused
-  Trustpoint Label: # unused
-  Ignore Certificate: # unused
-  MACsec Status Report Timer: # unused
+  Enable Security Groups: ENABLE_SECURITY_GROUPS # Corp_Defaults
+  Security Group Name Prefix: SECURITY_GROUP_NAME_PREFIX # unused
+  Security Group Tag (SGT) ID Range: SGT_ID_RANGE # unused
+  Security Groups Pre-provision: SECURITY_GROUPS_PREPROVISION # unused
+  Enable MACsec: ENABLE_MACSEC # Corp_Defaults
+  MACsec Cipher Suite: MACSEC_CIPHER_SUITE # unused
+  MACsec Primary Key String: MACSEC_KEY_STRING # unused
+  MACsec Primary Cryptographic Algorithm: MACSEC_CRYPTO_ALGORITHM # unused
+  MACsec Fallback Key String: MACSEC_FALLBACK_KEY_STRING # unused
+  MACsec Fallback Cryptographic Algorithm: MACSEC_FALLBACK_CRYPTO_ALGORITHM # unused
+  Enable DCI MACsec: ENABLE_DCI_MACSEC # False
+  Enable QKD: ENABLE_QKD # unused
+  DCI MACsec Cipher Suite: DCI_MACSEC_CIPHER_SUITE # unused
+  DCI MACsec Primary Key String: DCI_MACSEC_PRIMARY_KEY_STRING # unused
+  DCI MACsec Primary Cryptographic Algorithm: DCI_MACSEC_PRIMARY_CRYPTO_ALGORITHM # unused
+  DCI MACsec Fallback Key String: DCI_MACSEC_FALLBACK_KEY_STRING # unused
+  DCI MACsec Fallback Cryptographic Algorithm: DCI_MACSEC_FALLBACK_CRYPTO_ALGORITHM # unused
+  QKD Profile Name: QKD_PROFILE_NAME # unused
+  KME Server IP: KME_SERVER_IP # unused
+  KME Server Port Number: KME_SERVER_PORT_NUMBER # unused
+  Trustpoint Label: TRUSTPOINT_LABEL # unused
+  Ignore Certificate: IGNORE_CERTIFICATE # unused
+  MACsec Status Report Timer: MACSEC_STATUS_REPORT_TIMER # unused
   
 Advanced:
-  VRF Template: # Corp_Defaults
-  Network Template: # Corp_Defaults
-  VRF Extension Template: # Corp_Defaults
-  Network Extension Template: # Corp_Defaults
-  Overlay Mode: # Corp_Defaults
-  (12.3) Allow L3VNI w/o VLAN: # Corp_Defaults
-  Enable L3VNI w/o VLAN: # Corp_Defaults
-  Enable Private VLAN (PVLAN): # Corp_Defaults
-  PVLAN Secondary Network Template: # unused
-  Site id: # Fabric
-  Intra Fabric Interface MTU: # Corp_Defaults
-  Layer 2 Host Interface MTU: # Corp_Defaults
-  Unshut Host Interfaces by Default: # Corp_Defaults
-  Power Supply Mode: # Corp_Defaults
-  CoPP Profile: # Corp_Defaults
-  VTEP HoldDown Time: # Corp_Defaults
-  Brownfield Overlay Network Name Format: # Corp_Defaults
-  Skip Overlay Network Interface Attachments: # Corp_Defaults
-  Enable CDP for Bootstrapped Switch: # Corp_Defaults
-  Enable VXLAN OAM: # Corp_Defaults
-  Enable Tenant DHCP: # Corp_Defaults
-  Enable NX-API: # Corp_Defaults
-  NX-API HTTPS Port Number: # Corp_Defaults
-  Enable HTTP NX-API: # Corp_Defaults
-  NX-API HTTP Port Number: # Corp_Defaults
-  Enable L4-L7 Services Re-direction: # Corp_Defaults
-  Enable Strict Config Compliance: # Corp_Defaults
-  Enable AAA IP Authorization: # Corp_Defaults
-  Enable NDFC as Trap Host: # Corp_Defaults
-  Anycast Border Gateway advertise-pip: # Corp_Defaults
-  Greenfield Cleanup Option: # Corp_Defaults
-  Enable Precision Time Protocol (PTP): # Corp_Defaults
-  PTP Source Loopback Id: # unused
-  PTP Domain Id: # unused
-  PTP Source VLAN Id: # unused
-  Enable MPLS Handoff: # Corp_Defaults
-  Underlay MPLS Loopback Id: # unused
-  IS-IS NET Area Number for MPLS Handoff: # unused
-  Enable TCAM Allocation: # Corp_Defaults
-  Enable Default Queuing Policies: # Corp_Defaults
-  N9K Cloud Scale Platform Queuing Policy: # unused
-  N9K R-Series Platform Queuing Policy: # unused
-  Other N9K Platform Queuing Policy: # unused
-  Enable AI/ML QoS and Queuing Policies: # Corp_Defaults
-  AI/ML QoS & Queuing Policy: # unused
-  Priority flow control watch-dog interval: # unused
-  Enable Real Time Interface Statistics Collection: # Corp_Defaults
-  Interface Statistics Load Interval: # unused
-  Spanning Tree Root Bridge Protocol: # Corp_Defaults
-  Spanning Tree VLAN Range: # unused
-  MST Instance Range: # unused
-  Spanning Tree Bridge Priority: # unused
+  VRF Template: VRF_TEMPLATE # Corp_Defaults
+  Network Template: NETWORK_TEMPLATE # Corp_Defaults
+  VRF Extension Template: VRF_EXTENSION_TEMPLATE # Corp_Defaults
+  Network Extension Template: NETWORK_EXTENSION_TEMPLATE # Corp_Defaults
+  Overlay Mode: OVERLAY_MODE # Corp_Defaults
+  (12.3) Allow L3VNI w/o VLAN: ALLOW_L3VNI_NO_VLAN # Corp_Defaults (New field, assuming similar mapping logic)
+  Enable L3VNI w/o VLAN: ENABLE_L3VNI_NO_VLAN # Corp_Defaults
+  Enable Private VLAN (PVLAN): ENABLE_PVLAN # Corp_Defaults
+  PVLAN Secondary Network Template: PVLAN_SECONDARY_NETWORK_TEMPLATE # unused
+  Site id: SITE_ID # Fabric
+  Intra Fabric Interface MTU: INTRA_FABRIC_MTU # Corp_Defaults
+  Layer 2 Host Interface MTU: L2_HOST_INTF_MTU # Corp_Defaults
+  Unshut Host Interfaces by Default: UNSHUT_HOST_INTF_DEFAULT # Corp_Defaults
+  Power Supply Mode: POWER_SUPPLY_MODE # Corp_Defaults
+  CoPP Profile: COPP_POLICY_NAME # Corp_Defaults
+  VTEP HoldDown Time: VTEP_HOLDDOWN_TIME # Corp_Defaults
+  Brownfield Overlay Network Name Format: BF_NW_NAME_FORMAT # Corp_Defaults
+  Skip Overlay Network Interface Attachments: SKIP_OVERLAY_NW_INTF_ATTACH # Corp_Defaults
+  Enable CDP for Bootstrapped Switch: ENABLE_CDP # Corp_Defaults
+  Enable VXLAN OAM: ENABLE_VXLAN_OAM # Corp_Defaults
+  Enable Tenant DHCP: ENABLE_TENANT_DHCP # Corp_Defaults
+  Enable NX-API: ENABLE_NXAPI # Corp_Defaults
+  NX-API HTTPS Port Number: NXAPI_HTTPS_PORT # Corp_Defaults
+  Enable HTTP NX-API: ENABLE_HTTP_NXAPI # Corp_Defaults
+  NX-API HTTP Port Number: NXAPI_HTTP_PORT # Corp_Defaults
+  Enable L4-L7 Services Re-direction: ENABLE_L4L7_SERVICE_REDIRECTION # Corp_Defaults
+  Enable Strict Config Compliance: ENABLE_STRICT_CONFIG_COMPLIANCE # Corp_Defaults
+  Enable AAA IP Authorization: ENABLE_AAA_IP_AUTH # Corp_Defaults
+  Enable NDFC as Trap Host: ENABLE_NDFC_TRAP_HOST # Corp_Defaults
+  Anycast Border Gateway advertise-pip: ANYCAST_BGW_ADVERTISE_PIP # Corp_Defaults
+  Greenfield Cleanup Option: GREENFIELD_CLEANUP_OPTION # Corp_Defaults
+  Enable Precision Time Protocol (PTP): ENABLE_PTP # Corp_Defaults
+  PTP Source Loopback Id: PTP_SOURCE_LOOPBACK_ID # unused
+  PTP Domain Id: PTP_DOMAIN_ID # unused
+  PTP Source VLAN Id: PTP_SOURCE_VLAN_ID # unused
+  Enable MPLS Handoff: ENABLE_MPLS_HANDOFF # Corp_Defaults
+  Underlay MPLS Loopback Id: MPLS_LOOPBACK_ID # unused
+  IS-IS NET Area Number for MPLS Handoff: ISIS_NET_AREA_MPLS_HANDOFF # unused
+  Enable TCAM Allocation: ENABLE_TCAM_ALLOCATION # Corp_Defaults
+  Enable Default Queuing Policies: ENABLE_DEFAULT_QUEUING_POLICIES # Corp_Defaults
+  N9K Cloud Scale Platform Queuing Policy: N9K_CS_QUEUING_POLICY # unused
+  N9K R-Series Platform Queuing Policy: N9K_RS_QUEUING_POLICY # unused
+  Other N9K Platform Queuing Policy: OTHER_N9K_QUEUING_POLICY # unused
+  Enable AI/ML QoS and Queuing Policies: ENABLE_AI_ML_QOS_QUEUING_POLICIES # Corp_Defaults
+  AI/ML QoS & Queuing Policy: AI_ML_QOS_QUEUING_POLICY_NAME # unused
+  Priority flow control watch-dog interval: PFC_WD_INTERVAL # unused
+  Enable Real Time Interface Statistics Collection: ENABLE_REAL_TIME_INTF_STATS_COLLECTION # Corp_Defaults
+  Interface Statistics Load Interval: INTF_STATS_LOAD_INTERVAL # unused
+  Spanning Tree Root Bridge Protocol: STP_ROOT_BRIDGE_PROTOCOL # Corp_Defaults
+  Spanning Tree VLAN Range: STP_VLAN_RANGE # unused
+  MST Instance Range: MST_INSTANCE_RANGE # unused
+  Spanning Tree Bridge Priority: STP_BRIDGE_PRIORITY # unused
 
 Freeform:
   Leaf Pre-Interfaces Freeform Config: 
-    Freeform: # Corp_Defaults
+    Freeform: LEAF_PRE_INTF_FREEFORM_CONFIG # Corp_Defaults
   Spine Pre-Interfaces Freeform Config: 
-    Freeform: # Corp_Defaults
+    Freeform: SPINE_PRE_INTF_FREEFORM_CONFIG # Corp_Defaults
   ToR Pre-Interfaces Freeform Config: # unused
-  Leaf Post-Interfaces Freeform Config: # unused
-  Spine Post-Interfaces Freeform Config: # unused
+  Leaf Post-Interfaces Freeform Config: LEAF_POST_INTF_FREEFORM_CONFIG # unused
+  Spine Post-Interfaces Freeform Config: SPINE_POST_INTF_FREEFORM_CONFIG # unused
   ToR Post-Interfaces Freeform Config: # unused
-  Intra-fabric Links Additional Config: # unused
+  Intra-fabric Links Additional Config: INTRA_FABRIC_LINKS_ADDITIONAL_CONFIG # unused
 
 Resources:
-  Manual Underlay IP Address Allocation: # Corp_Defaults
-  Underlay Routing Loopback IP Range: # Fabric
-  Underlay VTEP Loopback IP Range: # Fabric
-  Underlay RP Loopback IP Range: # Corp_Defaults
-  Underlay Subnet IP Range: # Fabric
-  Underlay MPLS Loopback IP Range: # unused
-  Underlay Routing Loopback IPv6 Range: # unused
-  Underlay VTEP Loopback IPv6 Range: # unused
-  Underlay Subnet IPv6 Range: # unused
-  Underlay RP Loopback IPv6 Range: # unused
-  BGP Router ID Range for IPv6 Underlay: # unused
-  Layer 2 VXLAN VNI Range: # Corp_Defaults
-  Layer 3 VXLAN VNI Range: # Corp_Defaults
-  Network VLAN Range: # Corp_Defaults
-  VRF VLAN Range: # Corp_Defaults
-  Subinterface Dot1q Range: # Corp_Defaults
-  VRF Lite Deployment: # Corp_Defaults
-  Auto Deploy for Peer: # Corp_Defaults
-  Auto Deploy Default VRF: # Corp_Defaults
-  Auto Deploy Default VRF for Peer: # unused
-  Redistribute BGP Route-map Name: # unused
-  VRF Lite Subnet IP Range: # Corp_Defaults
-  VRF Lite Subnet Mask: # Corp_Defaults
-  Auto Allocation of Unique IP on VRF Extension over VRF Lite IFC: # Corp_Defaults
-  Per VRF Per VTEP Loopback IPv4 Auto-Provisioning: # Corp_Defaults
-  Per VRF Per VTEP IPv6 Pool for Loopbacks: # unused
-  Service Level Agreement (SLA) ID Range: # Corp_Defaults
-  Tracked Object ID Range: # Corp_Defaults
-  Service Network VLAN Range: # Corp_Defaults
-  Route Map Sequence Number Range: # Corp_Defaults
+  Manual Underlay IP Address Allocation: MANUAL_UNDERLAY_IP_ALLOCATION # Corp_Defaults
+  Underlay Routing Loopback IP Range: LOOPBACK_ID_RANGE # Fabric
+  Underlay VTEP Loopback IP Range: VTEP_LOOPBACK_IP_RANGE # Fabric
+  Underlay RP Loopback IP Range: UNDERLAY_RP_LOOPBACK_IP_RANGE # Corp_Defaults
+  Underlay Subnet IP Range: UNDERLAY_SUBNET_IP_RANGE # Fabric
+  Underlay MPLS Loopback IP Range: MPLS_LOOPBACK_IP_RANGE # unused
+  Underlay Routing Loopback IPv6 Range: LOOPBACK_IPV6_RANGE # unused
+  Underlay VTEP Loopback IPv6 Range: VTEP_LOOPBACK_IPV6_RANGE # unused
+  Underlay Subnet IPv6 Range: UNDERLAY_SUBNET_IPV6_RANGE # unused
+  Underlay RP Loopback IPv6 Range: UNDERLAY_RP_LOOPBACK_IPV6_RANGE # unused
+  BGP Router ID Range for IPv6 Underlay: BGP_ROUTER_ID_RANGE_V6 # unused
+  Layer 2 VXLAN VNI Range: L2_VNI_RANGE # Corp_Defaults
+  Layer 3 VXLAN VNI Range: L3_VNI_RANGE # Corp_Defaults
+  Network VLAN Range: NETWORK_VLAN_RANGE # Corp_Defaults
+  VRF VLAN Range: VRF_VLAN_RANGE # Corp_Defaults
+  Subinterface Dot1q Range: SUBINTERFACE_DOT1Q_RANGE # Corp_Defaults
+  VRF Lite Deployment: VRFLITE_DEPLOYMENT # Corp_Defaults
+  Auto Deploy for Peer: AUTO_DEPLOY_FOR_PEER # Corp_Defaults
+  Auto Deploy Default VRF: AUTO_DEPLOY_DEFAULT_VRF # Corp_Defaults
+  Auto Deploy Default VRF for Peer: AUTO_DEPLOY_DEFAULT_VRF_FOR_PEER # unused
+  Redistribute BGP Route-map Name: REDISTRIBUTE_BGP_ROUTE_MAP_NAME # unused
+  VRF Lite Subnet IP Range: VRFLITE_SUBNET_IP_RANGE # Corp_Defaults
+  VRF Lite Subnet Mask: VRFLITE_SUBNET_MASK # Corp_Defaults
+  Auto Allocation of Unique IP on VRF Extension over VRF Lite IFC: AUTO_ALLOC_UNIQUE_IP_VRFLITE_IFC # Corp_Defaults
+  Per VRF Per VTEP Loopback IPv4 Auto-Provisioning: PER_VRF_PER_VTEP_LOOPBACK_IPV4_AUTO_PROVISIONING # Corp_Defaults
+  Per VRF Per VTEP IPv6 Pool for Loopbacks: PER_VRF_PER_VTEP_IPV6_POOL_LOOPBACKS # unused
+  Service Level Agreement (SLA) ID Range: SLA_ID_RANGE # Corp_Defaults
+  Tracked Object ID Range: TRACKED_OBJECT_ID_RANGE # Corp_Defaults
+  Service Network VLAN Range: SERVICE_NW_VLAN_RANGE # Corp_Defaults
+  Route Map Sequence Number Range: ROUTE_MAP_SEQ_NUM_RANGE # Corp_Defaults
 
 Manageability:
-  Inband Management: # Corp_Defaults
-  DNS Server IPs: # Corp_Defaults
-  DNS Server VRFs: # Corp_Defaults
-  NTP Server IPs: # Fabric
-  NTP Server VRFs: # Corp_Defaults
-  Syslog Server IPs: # Fabric
-  Syslog Server Severity: # Corp_Defaults
-  Syslog Server VRFs: # Corp_Defaults
+  Inband Management: INBAND_MGMT_ENABLE # Corp_Defaults
+  DNS Server IPs: DNS_SERVER_IPS # Corp_Defaults
+  DNS Server VRFs: DNS_SERVER_VRFS # Corp_Defaults
+  NTP Server IPs: NTP_SERVER_IPS # Fabric
+  NTP Server VRFs: NTP_SERVER_VRFS # Corp_Defaults
+  Syslog Server IPs: SYSLOG_SERVER_IPS # Fabric
+  Syslog Server Severity: SYSLOG_SERVER_SEVERITY # Corp_Defaults
+  Syslog Server VRFs: SYSLOG_SERVER_VRFS # Corp_Defaults
   AAA Freeform Config: 
-    Freeform: # Corp_Defaults
+    Freeform: AAA_FREEFORM_CONFIG # Corp_Defaults
   Banner: 
-    Freeform: # Corp_Defaults
+    Freeform: BANNER_FREEFORM_CONFIG # Corp_Defaults
   
 Bootstrap:
-  Enable Bootstrap: False
-  Enable Local DHCP Server: # unused
-  DHCP Version: # unused
-  DHCP Scope Start Address: # unused
-  DHCP Scope End Address: # unused
-  Switch Mgmt Default Gateway: # unused
-  Switch Mgmt IP Subnet Prefix: # unused
-  Switch Mgmt IPv6 Subnet Prefix: # unused
-  DHCPv4 Multi Subnet Scope: # unused
-  Seed Switch Fabric Interfaces: # unused
-  Spine Switch Fabric Interfaces: # unused
-  External DHCP Server IP Addresses: # unused
-  Bootstrap Seed Switch Loopback Interface ID: # unused
-  Switch Loopback DHCP Scope Start Address: # unused
-  Switch Loopback DHCP Scope End Address: # unused
-  Enable AAA Config: # unused
-  Bootstrap Freeform Config: # unused
+  Enable Bootstrap: ENABLE_BOOTSTRAP # False (from 12.3 template, 12.1.2e was Corp_Defaults)
+  Enable Local DHCP Server: ENABLE_LOCAL_DHCP_SERVER # unused
+  DHCP Version: DHCP_VERSION # unused
+  DHCP Scope Start Address: DHCP_SCOPE_START_ADDR # unused
+  DHCP Scope End Address: DHCP_SCOPE_END_ADDR # unused
+  Switch Mgmt Default Gateway: SWITCH_MGMT_DEF_GW # unused
+  Switch Mgmt IP Subnet Prefix: SWITCH_MGMT_IP_SUBNET_PREFIX # unused
+  Switch Mgmt IPv6 Subnet Prefix: SWITCH_MGMT_IPV6_SUBNET_PREFIX # unused
+  DHCPv4 Multi Subnet Scope: DHCPV4_MULTI_SUBNET_SCOPE # unused
+  Seed Switch Fabric Interfaces: SEED_SWITCH_FABRIC_INTERFACES # unused
+  Spine Switch Fabric Interfaces: SPINE_SWITCH_FABRIC_INTERFACES # unused
+  External DHCP Server IP Addresses: EXTERNAL_DHCP_SERVER_IP_ADDRESSES # unused
+  Bootstrap Seed Switch Loopback Interface ID: BOOTSTRAP_SEED_SWITCH_LOOPBACK_INTERFACE_ID # unused
+  Switch Loopback DHCP Scope Start Address: SWITCH_LOOPBACK_DHCP_SCOPE_START_ADDR # unused
+  Switch Loopback DHCP Scope End Address: SWITCH_LOOPBACK_DHCP_SCOPE_END_ADDR # unused
+  Enable AAA Config: ENABLE_AAA_CONFIG # unused
+  Bootstrap Freeform Config: BOOTSTRAP_FREEFORM_CONFIG # unused
 
 Configuration Backup:
-  Hourly Fabric Backup: # Corp_Defaults
-  Scheduled Fabric Backup: # Corp_Defaults
-  Scheduled Time: # Corp_Defaults
+  Hourly Fabric Backup: HOURLY_FABRIC_BACKUP # Corp_Defaults
+  Scheduled Fabric Backup: SCHEDULED_FABRIC_BACKUP # Corp_Defaults
+  Scheduled Time: SCHEDULED_TIME # Corp_Defaults
 
 Flow Monitor:
-  Enable Netflow: # Corp_Defaults
-
+  Enable Netflow: ENABLE_NETFLOW # Corp_Defaults
