@@ -17,10 +17,14 @@ Advanced:
   Enable CDP for Bootstrapped Switch: False
   Enable NX-API: False
   Enable NX-API on HTTP port: # unused
+  Enable HTTP NX-API: # unused
+  NX-API HTTP Port Number: # unused
   Inband Mgmt: False
   Enable Precision Time Protocol (PTP): False
   PTP Source Loopback Id: # unused
   PTP Domain Id: # unused
+  Enable Real Time Interface Statistics Collection: False
+  Interface Statistics Load Interval: # unused
   Fabric Freeform: 
     freeform: Fabric Freeform
   AAA Freeform Config: 
@@ -36,17 +40,20 @@ Configuration Backup:
   Scheduled Time: 04:00
 
 Bootstrap:
-  Enable Bootstrap (For NX-OS Switches Only): False
+  Enable Bootstrap: False
   Enable Inband POAP: # unused
   Enable Local DHCP Server: # unused
+  Enable Plug n Play for Cat9K: # unused
   DHCP Version: # unused
+  Domain name: # unused
   DHCP Scope Start Address: # unused
   DHCP Scope End Address: # unused
   Switch Mgmt Default Gateway: # unused
   Switch Mgmt IP Subnet Prefix: # unused
+  Switch Mgmt IPv6 Subnet Prefix: # unused
   Enable AAA Config: # unused
-  Bootstrap Freeform Config : 
-    Freeform: # unused
+  Bootstrap Freeform Config (NX-OS): # unused
+  Bootstrap Freeform Config (IOS XE): # unused
   DHCPv4 Multi Subnet Scope: # unused
 
 Flow Monitor:
