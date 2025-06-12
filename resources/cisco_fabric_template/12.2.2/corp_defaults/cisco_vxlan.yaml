@@ -38,8 +38,8 @@ vPC:
   Make vPC Peer Link VLAN as Native VLAN: False
   vPC Peer Keep Alive option: loopback # Use vPC Peer Keep Alive with Loopback or Management
   vPC Auto Recovery Time (In Seconds): 360 # (Min:240, Max:3600)
-  vPC Delay Restore Time (In Seconds): 240 # (Min:1, Max:3600)
-  vPC Peer Link Port Channel ID: 1 # (Min:1, Max:4096)
+  vPC Delay Restore Time (In Seconds): 150 # (Min:1, Max:3600)
+  vPC Peer Link Port Channel ID: 500 # (Min:1, Max:4096)
   vPC IPv6 ND Synchronize: True # Enable IPv6 ND synchronization between vPC peers
   vPC advertise-pip: True # For Primary VTEP IP Advertisement As Next-Hop Of Prefix Routes
   vPC advertise-pip on Border only: False # Enable advertise-pip on vPC borders and border gateways only. Applicable only when vPC advertise-pip is not enabled
@@ -134,7 +134,7 @@ Advanced:
   Skip Overlay Network Interface Attachments: False # Enable to skip overlay network interface attachments for Brownfield and Host Port Resync cases
   Enable CDP for Bootstrapped Switch: False # Enable CDP on management interface
   Enable VXLAN OAM: True # Enable the Next Generation (NG) OAM feature for all switches in the fabric to aid in trouble-shooting VXLAN EVPN fabrics
-  Enable Tenant DHCP: True
+  Enable Tenant DHCP: False
   Enable NX-API: True # Enable HTTPS NX-API
   NX-API HTTPS Port Number: 443
   Enable HTTP NX-API: True
@@ -205,7 +205,7 @@ Resources:
   Per VRF Per VTEP IPv6 Pool for Loopbacks: # unused
   Service Level Agreement (SLA) ID Range: 10000-19999
   Tracked Object ID Range: 100-299
-  Service Network VLAN Range: 3000-3199 # Per Switch Overlay Service Network VLAN Range (Min:2, Max:4094)
+  Service Network VLAN Range: 3966-3967 # Per Switch Overlay Service Network VLAN Range (Min:2, Max:4094)
   Route Map Sequence Number Range: 1-65534 # (Min:1, Max:65534)
 
 Manageability:

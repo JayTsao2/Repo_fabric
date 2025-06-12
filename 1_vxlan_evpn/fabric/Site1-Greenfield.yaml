@@ -1,18 +1,21 @@
 ---
-NDFC: 12.3
+NDFC: 12.2.2
 
 Fabric:
   name: Site1-Greenfield
   type: VXLAN
   Location: San Jose, US
 
+General Parameter:
+  BGP ASN: 4240650100
+
 Resources:
-  Underlay Routing Loopback IP Range: 192.168.246.0/24 # Typically Loopback0 IP Address Range
-  Underlay VTEP Loopback IP Range: 192.168.236.0/24 # Typically Loopback1 IP Address Range
-  Underlay Subnet IP Range: 192.168.51.0/24 # Address range to assign Numbered and Peer Link SVI IPs
+  Underlay Routing Loopback IP Range: 192.168.241.0/24 # Typically Loopback0 IP Address Range
+  Underlay VTEP Loopback IP Range: 192.168.231.0/24 # Typically Loopback1 IP Address Range
+  Underlay Subnet IP Range: 192.168.11.0/24 # Address range to assign Numbered and Peer Link SVI IPs
 
 Manageability:
-  NTP Server IPs: 10.11.194.31,10.11.195.31
-  Syslog Server IPs: 10.70.32.141,10.70.32.147
+  NTP Server IPs: 10.11.82.31,10.11.83.31
+  Syslog Server IPs: 10.228.90.42,10.228.90.43, 10.11.116.100, 10.11.117.100
 
 
