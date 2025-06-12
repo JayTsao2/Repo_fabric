@@ -4,7 +4,7 @@ Fabric:
   type: # Fabric
 
 General Parameter:
-  BGP ASN: # Corp_Defaults
+  BGP ASN: # Fabric
   Enable IPv6 Underlay: # Corp_Defaults
   Enable IPv6 Link-Local Address: # unused
   Fabric Interface Numbering: # Corp_Defaults # Numbered(Point-to-Point) or Unnumbered
