@@ -1,15 +1,15 @@
 ---
 Fabric:
-  name: # Fabric
-  type: # Fabric
+  name: name
+  type: management.type
 
 General Parameter:
-  BGP ASN: # Fabric
+  BGP ASN: management.bgpAsn
   Enable IPv6 Underlay: management.underlayIpv6
   Enable IPv6 Link-Local Address: management.ipv6LinkLocal
   Fabric Interface Numbering: management.fabricInterfaceType
   Underlay Subnet IP Mask: management.targetSubnetMask
-  Underlay Subnet IPv6 Mask: # unused
+  Underlay Subnet IPv6 Mask: management.ipv6SubnetTargetMask
   Underlay Routing Protocol: management.linkStateRoutingProtocol
   Route-Reflectors: management.routeReflectorCount
   Anycast Gateway MAC: management.anycastGatewayMac
@@ -29,223 +29,223 @@ Replication:
   Underlay Primary RP Loopback Id: "phantomRendezvousPointLoopbackId1"
   Underlay Backup RP Loopback Id: "phantomRendezvousPointLoopbackId2"
   Underlay Second Backup RP Loopback Id: "phantomRendezvousPointLoopbackId3"
-  Underlay Third Backup RP Loopback Id: # unused
-  MVPN VRI ID Range: # unused
-  Enable MVPN VRI ID Re-allocation: # unused
+  Underlay Third Backup RP Loopback Id: "phantomRendezvousPointLoopbackId4"
+  MVPN VRI ID Range: "mvpnVrfRouteImportIdRange"
+  Enable MVPN VRI ID Re-allocation: "vrfRouteImportIdReallocation" 
 
 vPC:
-  vPC Peer Link VLAN Range: # Corp_Defaults # VLAN range for vPC Peer Link SVI (Min:2, Max:4094)
-  Make vPC Peer Link VLAN as Native VLAN: # Corp_Defaults
-  vPC Peer Keep Alive option: # Corp_Defaults # Use vPC Peer Keep Alive with Loopback or Management
-  vPC Auto Recovery Time (In Seconds): # Corp_Defaults # (Min:240, Max:3600)
-  vPC Delay Restore Time (In Seconds): # Corp_Defaults # (Min:1, Max:3600)
-  vPC Peer Link Port Channel ID: # Corp_Defaults # (Min:1, Max:4096)
-  vPC IPv6 ND Synchronize: # Corp_Defaults # Enable IPv6 ND synchronization between vPC peers
-  vPC advertise-pip: # Corp_Defaults # For Primary VTEP IP Advertisement As Next-Hop Of Prefix Routes
-  vPC advertise-pip on Border only: # Corp_Defaults # Enable advertise-pip on vPC borders and border gateways only. Applicable only when vPC advertise-pip is not enabled
-  Enable the same vPC Domain Id for all vPC Pairs: # Corp_Defaults # (Not Recommended)
-  vPC Domain Id: # unused
-  vPC Domain Id Range: # Corp_Defaults # vPC Domain id range to use for new pairings
-  Enable Qos for Fabric vPC-Peering: # Corp_Defaults # Qos on spines for guaranteed delivery of vPC Fabric Peering communication
-  Qos Policy Name: # unused
-  Use Specific vPC/Port-Channel ID Range: # Corp_Defaults
-  vPC/Port-Channel ID Range: # unused
+  vPC Peer Link VLAN Range: vpcPeerLinkVlan
+  Make vPC Peer Link VLAN as Native VLAN: vpcPeerLinkEnableNativeVlan
+  vPC Peer Keep Alive option: vpcPeerKeepAliveOption
+  vPC Auto Recovery Time (In Seconds): vpcAutoRecoveryTimer
+  vPC Delay Restore Time (In Seconds): vpcDelayRestoreTimer
+  vPC Peer Link Port Channel ID: vpcPeerLinkPortChannelId
+  vPC IPv6 ND Synchronize: vpcIpv6NeighborDiscoverySync
+  vPC advertise-pip: advertisePhysicalIp
+  vPC advertise-pip on Border only: advertisePhysicalIpOnBorder
+  Enable the same vPC Domain Id for all vPC Pairs: fabricVpcDomainId
+  vPC Domain Id: sharedVpcDomainId
+  vPC Domain Id Range: vpcDomainIdRange
+  Enable Qos for Fabric vPC-Peering: fabricVpcQos
+  Qos Policy Name: fabricVpcQosPolicyName
+  Use Specific vPC/Port-Channel ID Range: leafToRIdRange
+  vPC/Port-Channel ID Range: leafTorVpcPortChannelIdRange
 
 Protocols:
-  Underlay Routing Loopback Id: # Corp_Defaults # (Min:0, Max:1023)
-  Underlay VTEP Loopback Id: # Corp_Defaults # (Min:0, Max:1023)
+  Underlay Routing Loopback Id: management.bgpLoopbackId
+  Underlay VTEP Loopback Id: management.nveLoopbackId
   Underlay Anycast Loopback Id: # unused
-  Underlay Routing Protocol Tag: # Corp_Defaults # Underlay Routing Process Tag
-  OSPF Area Id: # Corp_Defaults # OSPF Area Id in IP address format
-  Enable OSPF Authentication: # Corp_Defaults
-  OSPF Authentication Key ID: # unused
-  OSPF Authentication Key: # unused
-  IS-IS Level: # unused
-  IS-IS NET Area Number: # unused
+  Underlay Routing Protocol Tag: management.linkStateRoutingTag
+  OSPF Area Id: management.ospfAreaId
+  Enable OSPF Authentication: management.ospfAuthentication
+  OSPF Authentication Key ID: management.ospfAuthenticationKeyId
+  OSPF Authentication Key: management.ospfAuthenticationKey
+  IS-IS Level: management.isisLevel
+  IS-IS NET Area Number: management.isisAreaNumber
   Previous IS-IS NET Area Number # unused
-  Enable IS-IS Network Point-to-Point: # unused
-  Enable IS-IS Authentication: # unused
-  IS-IS Authentication Keychain Name: # unused
-  IS-IS Authentication Key ID: # unused
-  IS-IS Authentication Key: # unused
-  Set IS-IS Overload Bit: # unused
-  IS-IS Overload Bit Elapsed Time: # unused
-  Enable BGP Authentication: # Corp_Defaults
-  BGP Authentication Key Encryption Type: # unused
-  BGP Authentication Key: # unused
-  Enable PIM Hello Authentication: # unused
-  PIM Hello Authentication Key: # unused
-  Enable BFD: # Corp_Defaults
-  Enable BFD For iBGP: # Corp_Defaults
-  Enable BFD For OSPF: # Corp_Defaults
-  Enable BFD For ISIS: # unused
-  Enable BFD For PIM: # unused
-  Enable BFD Authentication: # Corp_Defaults
-  BFD Authentication Key ID: # unused
-  BFD Authentication Key: # unused
+  Enable IS-IS Network Point-to-Point: management.isisPointToPoint
+  Enable IS-IS Authentication: management.isisAuthentication
+  IS-IS Authentication Keychain Name: management.isisAuthenticationKeychainName
+  IS-IS Authentication Key ID: management.isisAuthenticationKeychainKeyId
+  IS-IS Authentication Key: management.isisAuthenticationKey
+  Set IS-IS Overload Bit: management.isisOverload
+  IS-IS Overload Bit Elapsed Time: management.isisOverloadElapseTime
+  Enable BGP Authentication: management.bgpAuthentication
+  BGP Authentication Key Encryption Type: management.bgpAuthenticationKeyType
+  BGP Authentication Key: management.bgpAuthenticationKey
+  Enable PIM Hello Authentication: management.pimHelloAuthentication
+  PIM Hello Authentication Key: management.pimHelloAuthenticationKey
+  Enable BFD: management.bfd
+  Enable BFD For iBGP: management.bfdIbgp
+  Enable BFD For OSPF: management.bfdOspf
+  Enable BFD For ISIS: management.bfdIsis
+  Enable BFD For PIM: management.bfdPim
+  Enable BFD Authentication: management.bfdAuthentication
+  BFD Authentication Key ID: management.bfdAuthenticationKeyId
+  BFD Authentication Key: management.bfdAuthenticationKey
   iBGP Peer-Template Config: # Speficies the iBGP Peer-Template config used for RR and spines with border role.
-    Template: # Corp_Defaults
+    Template: management.ibgpPeerTemplate
   Leaf/Border/Border Gateway iBGP Peer-Template Config: # Specifies the config used for leaf, border or border gateway. If this field is empty, the peer template defined in iBGP Peer-Template Config is used on all BGP enabled devices (RRs,leafs, border or border gateway roles.
-    Template: # Corp_Defaults
+    Template: management.leafibgpPeerTemplate
 
 Security:
-  Enable Security Groups: # Corp_Defaults
-  Security Group Name Prefix: # unused
-  Security Group Tag (SGT) ID Range: # unused
-  Security Groups Pre-provision: # unused
-  Enable MACsec: # Corp_Defaults
-  MACsec Cipher Suite: # unused
-  MACsec Primary Key String: # unused
-  MACsec Primary Cryptographic Algorithm: # unused
-  MACsec Fallback Key String: # unused
-  MACsec Fallback Cryptographic Algorithm: # unused
-  Enable DCI MACsec: # Corp_Defaults
-  Enable QKD: # unused
-  DCI MACsec Cipher Suite: # unused
-  DCI MACsec Primary Key String: # unused
-  DCI MACsec Primary Cryptographic Algorithm: # unused
-  DCI MACsec Fallback Key String: # unused
-  DCI MACsec Fallback Cryptographic Algorithm: # unused
-  QKD Profile Name: # unused
-  KME Server IP: # unused
-  KME Server Port Number: # unused
-  Trustpoint Label: # unused
-  Ignore Certificate: # unused
-  MACsec Status Report Timer: # unused
+  Enable Security Groups: securityGroupTag
+  Security Group Name Prefix: securityGroupTagPrefix
+  Security Group Tag (SGT) ID Range: securityGroupTagIdRange
+  Security Groups Pre-provision: securityGroupTagPreprovision
+  Enable MACsec: macsec
+  MACsec Cipher Suite: macsecCipherSuite
+  MACsec Primary Key String: macsecKeyString
+  MACsec Primary Cryptographic Algorithm: macsecAlgorithm
+  MACsec Fallback Key String: macsecFallbackKeyString
+  MACsec Fallback Cryptographic Algorithm: macsecFallbackAlgorithm
+  Enable DCI MACsec: macsecDci
+  Enable QKD: quantumKeyDistribution
+  DCI MACsec Cipher Suite: macsecDciCipherSuite
+  DCI MACsec Primary Key String: macsecDciKeyString
+  DCI MACsec Primary Cryptographic Algorithm: macsecDciAlgorithm
+  DCI MACsec Fallback Key String: macsecDciFallbackKeyString
+  DCI MACsec Fallback Cryptographic Algorithm: macsecDciFallbackAlgorithm
+  QKD Profile Name: quantumKeyDistributionProfileName
+  KME Server IP: keyManagementEntityServerIp
+  KME Server Port Number: keyManagementEntityServerPort
+  Trustpoint Label: trustpointLabel
+  Ignore Certificate: skipCertificateVerification
+  MACsec Status Report Timer: macsecReportTimer
   
 Advanced:
-  VRF Template: # Corp_Defaults # Default Overlay VRF Template For Leafs
-  Network Template: # Corp_Defaults # Default Overlay Network Template For Leafs
-  VRF Extension Template: # Corp_Defaults # Default Overlay VRF Template For Borders
-  Network Extension Template: # Corp_Defaults # Default Overlay Network Template For Borders
-  Overlay Mode: # Corp_Defaults # VRF/Network configuration using config-profile or CLI
-  Allow L3VNI w/o VLAN: # Corp_Defaults
-  Enable L3VNI w/o VLAN: # Corp_Defaults
-  Enable Private VLAN (PVLAN): # Corp_Defaults
-  PVLAN Secondary Network Template: # unused
-  Site id: # Corp_Specific # For EVPN Multi-Site Support (Min:1, Max: 281474976710655). Defaults to Fabric ASN
-  Intra Fabric Interface MTU: # Corp_Defaults # (Min:576, Max:9216). Must be an even number
-  Layer 2 Host Interface MTU: # Corp_Defaults # (Min:1500, Max:9216). Must be an even number
-  Unshut Host Interfaces by Default: # Corp_Defaults
-  Power Supply Mode: # Corp_Defaults # Default Power Supply Mode For The Fabric
-  CoPP Profile: # Corp_Defaults # Fabric Wide CoPP Policy. Customized CoPP policy should be provided when 'manual' is selected
-  VTEP HoldDown Time: # Corp_Defaults # NVE Source Inteface HoldDown Time (Min:1, Max:1500) in seconds
-  Brownfield Overlay Network Name Format: # Corp_Defaults # Generated network name should be < 64 characters
-  Skip Overlay Network Interface Attachments: # Corp_Defaults # Enable to skip overlay network interface attachments for Brownfield and Host Port Resync cases
-  Enable CDP for Bootstrapped Switch: # Corp_Defaults # Enable CDP on management interface
-  Enable VXLAN OAM: # Corp_Defaults # Enable the Next Generation (NG) OAM feature for all switches in the fabric to aid in trouble-shooting VXLAN EVPN fabrics
-  Enable Tenant DHCP: # Corp_Defaults
-  Enable NX-API: # Corp_Defaults # Enable HTTPS NX-API
-  NX-API HTTPS Port Number: # Corp_Defaults
-  Enable HTTP NX-API: # Corp_Defaults
-  NX-API HTTP Port Number: # Corp_Defaults
-  Enable L4-L7 Services Re-direction: # Corp_Defaults
-  Enable Strict Config Compliance: # Corp_Defaults
-  Enable AAA IP Authorization: # Corp_Defaults
-  Enable NDFC as Trap Host: # Corp_Defaults
-  Anycast Border Gateway advertise-pip: # Corp_Defaults
-  Greenfield Cleanup Option: # Corp_Defaults
-  Enable Precision Time Protocol (PTP): # Corp_Defaults
-  PTP Source Loopback Id: # unused
-  PTP Domain Id: # unused
-  PTP Source VLAN Id: # unused
-  Enable MPLS Handoff: # Corp_Defaults
-  Underlay MPLS Loopback Id: # unused
-  IS-IS NET Area Number for MPLS Handoff: # unused
-  Enable TCAM Allocation: # Corp_Defaults
-  Enable Default Queuing Policies: # Corp_Defaults
-  N9K Cloud Scale Platform Queuing Policy: # unused
-  N9K R-Series Platform Queuing Policy: # unused
-  Other N9K Platform Queuing Policy: # unused
-  Enable AI/ML QoS and Queuing Policies: # Corp_Defaults
-  AI/ML QoS & Queuing Policy: # unused
-  Priority flow control watch-dog interval: # unused
-  Enable Real Time Interface Statistics Collection: # Corp_Defaults
-  Interface Statistics Load Interval: # unused
-  Spanning Tree Root Bridge Protocol: # Corp_Defaults
-  Spanning Tree VLAN Range: # unused
-  MST Instance Range: # unused
-  Spanning Tree Bridge Priority: # unused
+  VRF Template: vrfTemplate
+  Network Template: networkTemplate
+  VRF Extension Template: vrfExtensionTemplate
+  Network Extension Template: networkExtensionTemplate
+  Overlay Mode: overlayMode
+  Allow L3VNI w/o VLAN: allowL3VniNoVlan
+  Enable L3VNI w/o VLAN: l3VniNoVlanDefaultOption
+  Enable Private VLAN (PVLAN): privateVlan
+  PVLAN Secondary Network Template: defaultPrivateVlanSecondaryNetworkTemplate
+  Site id: siteId
+  Intra Fabric Interface MTU: fabricMtu
+  Layer 2 Host Interface MTU: l2HostInterfaceMtu
+  Unshut Host Interfaces by Default: hostInterfaceAdminState
+  Power Supply Mode: powerRedundancyMode
+  CoPP Profile: coppPolicy
+  VTEP HoldDown Time: nveHoldDownTimer
+  Brownfield Overlay Network Name Format: brownfieldNetworkNameFormat
+  Skip Overlay Network Interface Attachments: brownfieldSkipOverlayNetworkAttachments
+  Enable CDP for Bootstrapped Switch: cdp
+  Enable VXLAN OAM: cdp
+  Enable Tenant DHCP: tenantDhcp
+  Enable NX-API: nxapi
+  NX-API HTTPS Port Number: nxapiHttpsPort
+  Enable HTTP NX-API: nxapiHttp
+  NX-API HTTP Port Number: nxapiHttpPort
+  Enable L4-L7 Services Re-direction: l4L7Redirect
+  Enable Strict Config Compliance: strictConfigComplianceMode
+  Enable AAA IP Authorization: aaa
+  Enable NDFC as Trap Host: snmpTrap
+  Anycast Border Gateway advertise-pip: anycastBorderGatewayAdvertisePhysicalIp
+  Greenfield Cleanup Option: greenfieldDebugFlag
+  Enable Precision Time Protocol (PTP): ptp
+  PTP Source Loopback Id: ptpLoopbackId
+  PTP Domain Id: ptpDomainId
+  PTP Source VLAN Id: ptpSourceVlanId
+  Enable MPLS Handoff: mplsHandoff
+  Underlay MPLS Loopback Id: mplsLoopbackId
+  IS-IS NET Area Number for MPLS Handoff: mplsIsisAreaNumber
+  Enable TCAM Allocation: tcamAllocation
+  Enable Default Queuing Policies: defaultQueuingPolicy
+  N9K Cloud Scale Platform Queuing Policy: defaultQueuingPolicyCloudscale
+  N9K R-Series Platform Queuing Policy: defaultQueuingPolicyRSeries
+  Other N9K Platform Queuing Policy: defaultQueuingPolicyOther
+  Enable AI/ML QoS and Queuing Policies: aimlQos
+  AI/ML QoS & Queuing Policy: aimlQosPolicy
+  Priority flow control watch-dog interval: watchDogInterval
+  Enable Real Time Interface Statistics Collection: realTimeInterfaceStatisticsCollection
+  Interface Statistics Load Interval: interfaceStatisticsLoadInterval
+  Spanning Tree Root Bridge Protocol: stpRootOption
+  Spanning Tree VLAN Range: stpVlanRange
+  MST Instance Range: mstInstanceRange
+  Spanning Tree Bridge Priority: stpBridgePriority
   Leaf Freeform Config: # Additional CLIs, added before interface configurations, for all Leafs as captured from Show Running Configuration
-    Freeform: # Corp_Defaults
+    Freeform: ConfigLeaf
   Spine Freeform Config: 
-    Freeform: # Corp_Defaults
+    Freeform: ConfigSpine
   ToR Freeform Config: 
-    Freeform: # unused
+    Freeform: ConfigTor
   Intra-fabric Links Additional Config: 
-    Freeform: # unused
+    Freeform: extraConfigIntraFabricLinks
 
 Resources:
-  Manual Underlay IP Address Allocation: # Corp_Defaults # Checking this will disable Dynamic Underlay IP Address Allocations
-  Underlay Routing Loopback IP Range: # Fabric
-  Underlay VTEP Loopback IP Range: # Fabric
-  Underlay RP Loopback IP Range: # unused
-  Underlay Subnet IP Range: # Fabric
-  Underlay MPLS Loopback IP Range: # unused
-  Underlay Routing Loopback IPv6 Range: # unused
-  Underlay VTEP Loopback IPv6 Range: # unused
-  Underlay Subnet IPv6 Range: # unused
-  BGP Router ID Range for IPv6 Underlay: # unused
-  Layer 2 VXLAN VNI Range: # Corp_Defaults # Overlay Network Identifier Range (Min:1, Max:16777214)
-  Layer 3 VXLAN VNI Range: # Corp_Defaults # Overlay VRF Identifier Range (Min:1, Max:16777214)
-  Network VLAN Range: # Corp_Defaults # Per Switch Overlay Network VLAN Range (Min:2, Max:4094)
-  VRF VLAN Range: # Corp_Defaults # Per Switch Overlay VRF VLAN Range (Min:2, Max:4094)
-  Subinterface Dot1q Range: # Corp_Defaults # Per Border Dot1q Range For VRF Lite Connectivity (Min:2, Max:4093)
-  VRF Lite Deployment: # Corp_Defaults # VRF Lite Inter-Fabric Connection Deployment Options. If 'Back2Back&ToExternal' is selected, VRF Lite IFCs are auto created between border devices of two Easy Fabrics, and between border devices in Easy Fabric and edge routers in External Fabric. The IP address is taken from the 'VRF Lite Subnet IP Range' pool.
-  Auto Deploy for Peer: # Corp_Defaults # Whether to auto generate VRF LITE sub-interface and BGP peering configuration on managed neighbor devices. If set, auto created VRF Lite IFC links will have 'Auto Deploy for Peer' enabled.
-  Auto Deploy Default VRF: # Corp_Defaults
-  Auto Deploy Default VRF for Peer: # unused
-  Redistribute BGP Route-map Name: # unused
-  VRF Lite Subnet IP Range: # Corp_Defaults # Address range to assign P2P Interfabric Connections
-  VRF Lite Subnet Mask: # Corp_Defaults
-  Auto Allocation of Unique IP on VRF Extension over VRF Lite IFC: # Corp_Defaults
-  Per VRF Per VTEP Loopback IPv4 Auto-Provisioning: # Corp_Defaults
-  Per VRF Per VTEP IPv4 Pool for Loopbacks: # unused
-  Per VRF Per VTEP Loopback IPv6 Auto-Provisioning: # unused
-  Per VRF Per VTEP IPv6 Pool for Loopbacks: # unused
-  Service Level Agreement (SLA) ID Range: # Corp_Defaults
-  Tracked Object ID Range: # Corp_Defaults
-  Service Network VLAN Range: # Corp_Defaults # Per Switch Overlay Service Network VLAN Range (Min:2, Max:4094)
-  Route Map Sequence Number Range: # Corp_Defaults # (Min:1, Max:65534)
+  Manual Underlay IP Address Allocation: staticUnderlayIpAllocation
+  Underlay Routing Loopback IP Range: bgpLoopbackIpRange
+  Underlay VTEP Loopback IP Range: nveLoopbackIpRange
+  Underlay RP Loopback IP Range: anycastRendezvousPointIpRange
+  Underlay Subnet IP Range: intraFabricSubnetRange
+  Underlay MPLS Loopback IP Range: mplsLoopbackIpRange
+  Underlay Routing Loopback IPv6 Range: bgpLoopbackIpv6Range
+  Underlay VTEP Loopback IPv6 Range: nveLoopbackIpv6Range
+  Underlay Subnet IPv6 Range: ipv6SubnetRange
+  BGP Router ID Range for IPv6 Underlay: ipv6AnycastRendezvousPointIpRange
+  Layer 2 VXLAN VNI Range: l2VniRange
+  Layer 3 VXLAN VNI Range: l3VniRange
+  Network VLAN Range: networkVlanRange
+  VRF VLAN Range: vrfVlanRange
+  Subinterface Dot1q Range: subInterfaceDot1qRange
+  VRF Lite Deployment: vrfLiteAutoConfig
+  Auto Deploy for Peer: autoSymmetricVrfLite
+  Auto Deploy Default VRF: autoVrfLiteDefaultVrf
+  Auto Deploy Default VRF for Peer: autoSymmetricDefaultVrf
+  Redistribute BGP Route-map Name: defaultVrfRedistributionBgpRouteMap
+  VRF Lite Subnet IP Range: vrfLiteSubnetRange
+  VRF Lite Subnet Mask: vrfLiteSubnetTargetMask
+  Auto Allocation of Unique IP on VRF Extension over VRF Lite IFC: autoUniqueVrfLiteIpPrefix
+  Per VRF Per VTEP Loopback IPv4 Auto-Provisioning: perVrfLoopbackAutoProvision
+  Per VRF Per VTEP IPv4 Pool for Loopbacks: perVrfLoopbackIpRange
+  Per VRF Per VTEP Loopback IPv6 Auto-Provisioning: perVrfLoopbackAutoProvisionIpv6
+  Per VRF Per VTEP IPv6 Pool for Loopbacks: perVrfLoopbackIpv6Range
+  Service Level Agreement (SLA) ID Range: ipServiceLevelAgreementIdRange
+  Tracked Object ID Range: objectTrackingNumberRange
+  Service Network VLAN Range: serviceNetworkVlanRange
+  Route Map Sequence Number Range: routeMapSequenceNumberRange
 
 Manageability:
-  Inband Management: # Corp_Defaults
-  DNS Server IPs: # Corp_Defaults
-  DNS Server VRFs: # Corp_Defaults
-  NTP Server IPs: # Fabric
-  NTP Server VRFs: # Corp_Defaults
-  Syslog Server IPs: # Fabric
-  Syslog Server Severity: # Corp_Defaults
-  Syslog Server VRFs: # Corp_Defaults
+  Inband Management: inbandManagement
+  DNS Server IPs: dnsServerIps
+  DNS Server VRFs: dnsServerVrf
+  NTP Server IPs: ntpServerIps
+  NTP Server VRFs: ntpServerVrf
+  Syslog Server IPs: syslogServerIps
+  Syslog Server Severity: syslogServerSeverities
+  Syslog Server VRFs: syslogServerVrf
   AAA Freeform Config: 
-    Freeform: # Corp_Defaults
+    Freeform: extraConfigAaa
   Banner: 
-    Freeform: # Corp_Defaults
+    Freeform: banner
   
 Bootstrap:
-  Enable Bootstrap: # Corp_Defaults
-  Enable Local DHCP Server: # unused
-  DHCP Version: # unused
-  DHCP Scope Start Address: # unused
-  DHCP Scope End Address: # unused
-  Switch Mgmt Default Gateway: # unused
-  Switch Mgmt IP Subnet Prefix: # unused
-  Switch Mgmt IPv6 Subnet Prefix: # unused
-  DHCPv4 Multi Subnet Scope: # unused
-  Seed Switch Fabric Interfaces: # unused
-  Spine Switch Fabric Interfaces: # unused
-  External DHCP Server IP Addresses: # unused
-  Bootstrap Seed Switch Loopback Interface ID: # unused
-  Switch Loopback DHCP Scope Start Address: # unused
-  Switch Loopback DHCP Scope End Address: # unused
-  Enable AAA Config: # unused
+  Enable Bootstrap: day0Bootstrap
+  Enable Local DHCP Server: localDhcpServer
+  DHCP Version: dhcpProtocolVersion
+  DHCP Scope Start Address: dhcpStartAddress
+  DHCP Scope End Address: dhcpEndAddress
+  Switch Mgmt Default Gateway: managementGateway
+  Switch Mgmt IP Subnet Prefix: managementIpv4Prefix
+  Switch Mgmt IPv6 Subnet Prefix: managementIpv6Prefix
+  DHCPv4 Multi Subnet Scope: bootstrapMultiSubnet
+  Seed Switch Fabric Interfaces: bootstrapSeedFabricInterface
+  Spine Switch Fabric Interfaces: bootstrapSpineFabricInterface
+  External DHCP Server IP Addresses: externalDhcpServerIp
+  Bootstrap Seed Switch Loopback Interface ID: bootstrapSeedSwitchLoopbackId
+  Switch Loopback DHCP Scope Start Address: unNumberedDhcpStartAddress
+  Switch Loopback DHCP Scope End Address: unNumberedDhcpEndAddress
+  Enable AAA Config: aaa
   Bootstrap Freeform Config: 
-    Freeform: # unused
+    Freeform: extraConfigNxosBootstrap
 
 Configuration Backup:
-  Hourly Fabric Backup: # Corp_Defaults
-  Scheduled Fabric Backup: # Corp_Defaults
-  Scheduled Time: # Corp_Defaults
+  Hourly Fabric Backup: realTimeBackup
+  Scheduled Fabric Backup: scheduledBackup
+  Scheduled Time: scheduledBackupTime
 
 Flow Monitor:
-  Enable Netflow: # Corp_Defaults
+  Enable Netflow: netflow
