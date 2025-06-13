@@ -1,6 +1,4 @@
 ---
-NDFC: 12.2.2
-
 Fabric:
   name: Site2-Brownfield
   type: VXLAN

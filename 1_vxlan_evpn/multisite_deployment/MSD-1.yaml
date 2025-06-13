@@ -1,6 +1,4 @@
 ---
-NDFC: 12.2.2
-
 Fabric Group:
   name: MSD-1
   type: vxlan

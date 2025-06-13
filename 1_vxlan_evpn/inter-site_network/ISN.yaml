@@ -1,6 +1,4 @@
 ---
-NDFC: 12.2.2
-
 Fabric:
   name: ISN
   type: Multisite & External Connectivity
