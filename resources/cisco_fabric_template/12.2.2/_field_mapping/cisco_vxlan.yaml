@@ -5,30 +5,30 @@ Fabric:
 
 General Parameter:
   BGP ASN: # Fabric
-  Enable IPv6 Underlay: # Corp_Defaults
-  Enable IPv6 Link-Local Address: # unused
-  Fabric Interface Numbering: # Corp_Defaults # Numbered(Point-to-Point) or Unnumbered
-  Underlay Subnet IP Mask: # Corp_Defaults # Mask for Underlay Subnet IP Range
+  Enable IPv6 Underlay: management.underlayIpv6
+  Enable IPv6 Link-Local Address: management.ipv6LinkLocal
+  Fabric Interface Numbering: management.fabricInterfaceType
+  Underlay Subnet IP Mask: management.targetSubnetMask
   Underlay Subnet IPv6 Mask: # unused
-  Underlay Routing Protocol: # Corp_Defaults
-  Route-Reflectors: # Corp_Defaults # Number of spines acting as Route-Reflectors
-  Anycast Gateway MAC: # Corp_Defaults # Shared MAC address for all leafs (xxxx.xxxx.xxxx)
-  Enable Performance Monitoring: # Corp_Defaults
+  Underlay Routing Protocol: management.linkStateRoutingProtocol
+  Route-Reflectors: management.routeReflectorCount
+  Anycast Gateway MAC: management.anycastGatewayMac
+  Enable Performance Monitoring: management.performanceMonitoring
 
 Replication:
-  Replication Mode: # Corp_Defaults # Replication Mode for BUM Traffic
-  Multicast Group Subnet: # unused
-  IPv6 Multicast Group Subnet: # unused
-  Enable IPv4 Tenant Routed Multicast (TRM): # unused
-  Enable IPv6 Tenant Routed Multicast (TRMv6): # unused
+  Replication Mode: "replicationMode"
+  Multicast Group Subnet: "multicastGroupSubnet"
+  IPv6 Multicast Group Subnet: "ipv6MulticastGroupSubnet"
+  Enable IPv4 Tenant Routed Multicast (TRM): "tenantRoutedMulticast"
+  Enable IPv6 Tenant Routed Multicast (TRMv6): "tenantRoutedMulticastIpv6"
   Default MDT IPv4 Address for TRM VRFs: # unused
   Default MDT IPv6 Address for TRM VRFs: # unused
-  Rendezvous-Points: # unused
-  RP Mode: # unused
-  Underlay RP Loopback Id: # unused
-  Underlay Primary RP Loopback Id: # unused
-  Underlay Backup RP Loopback Id: # unused
-  Underlay Second Backup RP Loopback Id: # unused
+  Rendezvous-Points: "rendezvousPointCount"
+  RP Mode: "rendezvousPointMode" 
+  Underlay RP Loopback Id: "rendezvousPointLoopbackId"
+  Underlay Primary RP Loopback Id: "phantomRendezvousPointLoopbackId1"
+  Underlay Backup RP Loopback Id: "phantomRendezvousPointLoopbackId2"
+  Underlay Second Backup RP Loopback Id: "phantomRendezvousPointLoopbackId3"
   Underlay Third Backup RP Loopback Id: # unused
   MVPN VRI ID Range: # unused
   Enable MVPN VRI ID Re-allocation: # unused
