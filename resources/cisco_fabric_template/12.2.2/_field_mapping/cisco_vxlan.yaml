@@ -1,7 +1,7 @@
 ---
 Fabric:
-  name: name
-  type: management.type
+  name: fabricName
+  type: templateName
 
 General Parameter:
   BGP ASN: management.bgpAsn

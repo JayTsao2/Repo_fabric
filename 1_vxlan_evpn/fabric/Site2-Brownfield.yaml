@@ -1,7 +1,7 @@
 ---
 Fabric:
   name: Site2-Brownfield
-  type: VXLAN
+  type: Data Center VXLAN EVPN
   Location: San Jose, US
 
 General Parameter:

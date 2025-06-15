@@ -1,7 +1,7 @@
 ---
 Fabric Group:
   name: MSD-1
-  type: vxlan
+  type: VXLAN EVPN Multi-Site
 
 Child Fabric:
   Fabric:

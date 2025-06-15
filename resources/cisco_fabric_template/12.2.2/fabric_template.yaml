@@ -1,0 +1,14 @@
+---
+Data Center VXLAN EVPN: Easy_Fabric
+Enhanced Classic LAN: Easy_Fabric_Classic
+Campus VXLAN EVPN: Easy_Fabric_IOS_XE
+BGP Fabric: Easy_Fabric_eBGP
+Flexible Network: External_Fabric
+Fabric Group: Fabric_Group
+Classic LAN: LAN_Classic
+LAN Monitor: LAN_Monitor
+VXLAN EVPN Multi-Site: MSD_Fabric
+Classic IPFM: IPFM_Classic
+IPFM: Easy_Fabric_IPFM
+Multi-Site Interconnect Network: External_Fabric
+External Connectivity Network: External_Fabric
