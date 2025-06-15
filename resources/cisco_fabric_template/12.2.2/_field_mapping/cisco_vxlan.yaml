@@ -4,16 +4,16 @@ Fabric:
   type: templateName
 
 General Parameter:
-  BGP ASN: management.bgpAsn
-  Enable IPv6 Underlay: management.underlayIpv6
-  Enable IPv6 Link-Local Address: management.ipv6LinkLocal
-  Fabric Interface Numbering: management.fabricInterfaceType
-  Underlay Subnet IP Mask: management.targetSubnetMask
-  Underlay Subnet IPv6 Mask: management.ipv6SubnetTargetMask
-  Underlay Routing Protocol: management.linkStateRoutingProtocol
-  Route-Reflectors: management.routeReflectorCount
-  Anycast Gateway MAC: management.anycastGatewayMac
-  Enable Performance Monitoring: management.performanceMonitoring
+  BGP ASN: BGP_AS
+  Enable IPv6 Underlay: UNDERLAY_IS_V6
+  Enable IPv6 Link-Local Address: USE_LINK_LOCAL
+  Fabric Interface Numbering: FABRIC_INTERFACE_TYPE
+  Underlay Subnet IP Mask: SUBNET_TARGET_MASK
+  Underlay Subnet IPv6 Mask: V6_SUBNET_TARGET_MASK
+  Underlay Routing Protocol: LINK_STATE_ROUTING
+  Route-Reflectors: RR_COUNT
+  Anycast Gateway MAC: ANYCAST_GW_MAC
+  Enable Performance Monitoring: PM_ENABLE
 
 Replication:
   Replication Mode: "replicationMode"

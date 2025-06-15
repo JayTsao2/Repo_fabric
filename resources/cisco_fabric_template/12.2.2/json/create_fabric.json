@@ -3,7 +3,7 @@
   "templateName": "Easy_Fabric",
   "nvPairs": {
     "FABRIC_NAME": "site1_tsmc",
-    "BGP_AS": "65002",
+    "BGP_AS": "65002", 
     "USE_LINK_LOCAL": false,
     "V6_SUBNET_TARGET_MASK": "",
     "LINK_STATE_ROUTING": "ospf",
