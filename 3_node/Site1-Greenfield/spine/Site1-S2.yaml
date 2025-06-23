@@ -5,26 +5,26 @@ Serial Number: 9E0LMXJOSUS
 
 Interface:
 
-  - Ethernet1/1:
+  - Ethernet1/1: # To_be_discussed
       policy: int_fabric_num_11_1
       Enable Interface: True
 
-  - Ethernet1/2:
+  - Ethernet1/2: # To_be_discussed
       policy: int_fabric_num_11_1
       Enable Interface: True
 
-  - Ethernet1/3:
+  - Ethernet1/3: # To_be_discussed
       policy: int_fabric_num_11_1
       Enable Interface: True
 
-  - Ethernet1/4:
+  - Ethernet1/4: # To_be_discussed
       policy: int_fabric_num_11_1
       Enable Interface: True
 
-  - Ethernet1/5:
+  - Ethernet1/5: # To_be_discussed
       policy: int_fabric_num_11_1
       Enable Interface: True
 
-  - Ethernet1/6:
+  - Ethernet1/6: # To_be_discussed
       policy: int_fabric_num_11_1
       Enable Interface: True
