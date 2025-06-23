@@ -2,3 +2,29 @@
 IP Address: 198.18.4.105
 Role: Spine
 Serial Number: 9E0LMXJOSUS
+
+Interface:
+
+  - Ethernet1/1:
+      policy: int_fabric_num_11_1
+      Enable Interface: True
+
+  - Ethernet1/2:
+      policy: int_fabric_num_11_1
+      Enable Interface: True
+
+  - Ethernet1/3:
+      policy: int_fabric_num_11_1
+      Enable Interface: True
+
+  - Ethernet1/4:
+      policy: int_fabric_num_11_1
+      Enable Interface: True
+
+  - Ethernet1/5:
+      policy: int_fabric_num_11_1
+      Enable Interface: True
+
+  - Ethernet1/6:
+      policy: int_fabric_num_11_1
+      Enable Interface: True
