@@ -51,7 +51,6 @@ Interface:
 
   - Ethernet1/7:
       policy: int_access_host
-      Enable BPDU Guard: true
       Access Vlan: 20
       Interface Description:
       MTU: # Blank (controlled by policy)
@@ -59,7 +58,6 @@ Interface:
 
   - Ethernet1/8:
       policy: int_access_host
-      Enable BPDU Guard: true
       Access Vlan: 2300
       Interface Description:
       MTU: # Blank (controlled by policy)
@@ -67,7 +65,6 @@ Interface:
 
   - Ethernet1/9:
       policy: int_access_host
-      Enable BPDU Guard: true
       Access Vlan: 2301
       Interface Description:
       MTU: # Blank (controlled by policy)
