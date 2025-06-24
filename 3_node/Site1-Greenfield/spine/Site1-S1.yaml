@@ -2,29 +2,3 @@
 IP Address: 198.18.4.104
 Role: Spine
 Serial Number: 9A58GFZ5DD4
-
-Interface:
-
-  - Ethernet1/1: # To_be_discussed
-      policy: int_fabric_num_11_1
-      Enable Interface: True
-
-  - Ethernet1/2: # To_be_discussed
-      policy: int_fabric_num_11_1
-      Enable Interface: True
-
-  - Ethernet1/3: # To_be_discussed
-      policy: int_fabric_num_11_1
-      Enable Interface: True
-
-  - Ethernet1/4: # To_be_discussed
-      policy: int_fabric_num_11_1
-      Enable Interface: True
-
-  - Ethernet1/5: # To_be_discussed
-      policy: int_fabric_num_11_1
-      Enable Interface: True
-
-  - Ethernet1/6: # To_be_discussed
-      policy: int_fabric_num_11_1
-      Enable Interface: True

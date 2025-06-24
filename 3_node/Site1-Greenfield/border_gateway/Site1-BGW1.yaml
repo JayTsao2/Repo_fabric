@@ -5,4 +5,17 @@ Serial Number: 9WI7FS9YW2Y
 
 vlan: 2300
 
-Switch Freeform Config:
+Switch Freeform Config: Site1-BGW1_FreeForm\Site1-BGW1.sh
+
+Interface:
+
+  - Ethernet1/34:
+      policy: int_routed_host
+      Interface VRF: Z01
+      Interface IP: 
+      IP Netmask Length: 
+      Interface Description: 
+      MTU: # Blank (controlled by policy)
+      SPEED: # Blank (controlled by policy)
+      Enable Interface: True
+      Freeform Config: Site1-BGW1_FreeForm\Site1-BGW1_Eth_1_34.sh

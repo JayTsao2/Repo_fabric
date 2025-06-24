@@ -9,8 +9,11 @@ vPC Pairing: False
 vPC Peer: Site1-L2
 
 Interface:
-  - Ethernet1/5:
+
+  - Ethernet1/9:
       policy: int_access_host
       Access Vlan: 2301
       Interface Description:
+      MTU: # Blank (controlled by policy)
+      SPEED: # Blank (controlled by policy)
       Enable Interface: True
