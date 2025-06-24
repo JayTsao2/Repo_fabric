@@ -1,11 +1,11 @@
 ---
-IP Address: 10.192.195.77
+IP Address: 10.192.195.78
 Role: border gateway
 Serial Number: 9WI7FS9YW2Y
 
 vlan: 2300
 
-Switch Freeform Config: Site1-BGW1_FreeForm\Site1-BGW1.sh
+Switch Freeform Config: Site1-BGW2_FreeForm\Site1-BGW2.sh
 
 Interface:
 
@@ -18,4 +18,4 @@ Interface:
       MTU: # Blank (controlled by policy)
       SPEED: # Blank (controlled by policy)
       Enable Interface: True
-      Freeform Config: Site1-BGW1_FreeForm\Site1-BGW1_Eth_1_34.sh
+      Freeform Config: Site2-BGW1_FreeForm\Site2-BGW1_Eth_1_34.sh

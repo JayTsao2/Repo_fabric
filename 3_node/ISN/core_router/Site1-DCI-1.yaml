@@ -1,0 +1,10 @@
+---
+IP Address: 10.192.195.80
+Role: Core Router
+Serial Number: 9GDRBZNB0M2
+
+Interface:
+
+  - Loopback0:
+      policy: int_loopback0
+      Interface IP: 192.168.240.1
