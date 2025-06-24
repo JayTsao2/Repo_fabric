@@ -7,7 +7,6 @@ General Parameters:
   VRF VLAN Name: # vrf
   VRF Interface Description: # vrf
   VRF Description: # vrf
-  Downstream VNI: # unused
 
 Advanced:
   VRF Interface MTU: 9216
