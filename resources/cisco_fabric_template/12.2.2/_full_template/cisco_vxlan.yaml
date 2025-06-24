@@ -167,9 +167,9 @@ Advanced:
   MST Instance Range: # unused
   Spanning Tree Bridge Priority: # unused
   Leaf Freeform Config: # Additional CLIs, added before interface configurations, for all Leafs as captured from Show Running Configuration
-    Freeform: # Corp_Defaults
+    Freeform: # Fabric
   Spine Freeform Config: 
-    Freeform: # Corp_Defaults
+    Freeform: # Fabric
   ToR Freeform Config: 
     Freeform: # unused
   Intra-fabric Links Additional Config: 
@@ -218,7 +218,7 @@ Manageability:
   Syslog Server Severity: # Corp_Defaults
   Syslog Server VRFs: # Corp_Defaults
   AAA Freeform Config: 
-    Freeform: # Corp_Defaults
+    Freeform: # Fabric
   Banner: 
     Freeform: # Corp_Defaults
   

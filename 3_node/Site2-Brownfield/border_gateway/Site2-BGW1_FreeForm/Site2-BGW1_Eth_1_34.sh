@@ -1,6 +1,3 @@
-  no ip redirects
-  ip forward
-  ipv6 link-local use-bia
-  ipv6 nd ra-interval 4 min 3
-  ipv6 nd ra-lifetime 10
-  no ipv6 redirects
+    bfd interval 300 min_rx 300 multiplier 3
+  ipv6 address fd00:101:c00:0:10:50:32:111/127
+  ipv6 nd suppress-ra
