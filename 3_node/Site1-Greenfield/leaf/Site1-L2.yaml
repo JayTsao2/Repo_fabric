@@ -14,6 +14,6 @@ Interface:
       policy: int_access_host
       Access Vlan: 2301
       Interface Description:
-      MTU: # Blank (controlled by policy)
-      SPEED: # Blank (controlled by policy)
+      MTU: jumbo
+      SPEED: Auto
       Enable Interface: True

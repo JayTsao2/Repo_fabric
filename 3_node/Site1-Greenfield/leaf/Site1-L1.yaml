@@ -16,8 +16,8 @@ Interface:
       Interface IP: 10.192.1.1
       IP Netmask Length: 24
       Interface Description: 
-      MTU: # Blank (controlled by policy)
-      SPEED: # Blank (controlled by policy)
+      MTU: 9100
+      SPEED: Auto
       Enable Interface: True
 
   - Ethernet1/5:
@@ -26,8 +26,8 @@ Interface:
       Interface IP: 10.192.2.1
       IP Netmask Length: 24
       Interface Description: 
-      MTU: # Blank (controlled by policy)
-      SPEED: # Blank (controlled by policy)
+      MTU: 9100
+      SPEED: Auto
       Enable Interface: True
 
   - Ethernet1/6:
@@ -36,16 +36,16 @@ Interface:
       Interface IP: 10.192.3.1
       IP Netmask Length: 24
       Interface Description: 
-      MTU: # Blank (controlled by policy)
-      SPEED: # Blank (controlled by policy)
+      MTU: 9100
+      SPEED: Auto
       Enable Interface: True
 
   - Ethernet1/7:
       policy: int_access_host
       Access Vlan: 20
       Interface Description:
-      MTU: # Blank (controlled by policy)
-      SPEED: # Blank (controlled by policy)
+      MTU: jumbo
+      SPEED: Auto
       Enable Interface: True
 
   - Ethernet1/8:

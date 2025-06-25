@@ -15,7 +15,7 @@ Interface:
       Interface IP: 
       IP Netmask Length: 
       Interface Description: 
-      MTU: # Blank (controlled by policy)
-      SPEED: # Blank (controlled by policy)
+      MTU: 9100
+      SPEED: Auto
       Enable Interface: True
       Freeform Config: Site1-BGW1_FreeForm\Site1-BGW1_Eth_1_34.sh
