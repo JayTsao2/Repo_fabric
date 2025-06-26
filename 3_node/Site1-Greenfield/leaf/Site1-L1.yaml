@@ -52,31 +52,31 @@ Interface:
       policy: int_access_host
       Access Vlan: 2300
       Interface Description:
-      MTU: # Blank (controlled by policy)
-      SPEED: # Blank (controlled by policy)
+      MTU: jumbo
+      SPEED: Auto
       Enable Interface: True
 
   - Ethernet1/9:
       policy: int_access_host
       Access Vlan: 2301
       Interface Description:
-      MTU: # Blank (controlled by policy)
-      SPEED: # Blank (controlled by policy)
+      MTU: jumbo
+      SPEED: Auto
       Enable Interface: True
 
   - Ethernet1/10:
       policy: int_trunk_host
       Trunk Allowed Vlans: 20,2300,2301
       Interface Description:
-      MTU: # Blank (controlled by policy)
-      SPEED: # Blank (controlled by policy)
+      MTU: jumbo
+      SPEED: Auto
       Enable Interface: True
 
   - Ethernet1/11:
       policy: int_trunk_host
       Trunk Allowed Vlans: # Blank (controlled by policy)
       Interface Description:
-      MTU: # Blank (controlled by policy)
+      MTU: jumbo
       SPEED: Auto
       Enable Interface: True
 
@@ -84,6 +84,39 @@ Interface:
       policy: int_trunk_host
       Trunk Allowed Vlans: # Blank (controlled by policy)
       Interface Description:
-      MTU: # Blank (controlled by policy)
+      MTU: jumbo
       SPEED: Auto
       Enable Interface: True
+
+  - Ethernet1/13:
+      policy: int_routed_host
+      Interface VRF: Z02
+      Interface IP: 
+      IP Netmask Length: 
+      Interface Description: 
+      MTU: 9100
+      SPEED: Auto
+      Enable Interface: True
+      Freeform Config: Site1-L1_FreeForm\Site1-L1_Eth_1_13.sh
+
+  - Ethernet1/14:
+      policy: int_routed_host
+      Interface VRF: Z02
+      Interface IP: 
+      IP Netmask Length: 
+      Interface Description: 
+      MTU: 9100
+      SPEED: Auto
+      Enable Interface: True
+      Freeform Config: Site1-L1_FreeForm\Site1-L1_Eth_1_14.sh
+
+  - Ethernet1/15:
+      policy: int_routed_host
+      Interface VRF: Z02
+      Interface IP: 
+      IP Netmask Length: 
+      Interface Description: 
+      MTU: 9100
+      SPEED: Auto
+      Enable Interface: True
+      Freeform Config: Site1-L1_FreeForm\Site1-L1_Eth_1_15.sh
