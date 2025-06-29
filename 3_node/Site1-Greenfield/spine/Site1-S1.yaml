@@ -2,3 +2,29 @@
 IP Address: 10.192.195.74
 Role: Spine
 Serial Number: 9A58GFZ5DD4
+
+Interface:
+
+  - Ethernet1/1:
+      Interface Description: Site1-L1
+      Enable Interface: True
+
+  - Ethernet1/2:
+      Interface Description: Site1-L2
+      Enable Interface: True
+
+  - Ethernet1/3:
+      Interface Description: Site1-L3
+      Enable Interface: True
+
+  - Ethernet1/4:
+      Interface Description: 
+      Enable Interface: True
+
+  - Ethernet1/5:
+      Interface Description: 
+      Enable Interface: True
+
+  - Ethernet1/6:
+      Interface Description: 
+      Enable Interface: True

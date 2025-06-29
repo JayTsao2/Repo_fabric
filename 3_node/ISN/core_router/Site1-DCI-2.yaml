@@ -8,3 +8,27 @@ Interface:
   - Loopback0:
       policy: int_loopback0
       Interface IP: 192.168.240.2
+
+  - Ethernet1/1:
+      Interface Description: Site1-BGW1
+      Enable Interface: True
+
+  - Ethernet1/2:
+      Interface Description: Site1-BGW2
+      Enable Interface: True
+
+  - Ethernet1/3:
+      Interface Description: Site1-BGW3
+      Enable Interface: True
+
+  - Ethernet1/4:
+      Interface Description: Site2-BGW1
+      Enable Interface: True
+
+  - Ethernet1/5:
+      Interface Description: Site2-BGW2
+      Enable Interface: True
+
+  - Ethernet1/6:
+      Interface Description: Site2-BGW3
+      Enable Interface: True

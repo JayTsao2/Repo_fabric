@@ -10,6 +10,18 @@ vPC Peer: Site1-L2
 
 Interface:
 
+  - Ethernet1/1:
+      Interface Description: 
+      Enable Interface: True
+
+  - Ethernet1/2:
+      Interface Description: 
+      Enable Interface: True
+
+  - Ethernet1/3:
+      Interface Description: 
+      Enable Interface: True
+
   - Ethernet1/4:
       policy: int_routed_host
       Interface VRF: bluevrf
