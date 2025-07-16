@@ -1,0 +1,112 @@
+import requests
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+from utils import *
+import json
+
+def getVRFs(fabric, vrf_dir="vrfs", vrf_template_config_dir="vrf_template_config_dirs", vrf_filter="", range=0):
+    # range = show the vrfs from 0 to {range}
+    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric}/vrfs")
+    headers = getAPIKeyHeader()
+    headers["range"] = f"0-{range}"
+    query_params = {}
+    if vrf_filter != "":
+        query_params["filter"] = vrf_filter
+    r = requests.get(url, headers=headers, params=query_params, verify=False)
+    checkStatusCode(r)
+
+    vrfs = r.json()
+    # if the directory does not exist, create it
+    if not os.path.exists(vrf_dir):
+        os.makedirs(vrf_dir)
+    if not os.path.exists(vrf_template_config_dir):
+        os.makedirs(vrf_template_config_dir)
+    # Save vrfs to a file, vrfs is a array of vrf objects
+    for vrf in vrfs:
+        vrf_id = vrf.get("vrfId", "unknown")
+        vrf_name = vrf.get("vrfName", "unknown")
+        vrf_template_config = vrf.get("vrfTemplateConfig", {})
+        filename = f"{vrf_dir}/{fabric}_{vrf_id}_{vrf_name}.json"
+        with open(filename, "w") as f:
+            json.dump(vrf, f, indent=4)
+            print(f"VRF config for {vrf_name} (ID: {vrf_id}) is saved to {filename}")
+        if vrf_template_config:
+            vrf_template_config = json.loads(vrf_template_config) if isinstance(vrf_template_config, str) else vrf_template_config
+            vrf_template_config_filename = f"{vrf_template_config_dir}/{fabric}_{vrf_id}_{vrf_name}.json"
+            with open(vrf_template_config_filename, "w") as f:
+                json.dump(vrf_template_config, f, indent=4)
+                print(f"VRF config template for {vrf_name} (ID: {vrf_id}) is saved to {vrf_template_config_filename}")
+        
+
+def parseVRFTemplateConfig(filename) -> str:
+    # Parse the json from the file and serialize it into an escaped string
+    try:
+        with open(filename, "r") as file:
+            data = json.load(file)
+        json_string = json.dumps(data)
+        return json_string
+    except Exception as e:
+        print(f"Error: {e}")
+        return ""
+
+def createVRF(filename, vrf_template_config_file=""):
+    headers = getAPIKeyHeader()
+    headers['Content-Type'] = 'application/json'
+    # Create a vrf with the data from the file
+    try:
+        with open(filename, "r") as file:
+            data = json.load(file)
+    except FileNotFoundError:
+        print(f"File {filename} not found!")
+        exit()
+    except Exception as e:
+        print(f"Error: {e}")
+
+    payload = data
+    vrf_template_config_str = parseVRFTemplateConfig(vrf_template_config_file) if vrf_template_config_file else ""
+    payload["vrfTemplateConfig"] = vrf_template_config_str
+    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{payload["fabric"]}/vrfs")
+
+    print(f"URL: {url}")
+    r = requests.post(url, headers=headers, json=payload, verify=False)
+    checkStatusCode(r)
+    print(f"Status Code: {r.status_code}")
+    print(f"Message: {r.text}")
+
+def updateVRF(filename, vrf_template_config_file=""):
+    headers = getAPIKeyHeader()
+    headers['Content-Type'] = 'application/json'
+    # Update a vrf with the data from the file
+    try:
+        with open(filename, "r") as file:
+            data = json.load(file)
+    except FileNotFoundError:
+        print(f"File {filename} not found!")
+        exit()
+    except Exception as e:
+        print(f"Error: {e}")
+    
+    payload = data
+    vrf_template_config_str = parseVRFTemplateConfig(vrf_template_config_file) if vrf_template_config_file else ""
+    payload["vrfTemplateConfig"] = vrf_template_config_str
+    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{payload['fabric']}/vrfs/{payload['vrfName']}")
+    r = requests.put(url, headers=headers, json=payload, verify=False)
+    checkStatusCode(r)
+    print(f"Status Code: {r.status_code}")
+    print(f"Message: {r.text}")
+
+def deleteVRF(fabric, vrf_name):
+    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric}/vrfs/{vrf_name}")
+    headers = getAPIKeyHeader()
+    r = requests.delete(url, headers=headers, verify=False)
+    checkStatusCode(r)
+    print(f"Status Code: {r.status_code}")
+    print(f"Message: {r.text}")
+
+
+if __name__ == "__main__":
+    # getVRFs(fabric="Site1-Greenfield", vrf_dir="vrfs", vrf_template_config_dir="vrf_templates", vrf_filter="vrfId==50000", range=0)
+    # getVRFs(fabric="Site1-TSMC", vrf_dir="vrfs", vrf_template_config_dir="vrf_templates", vrf_filter="", range=0)
+    # createVRF(filename="vrfs/Site1-TSMC_50000_bluevrf.json", vrf_template_config_file="vrf_templates/Site1-TSMC_50000_bluevrf.json")
+    updateVRF(filename="vrfs/Site1-TSMC_50000_bluevrf.json", vrf_template_config_file="vrf_templates/Site1-TSMC_50000_bluevrf.json")
+    # deleteVRF(fabric="Site1-TSMC", vrf_name="bluevrf")
