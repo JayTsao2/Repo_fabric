@@ -93,8 +93,8 @@ def deleteVRF(fabric, vrf_name):
 
 
 if __name__ == "__main__":
-    # getVRFs(fabric="Site1-Greenfield", vrf_dir="vrfs", vrf_template_config_dir="vrf_templates", vrf_filter="vrfId==50000", range=0)
-    # getVRFs(fabric="Site1-TSMC", vrf_dir="vrfs", vrf_template_config_dir="vrf_templates", vrf_filter="", range=0)
-    # createVRF(filename="vrfs/Site1-TSMC_50000_bluevrf.json", vrf_template_config_file="vrf_templates/Site1-TSMC_50000_bluevrf.json")
-    updateVRF(filename="vrfs/Site1-TSMC_50000_bluevrf.json", vrf_template_config_file="vrf_templates/Site1-TSMC_50000_bluevrf.json")
+    # getVRFs(fabric="Site1-Greenfield", vrf_dir="vrfs", vrf_template_config_dir="vrfs/vrf_templates", vrf_filter="vrfId==50000", range=0)
+    # getVRFs(fabric="Site1-TSMC", vrf_dir="vrfs", vrf_template_config_dir="vrfs/vrf_templates", vrf_filter="", range=0)
+    # createVRF(filename="vrfs/Site1-TSMC_50000_bluevrf.json", vrf_template_config_file="vrfs/vrf_templates/Site1-TSMC_50000_bluevrf.json")
+    updateVRF(filename="vrfs/Site1-TSMC_50000_bluevrf.json", vrf_template_config_file="vrfs/vrf_templates/Site1-TSMC_50000_bluevrf.json")
     # deleteVRF(fabric="Site1-TSMC", vrf_name="bluevrf")
