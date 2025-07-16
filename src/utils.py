@@ -34,3 +34,13 @@ def parseTemplateConfig(filename) -> str:
     except Exception as e:
         print(f"Error: {e}")
         return ""
+    
+def parseFreeFormConfig(filename) -> str:
+    # Parse the free form config from the file and serialize it into a string
+    try:
+        with open(filename, "r") as file:
+            data = file.read()
+        return data
+    except Exception as e:
+        print(f"Error: {e}")
+        return ""

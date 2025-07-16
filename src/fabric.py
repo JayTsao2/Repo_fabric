@@ -45,7 +45,7 @@ def deleteFabric(fabric):
     print(f"Status Code: {r.status_code}")
     print(f"Message: {r.text}")
 
-def createFabric(filename, template_name):
+def createFabric(filename, template_name, leaf_freeform_config_file="", spine_freeform_config_file="", aaa_freeform_config_file=""):
     try:
         with open(filename, "r") as file:
             data = json.load(file)
@@ -62,6 +62,10 @@ def createFabric(filename, template_name):
         if key in payload:
             # print(f"Removing {key} in payload...")
             del payload[key]
+
+    payload["EXTRA_CONF_LEAF"] = parseFreeFormConfig(leaf_freeform_config_file) if leaf_freeform_config_file else ""
+    payload["EXTRA_CONF_SPINE"] = parseFreeFormConfig(spine_freeform_config_file) if spine_freeform_config_file else ""
+    payload["AAA_SERVER_CONF"] = parseFreeFormConfig(aaa_freeform_config_file) if aaa_freeform_config_file else ""
     url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/{template_name}")
 
     headers = getAPIKeyHeader()
@@ -71,7 +75,7 @@ def createFabric(filename, template_name):
 
     print(f"Fabric {fabric} has been successfully created!")
 
-def updateFabric(filename, template_name):
+def updateFabric(filename, template_name, leaf_freeform_config_file="", spine_freeform_config_file="", aaa_freeform_config_file=""):
     try:
         with open(filename, "r") as file:
             data = json.load(file)
@@ -88,6 +92,9 @@ def updateFabric(filename, template_name):
         if key in payload:
             del payload[key]
     
+    payload["EXTRA_CONF_LEAF"] = parseFreeFormConfig(leaf_freeform_config_file) if leaf_freeform_config_file else ""
+    payload["EXTRA_CONF_SPINE"] = parseFreeFormConfig(spine_freeform_config_file) if spine_freeform_config_file else ""
+    payload["AAA_SERVER_CONF"] = parseFreeFormConfig(aaa_freeform_config_file) if aaa_freeform_config_file else ""
     url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/{template_name}")
 
     headers = getAPIKeyHeader()
@@ -99,7 +106,7 @@ def updateFabric(filename, template_name):
 
 if __name__ == "__main__":
     # getFabrics()
-    getFabric("Site1-TSMC", "fabrics")
-    # createFabric("fabrics/Site1-TSMC.json", "Easy_Fabric")
-    # updateFabric("fabrics/Site1-TSMC.json", "Easy_Fabric")
+    # getFabric("Site1-Greenfield", "fabrics")
+    # createFabric("fabrics/Site1-TSMC.json", "Easy_Fabric", "fabrics/Site1-TSMC_FreeForm/Leaf_FreeForm_Config.sh", "fabrics/Site1-TSMC_FreeForm/Spine_FreeForm_Config.sh", "fabrics/Site1-TSMC_FreeForm/AAA_Freeform_Config.sh")
+    updateFabric("fabrics/Site1-TSMC.json", "Easy_Fabric", "fabrics/Site1-TSMC_FreeForm/Leaf_FreeForm_Config.sh", "fabrics/Site1-TSMC_FreeForm/Spine_FreeForm_Config.sh", "fabrics/Site1-TSMC_FreeForm/AAA_Freeform_Config.sh")
     # deleteFabric("Site1-TSMC")
