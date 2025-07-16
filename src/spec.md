@@ -32,7 +32,8 @@
 ### Remove VRF
 
 - Pre-check:
-    - Only remove vrf when Equipments / VLAN do not use it
+    - Ensure no VLAN use this VRF
+    - Ensure no Equipments use this VRF
 -----
 
 ## Network
@@ -42,6 +43,9 @@
 ### Change VLAN of a Port
 ### Remove Network
 
+- Pre-check:
+    - Ensure no VRF use this network
+    - Ensure no Equipments use this network
 -----
 
 ## Switch / Rack
