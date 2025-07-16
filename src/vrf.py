@@ -36,18 +36,6 @@ def getVRFs(fabric, vrf_dir="vrfs", vrf_template_config_dir="vrf_template_config
             with open(vrf_template_config_filename, "w") as f:
                 json.dump(vrf_template_config, f, indent=4)
                 print(f"VRF config template for {vrf_name} (ID: {vrf_id}) is saved to {vrf_template_config_filename}")
-        
-
-def parseVRFTemplateConfig(filename) -> str:
-    # Parse the json from the file and serialize it into an escaped string
-    try:
-        with open(filename, "r") as file:
-            data = json.load(file)
-        json_string = json.dumps(data)
-        return json_string
-    except Exception as e:
-        print(f"Error: {e}")
-        return ""
 
 def createVRF(filename, vrf_template_config_file=""):
     headers = getAPIKeyHeader()
@@ -63,7 +51,7 @@ def createVRF(filename, vrf_template_config_file=""):
         print(f"Error: {e}")
 
     payload = data
-    vrf_template_config_str = parseVRFTemplateConfig(vrf_template_config_file) if vrf_template_config_file else ""
+    vrf_template_config_str = parseTemplateConfig(vrf_template_config_file) if vrf_template_config_file else ""
     payload["vrfTemplateConfig"] = vrf_template_config_str
     url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{payload["fabric"]}/vrfs")
 
@@ -87,7 +75,7 @@ def updateVRF(filename, vrf_template_config_file=""):
         print(f"Error: {e}")
     
     payload = data
-    vrf_template_config_str = parseVRFTemplateConfig(vrf_template_config_file) if vrf_template_config_file else ""
+    vrf_template_config_str = parseTemplateConfig(vrf_template_config_file) if vrf_template_config_file else ""
     payload["vrfTemplateConfig"] = vrf_template_config_str
     url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{payload['fabric']}/vrfs/{payload['vrfName']}")
     r = requests.put(url, headers=headers, json=payload, verify=False)
