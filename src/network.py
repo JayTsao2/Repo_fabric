@@ -113,10 +113,54 @@ def deleteNetwork(fabric, network_name):
     print(f"Status Code: {r.status_code}")
     print(f"Message: {r.text}")
 
+def getNetworkAttachment(fabric, network_dir="networks", networkname=""):
+    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric}/networks/{networkname}/attachments")
+    headers = getAPIKeyHeader()
+    r = requests.get(url, headers=headers, verify=False)
+    checkStatusCode(r)
+
+    if not os.path.exists(network_dir):
+        os.makedirs(network_dir)
+    if not os.path.exists(f"{network_dir}/attachments"):
+        os.makedirs(f"{network_dir}/attachments")
+    attachments = r.json()
+    for attachment in attachments:
+        attachment_switch_name = attachment.get("switchName", "unknown")
+        filename = f"{network_dir}/attachments/{fabric}_{networkname}_{attachment_switch_name}.json"
+        with open(filename, "w") as f:
+            json.dump(attachment, f, indent=4)
+            print(f"Network attachments for {networkname} on switch {attachment_switch_name} are saved to {filename}")
+
+def updateNetworkAttachment(filename):
+    headers = getAPIKeyHeader()
+    headers['Content-Type'] = 'application/json'
+    
+    # Update a network attachment with the data from the file
+    try:
+        with open(filename, "r") as file:
+            data = json.load(file)
+    except FileNotFoundError:
+        print(f"File {filename} not found!")
+        exit()
+    except Exception as e:
+        print(f"Error: {e}")
+    
+    payload = data
+    fabric = payload.get("fabric", "unknown")
+    network_name = payload.get("networkName", "unknown")
+    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric}/networks/{network_name}/attachments")
+    
+    r = requests.post(url, headers=headers, json=payload, verify=False)
+    checkStatusCode(r)
+    print(f"Status Code: {r.status_code}")
+    print(f"Message: {r.text}")
+
 if __name__ == "__main__":
     # getNetworks(fabric="Site1-Greenfield", network_dir="networks", network_template_config_dir="networks/network_templates", network_filter="", range=10)
     # getNetwork(fabric="Site1-Greenfield", network_name="bluenet1", network_dir="networks", network_template_config_dir="networks/network_templates")
     # getNetworks(fabric="Site1-TSMC", network_dir="networks", network_template_config_dir="networks/network_templates", network_filter="", range=0)
     # createNetwork(filename="networks/Site1-TSMC_30000_bluenet1.json", network_template_config_file="networks/network_templates/Site1-TSMC_30000_bluenet1.json")
-    updateNetwork(filename="networks/Site1-TSMC_30000_bluenet1.json", network_template_config_file="networks/network_templates/Site1-TSMC_30000_bluenet1.json")
+    # updateNetwork(filename="networks/Site1-TSMC_30000_bluenet1.json", network_template_config_file="networks/network_templates/Site1-TSMC_30000_bluenet1.json")
     # deleteNetwork(fabric="Site1-TSMC", network_name="bluenet1")
+    updateNetworkAttachment(filename="networks/attachments/test.json")
+    getNetworkAttachment(fabric="Site1-Greenfield", network_dir="networks", networkname="bluenet2")
