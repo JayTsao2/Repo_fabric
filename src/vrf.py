@@ -91,10 +91,36 @@ def deleteVRF(fabric, vrf_name):
     print(f"Status Code: {r.status_code}")
     print(f"Message: {r.text}")
 
+def getVRFAttachment(fabric, vrf_dir="vrfs", vrfname="", filter="", range="0-9"):
+    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric}/vrfs/attachments")
+    headers = getAPIKeyHeader()
+    headers["Range"] = range
+    query_params = {
+        "vrf-names": vrfname,
+        "filter": filter,
+        "switch-name": ""
+    }
+    if filter:
+        headers["filter"] = filter
+    r = requests.get(url, headers=headers, params=query_params, verify=False)
+    checkStatusCode(r)
+
+    attachments = r.json()
+    if not os.path.exists(vrf_dir):
+        os.makedirs(vrf_dir)
+    if not os.path.exists(f"{vrf_dir}/attachments"):
+        os.makedirs(f"{vrf_dir}/attachments")
+    for attachment in attachments:
+        attachment_vrfname = attachment.get("vrfName", "unknown")
+        filename = f"{vrf_dir}/attachments/{fabric}_{attachment_vrfname}.json"
+        with open(filename, "w") as f:
+            json.dump(attachment, f, indent=4)
+            print(f"VRF attachments for {attachment_vrfname} are saved to {filename}")
 
 if __name__ == "__main__":
     # getVRFs(fabric="Site1-Greenfield", vrf_dir="vrfs", vrf_template_config_dir="vrfs/vrf_templates", vrf_filter="vrfId==50000", range=0)
     # getVRFs(fabric="Site1-TSMC", vrf_dir="vrfs", vrf_template_config_dir="vrfs/vrf_templates", vrf_filter="", range=0)
     # createVRF(filename="vrfs/Site1-TSMC_50000_bluevrf.json", vrf_template_config_file="vrfs/vrf_templates/Site1-TSMC_50000_bluevrf.json")
-    updateVRF(filename="vrfs/Site1-TSMC_50000_bluevrf.json", vrf_template_config_file="vrfs/vrf_templates/Site1-TSMC_50000_bluevrf.json")
+    # updateVRF(filename="vrfs/Site1-TSMC_50000_bluevrf.json", vrf_template_config_file="vrfs/vrf_templates/Site1-TSMC_50000_bluevrf.json")
     # deleteVRF(fabric="Site1-TSMC", vrf_name="bluevrf")
+    getVRFAttachment(fabric="Site1-TSMC", vrf_dir="vrfs", vrfname="", filter="", range="0-9")
