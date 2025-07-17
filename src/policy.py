@@ -10,6 +10,31 @@ def checkConfigExists(json_data):
         return True
     return False
 
+def savePolicyConfig(data, policy_dir="policies"):
+    # Save the policy config to a file
+    serial_number = data.get("serialNumber", "unknown")
+    policy_id = data.get("policyId", "unknown")
+    filename = f"{policy_dir}/{policy_id}.json"
+
+    if not os.path.exists(policy_dir):
+        os.makedirs(policy_dir)
+    with open(filename, "w") as f:
+        json.dump(data, f, indent=4)
+        print(f"{policy_id} is saved to {filename}")
+
+    if not checkConfigExists(data):
+        return
+    
+    if not os.path.exists(f"{policy_dir}/FreeForm"):
+        os.makedirs(f"{policy_dir}/FreeForm")
+
+    freeform_config = data["nvPairs"]["CONF"]
+    template_name = data.get("templateName", "")
+    freeform_filename = f"{policy_dir}/FreeForm/{policy_id}_{template_name}.sh"
+    with open(freeform_filename, "w") as f:
+        f.write(freeform_config)
+        print(f"Freeform config for {policy_id} is saved to {freeform_filename}")
+
 def getPolicyBySerialNumber(serial_number, policy_dir="policies"):
     url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/policies/switches")
     headers = getAPIKeyHeader()
@@ -23,21 +48,8 @@ def getPolicyBySerialNumber(serial_number, policy_dir="policies"):
         os.makedirs(policy_dir)
     for policy in policies:
         # Save each policy to a file
-        policy_id = policy.get("policyId", "unknown")
-        filename = f"{policy_dir}/{policy_id}.json"
-        with open(filename, "w") as f:
-            json.dump(policy, f, indent=4)
-            print(f"Policy config for {serial_number} (ID: {policy_id}) is saved to {filename}")
-        if checkConfigExists(policy):
-            if not os.path.exists(f"{policy_dir}/FreeForm"):
-                os.makedirs(f"{policy_dir}/FreeForm")
-            freeform_config = policy["nvPairs"]["CONF"]
-            template_name = policy.get("templateName", "")
-            freeform_filename = f"{policy_dir}/FreeForm/{policy_id}_{template_name}.sh"
-            with open(freeform_filename, "w") as ff:
-                ff.write(freeform_config)
-                print(f"Freeform config for {serial_number} (ID: {policy_id}) is saved to {freeform_filename}")
-
+        savePolicyConfig(policy, policy_dir)
+        
 def getPolicyByID(id, policy_dir="policies"):
     url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/policies/{id}")
     headers = getAPIKeyHeader()
@@ -46,13 +58,7 @@ def getPolicyByID(id, policy_dir="policies"):
     if not os.path.exists(policy_dir):
         os.makedirs(policy_dir)
 
-    policy = r.json()
-    policy_id = policy.get("policyId", "unknown")
-    # Save the policy to a file
-    filename = f"{policy_dir}/{policy_id}.json"
-    with open(filename, "w") as f:
-        json.dump(policy, f, indent=4)
-        print(f"Policy config for ID: {policy_id} is saved to {filename}")
+    savePolicyConfig(r.json(), policy_dir)
 
 def updatePolicyByFile(filename):
     headers = getAPIKeyHeader()
@@ -83,7 +89,7 @@ def deletePolicy(id):
     print(f"Message: {r.text}")
 
 if __name__ == "__main__":
-    getPolicyBySerialNumber("9LT3A74X1AS", "policies")
-    # getPolicyByID("54270", "policies")
+    # getPolicyBySerialNumber("9LT3A74X1AS", "policies")
+    getPolicyByID("188990", "policies")
     # updatePolicyByFile("policies/POLICY-54260.json")
     # deletePolicy("210860")
