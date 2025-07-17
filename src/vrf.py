@@ -117,10 +117,32 @@ def getVRFAttachment(fabric, vrf_dir="vrfs", vrfname="", filter="", range="0-9")
             json.dump(attachment, f, indent=4)
             print(f"VRF attachments for {attachment_vrfname} are saved to {filename}")
 
+def updateVRFAttachment(filename):
+    headers = getAPIKeyHeader()
+    headers['Content-Type'] = 'application/json'
+    # Update a vrf attachment with the data from the file
+    try:
+        with open(filename, "r") as file:
+            data = json.load(file)
+    except FileNotFoundError:
+        print(f"File {filename} not found!")
+        exit()
+    except Exception as e:
+        print(f"Error: {e}")
+    
+    payload = data
+    fabric = payload[0].get("lanAttachList", [{}])[0].get("fabric", "unknown")
+    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric}/vrfs/attachments")
+    r = requests.post(url, headers=headers, json=payload, verify=False)
+    checkStatusCode(r)
+    print(f"Status Code: {r.status_code}")
+    print(f"Message: {r.text}")
+
 if __name__ == "__main__":
     # getVRFs(fabric="Site1-Greenfield", vrf_dir="vrfs", vrf_template_config_dir="vrfs/vrf_templates", vrf_filter="vrfId==50000", range=0)
     # getVRFs(fabric="Site1-TSMC", vrf_dir="vrfs", vrf_template_config_dir="vrfs/vrf_templates", vrf_filter="", range=0)
     # createVRF(filename="vrfs/Site1-TSMC_50000_bluevrf.json", vrf_template_config_file="vrfs/vrf_templates/Site1-TSMC_50000_bluevrf.json")
     # updateVRF(filename="vrfs/Site1-TSMC_50000_bluevrf.json", vrf_template_config_file="vrfs/vrf_templates/Site1-TSMC_50000_bluevrf.json")
     # deleteVRF(fabric="Site1-TSMC", vrf_name="bluevrf")
-    getVRFAttachment(fabric="Site1-TSMC", vrf_dir="vrfs", vrfname="", filter="", range="0-9")
+    # getVRFAttachment(fabric="Site1-TSMC", vrf_dir="vrfs", vrfname="", filter="", range="0-9")
+    updateVRFAttachment(filename="vrfs/vrf_attach_list.json")
