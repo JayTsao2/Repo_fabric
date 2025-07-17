@@ -55,9 +55,31 @@ def discoverSwitch(fabric, filename):
     print(f"Status Code: {r.status_code}")
     print(f"Message: {r.text}")
 
+def changeDiscoveryIP(fabric, serial_number, new_ip):
+    headers = getAPIKeyHeader()
+    headers['Content-Type'] = 'application/json'
+    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/inventory/discoveryIP")
+    payload = {
+        "serialNumber": serial_number,
+        "ipAddress": new_ip
+    }
+    r = requests.put(url, headers=headers, json=payload, verify=False)
+    checkStatusCode(r)
+    print(f"Status Code: {r.status_code}")
+    print(f"Message: {r.text}")
 
+def rediscoverDevice(fabric, serial_number):
+    headers = getAPIKeyHeader()
+    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/inventory/rediscover/{serial_number}")
+
+    r = requests.post(url, headers=headers, verify=False)
+    checkStatusCode(r)
+    print(f"Status Code: {r.status_code}")
+    print(f"Message: {r.text}")
 
 if __name__ == "__main__":
     # getSwitches(fabric="Site1-TSMC", switch_dir="switches")
     # deleteSwitch(fabric="Site1-TSMC", serial_number="9J9UDVX8MMA")
-    discoverSwitch(fabric="Site1-TSMC", filename="switches/discover/Site1-L3-73.json")
+    # discoverSwitch(fabric="Site1-TSMC", filename="switches/discover/Site1-L3-73.json")
+    changeDiscoveryIP(fabric="Site1-TSMC", serial_number="9J9UDVX8MMA", new_ip="10.192.195.73")
+    # rediscoverDevice(fabric="Site1-TSMC", serial_number="9J9UDVX8MMA")
