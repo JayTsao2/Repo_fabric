@@ -94,7 +94,6 @@ def getConfigDiff(fabric, serial_number):
     headers = getAPIKeyHeader()
     r = requests.get(url, headers=headers, verify=False)
     checkStatusCode(r)
-    
     data = r.json()
     # filename = f"switches/{fabric}_{serial_number}_config_diff.json"
     # with open(filename, "w") as f:
@@ -134,6 +133,14 @@ def parseConfigDiff(data, filename):
     except Exception as e:
         print(f"Error parsing config diff: {e}")
 
+def deploySwitchConfig(fabric, serial_number):
+    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/config-deploy/{serial_number}")
+    headers = getAPIKeyHeader()
+    r = requests.post(url, headers=headers, verify=False)
+    checkStatusCode(r)
+    print(f"Status Code: {r.status_code}")
+    print(f"Message: {r.text}")
+
 
 if __name__ == "__main__":
     # getSwitches(fabric="Site1-TSMC", switch_dir="switches")
@@ -142,4 +149,5 @@ if __name__ == "__main__":
     # changeDiscoveryIP(fabric="Site1-TSMC", serial_number="9J9UDVX8MMA", new_ip="10.192.195.73")
     # rediscoverDevice(fabric="Site1-TSMC", serial_number="9J9UDVX8MMA")
     # getConfigPreview(fabric="Site1", serial_number="9W4GBLXU5CR")
-    getConfigDiff(fabric="Site1", serial_number="9W4GBLXU5CR")
+    # getConfigDiff(fabric="ISN_DCI", serial_number="9IN4SP84L7L")
+    deploySwitchConfig(fabric="Site1", serial_number="9W4GBLXU5CR")

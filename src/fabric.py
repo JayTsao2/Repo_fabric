@@ -103,9 +103,27 @@ def updateFabric(filename, template_name, leaf_freeform_config_file="", spine_fr
 
     print(f"Fabric {fabric} has been successfully updated!")
 
+def recalculateConfig(fabric):
+    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/config-save")
+    headers = getAPIKeyHeader()
+    r = requests.post(url, headers=headers, verify=False)
+    checkStatusCode(r)
+    print(f"Status Code: {r.status_code}")
+    print(f"Message: {r.text}")
+
+def deployFabricConfig(fabric):
+    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/config-deploy")
+    headers = getAPIKeyHeader()
+    r = requests.post(url, headers=headers, verify=False)
+    checkStatusCode(r)
+    print(f"Status Code: {r.status_code}")
+    print(f"Message: {r.text}")
+
 if __name__ == "__main__":
     # getFabrics()
     # getFabric("Site1-Greenfield", "fabrics")
     # createFabric("fabrics/Site1-TSMC.json", "Easy_Fabric", "fabrics/Site1-TSMC_FreeForm/Leaf_FreeForm_Config.sh", "fabrics/Site1-TSMC_FreeForm/Spine_FreeForm_Config.sh", "fabrics/Site1-TSMC_FreeForm/AAA_Freeform_Config.sh")
-    updateFabric("fabrics/Site1-TSMC.json", "Easy_Fabric", "fabrics/Site1-TSMC_FreeForm/Leaf_FreeForm_Config.sh", "fabrics/Site1-TSMC_FreeForm/Spine_FreeForm_Config.sh", "fabrics/Site1-TSMC_FreeForm/AAA_Freeform_Config.sh")
+    # updateFabric("fabrics/Site1-TSMC.json", "Easy_Fabric", "fabrics/Site1-TSMC_FreeForm/Leaf_FreeForm_Config.sh", "fabrics/Site1-TSMC_FreeForm/Spine_FreeForm_Config.sh", "fabrics/Site1-TSMC_FreeForm/AAA_Freeform_Config.sh")
     # deleteFabric("Site1-TSMC")
+    recalculateConfig(fabric="Site1")
+    deployFabricConfig(fabric="Site1")
