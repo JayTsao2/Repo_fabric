@@ -155,6 +155,36 @@ def updateNetworkAttachment(filename):
     print(f"Status Code: {r.status_code}")
     print(f"Message: {r.text}")
 
+def previewNetworks(fabric, network_names):
+    headers = getAPIKeyHeader()
+    headers['Content-Type'] = 'application/json'
+    
+    # Preview networks
+    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric}/networks/preview")
+    query_params = {
+        "network-names": network_names
+    }
+    
+    r = requests.get(url, headers=headers, params=query_params, verify=False)
+    checkStatusCode(r)
+    print(f"Status Code: {r.status_code}")
+    print(f"Message: {r.text}")
+
+def deployNetworks(fabric, network_names):
+    headers = getAPIKeyHeader()
+    headers['Content-Type'] = 'application/json'
+    
+    # Deploy networks
+    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric}/networks/deployments")
+    payload = {
+        "networkNames": network_names
+    }
+    
+    r = requests.post(url, headers=headers, json=payload, verify=False)
+    checkStatusCode(r)
+    print(f"Status Code: {r.status_code}")
+    print(f"Message: {r.text}")
+
 if __name__ == "__main__":
     # getNetworks(fabric="Site1-Greenfield", network_dir="networks", network_template_config_dir="networks/network_templates", network_filter="", range=10)
     # getNetwork(fabric="Site1-Greenfield", network_name="bluenet1", network_dir="networks", network_template_config_dir="networks/network_templates")
@@ -162,5 +192,8 @@ if __name__ == "__main__":
     # createNetwork(filename="networks/Site1-TSMC_30000_bluenet1.json", network_template_config_file="networks/network_templates/Site1-TSMC_30000_bluenet1.json")
     # updateNetwork(filename="networks/Site1-TSMC_30000_bluenet1.json", network_template_config_file="networks/network_templates/Site1-TSMC_30000_bluenet1.json")
     # deleteNetwork(fabric="Site1-TSMC", network_name="bluenet1")
-    updateNetworkAttachment(filename="networks/attachments/test.json")
+    # updateNetworkAttachment(filename="networks/attachments/test.json")
+    # getNetworkAttachment(fabric="Site1-Greenfield", network_dir="networks", networkname="bluenet2")
+    previewNetworks(fabric="Site1-Greenfield", network_names="bluenet2")
+    # deployNetworks(fabric="Site1-Greenfield", network_names="bluenet2")
     getNetworkAttachment(fabric="Site1-Greenfield", network_dir="networks", networkname="bluenet2")
