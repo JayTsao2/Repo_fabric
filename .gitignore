@@ -204,3 +204,8 @@ __marimo__/
 
 # config files
 policies/
+networks/
+network_templates/
+fabrics/
+switches/
+vrfs/
