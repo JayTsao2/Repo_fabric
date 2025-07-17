@@ -77,9 +77,69 @@ def rediscoverDevice(fabric, serial_number):
     print(f"Status Code: {r.status_code}")
     print(f"Message: {r.text}")
 
+def getConfigPreview(fabric, serial_number):
+    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/config-preview/{serial_number}")
+    headers = getAPIKeyHeader()
+    r = requests.get(url, headers=headers, verify=False)
+    checkStatusCode(r)
+    
+    data = r.json()
+    filename = f"switches/{fabric}_{serial_number}_config_preview.json"
+    with open(filename, "w") as f:
+        json.dump(data, f, indent=4)
+        print(f"Config preview for {serial_number} is saved to {filename}")
+
+def getConfigDiff(fabric, serial_number):
+    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/config-diff/{serial_number}")
+    headers = getAPIKeyHeader()
+    r = requests.get(url, headers=headers, verify=False)
+    checkStatusCode(r)
+    
+    data = r.json()
+    # filename = f"switches/{fabric}_{serial_number}_config_diff.json"
+    # with open(filename, "w") as f:
+    #     json.dump(data, f, indent=4)
+    #     print(f"Config diff for {serial_number} is saved to {filename}")
+    parseConfigDiff(data["diff"], f"switches/{fabric}_{serial_number}_config_diff.sh")
+
+def parseConfigDiff(data, filename):
+    """
+    Parse config diff data and write to file in diff format
+    data: JSON array with format [["EQUAL"|"INSERT"|"DELETE", "line1", "line2"], ...]
+    filename: output file path
+    """
+    try:
+        with open(filename, "w") as f:
+            for item in data:
+                if len(item) != 3:
+                    continue
+                
+                operation, line1, line2 = item
+                
+                if operation == "EQUAL":
+                    # For EQUAL operations, show the line without prefix
+                    if line1:
+                        f.write(f"    {line1}\n")
+                elif operation == "INSERT":
+                    # For INSERT operations, show with + prefix
+                    if line2:
+                        f.write(f"[+] {line2}\n")
+                elif operation == "DELETE":
+                    # For DELETE operations, show with - prefix
+                    if line1:
+                        f.write(f"[-] {line1}\n")
+        
+        print(f"Config diff parsed and saved to {filename}")
+        
+    except Exception as e:
+        print(f"Error parsing config diff: {e}")
+
+
 if __name__ == "__main__":
     # getSwitches(fabric="Site1-TSMC", switch_dir="switches")
     # deleteSwitch(fabric="Site1-TSMC", serial_number="9J9UDVX8MMA")
     # discoverSwitch(fabric="Site1-TSMC", filename="switches/discover/Site1-L3-73.json")
-    changeDiscoveryIP(fabric="Site1-TSMC", serial_number="9J9UDVX8MMA", new_ip="10.192.195.73")
+    # changeDiscoveryIP(fabric="Site1-TSMC", serial_number="9J9UDVX8MMA", new_ip="10.192.195.73")
     # rediscoverDevice(fabric="Site1-TSMC", serial_number="9J9UDVX8MMA")
+    # getConfigPreview(fabric="Site1", serial_number="9W4GBLXU5CR")
+    getConfigDiff(fabric="Site1", serial_number="9W4GBLXU5CR")
