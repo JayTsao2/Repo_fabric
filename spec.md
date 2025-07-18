@@ -5,6 +5,7 @@
 .
 ├── API/
 ├── inventory/
+├── logs/
 ├── resources/
 ├── network_configs/
 ├── scripts/
@@ -14,25 +15,30 @@
 
 ### 資料夾用途說明
 
-  * 📂 **`/API`**
+* 📂 **`/API`**
 
-      * 用途: 放置所有 API 請求相關的邏輯與模組。
+    * 用途: 放置所有 API 請求相關的邏輯與模組。
 
-  * 📂 **`/inventory`**
+* 📂 **`/inventory`**
 
-      * 用途: 透過 Nornir、NAPALM 等工具進行設備資訊的獲取與管理。
+    * 用途: 透過 Nornir、NAPALM 等工具進行設備資訊的獲取與管理。
 
-  * 📂 **`/resources`**
+* 📂 **`/logs`**
 
-      * 用途: 放置 API 請求回來的 JSON 檔案，以及要傳送給 API 的初步 JSON 範本。
+    * 用途: 放置 API 執行的回傳值
 
-  * 📂 **`/network_configs`**
+* 📂 **`/resources`**
 
-      * 用途: 放置讓網路工程師能夠自主修改、用以簡易配置網路的 YAML 定義檔案。
+    * 用途: 放置 API 請求回來的 JSON 檔案，以及要傳送給 API 的初步 JSON 範本。
 
-  * 📂 **`/scripts`**
+* 📂 **`/network_configs`**
 
-      * 用途: 放置提供給 GitLab CI/CD 等工具執行流程的腳本 (Scripts)。
+    * 用途: 放置讓網路工程師能夠自主修改、用以簡易配置網路的 YAML 定義檔案。
+
+* 📂 **`/scripts`**
+
+    * 用途: 放置提供給 GitLab CI/CD 等工具執行流程的腳本 (Scripts)。
+
 ## Network Config
 - 需求: 讓網路工程師可以簡單的設定
 - Need to check types
@@ -93,3 +99,6 @@ TODO
 ## Current Issue
 1. NDFC 無法透過外網訪問
 2. Network / VRF Preview and Deploy 無法使用(Timeout)
+
+## Future works
+- 透過 jinjia2 產生網頁直接讓他填 config
