@@ -1,67 +1,61 @@
+# Fabric Builder
+## Network Config
+- 需求: 讓網路工程師可以簡單的設定
+- Need to check types
+## API Interfaces
+### Cisco NDFC 12.2.2
+#### [Fabric](API/cisco/12.2.2/fabric.py)
+- Fabric create / read / update / delete
+- Fabric recalculate
+- Fabric deploy
+##### Note
+- AAA Freeform config = AAA_SERVER_CONF
+- Spine Freeform config = EXTRA_CONF_SPINE
+- Leaf Freeform config = EXTRA_CONF_LEAF
+#### [Switch](API/cisco/12.2.2/switch.py)
+- Switch read / delete
+- Switch discover (add)
+- Read switch pending config
+- Read switch diff config 
+- Change discovery IP / rediscover IP 尚未測試
+#### Interface
+- 尚未測試
+#### [Policy](API/cisco/12.2.2/policy.py)
+- Policy read / update / delete
+#### [Network](API/cisco/12.2.2/network.py)
+- Network create / read / update / delete
+- Network attachment read / update
+    - deployment = true 是接, deployment = false 是拔掉
+    - Issue: 如果同時放 switchPorts, detachSwitchPorts, deployment = true 還是會拔掉放在 detachSwitchPorts 的 ports
+    - 接的時候要將 deployment 設定成 true 並確定沒有 detachSwitchPorts 出現
+    - 拔的時候要將 deployment 設定成 false 並確定有放 detachSwitchPorts
+- Preview network (generate pending config)
+- Deploy network
+#### [VRF](API/cisco/12.2.2/vrf.py)
+- VRF create / read / update / delete
+- VRF attachment read / update
 
-## Gitlab 三道關卡 (Gitlab Three Checkpoints)
-| 關卡 (Stage) | 驗證項目 (Verification Item) |
-| :--- | :--- |
-| **Pre-test** | ❶ 格式驗證 (確認所需資料 / 項目數量 ) (Format Validation - Confirm required data / number of items) |
-| | ❷ Get 所有有使用中的 API 並比對與現行 YAML 數據是否一致 (Get all in-use APIs and compare with current YAML data for consistency) |
-| | ❸ 該 Change 是否已有相對應的完整 API 動作 (Whether the change has a corresponding complete API action) |
-| **Reviewer / Approval** | ❶ Repo Diff |
-| | ❷ Pending Config 提供簽核者 (Pending Config provided to the approver) |
+## Scripts
+TODO
+## Gitlab Flow
+1. 網路工程師修改 Network config
+2. 讀取 Network config 並透過 API / scripts 產生 `pending_config.txt`
+    ```
+    hostname1:
+    command1
+    command2
+    --------
+    hostname2:
+    command1
+    command2
+    ...
+    ```
+3. 在 Gitlab 上產生 Network config diff 以及展示出 `pending_config.txt`
+4. Reviewer check & approve
+5. 透過 API / scripts deploy changes
+6. 透過 API / scripts 產生報告
 
------
 
-## Fabric Build
-
-### New Fabric Build
-- Fabric build
-
-### All Freeform modification
-- Recalculate and Deploy
-
-### Create Freeform Policy API
-
-### Revise Border to GigaCore BGP
-
-### Route Leak Modification
----
-## VRF
-
-### Add VRF
-### Attach Route Port to VRF
-### Attach VLAN to VRF
-### Remove VRF
-
-- Pre-check:
-    - Ensure no VLAN use this VRF
-    - Ensure no Equipments use this VRF
------
-
-## Network
-
-### Add Network
-### Attach Port to VLAN
-### Change VLAN of a Port
-### Remove Network
-
-- Pre-check:
-    - Ensure no VRF use this network
-    - Ensure no Equipments use this network
------
-
-## Switch / Rack
-
-### Add Switch
-- Add Switch
-- Recalculate and Deploy
-### Create Switch - Hostname Policy
-- Get Policy ID (need to record)
-- Revise Policy ID API
-### Revise Hostname
-### Remove Switch
-- Delete Switch
-- Recalculate and Deploy
-### Change Management IP
-- Console change IP
-- Change Discovery IP
-- Re-discovery
-- What is the action of YAML?
+## Current Issue
+1. NDFC 無法透過外網訪問
+2. Network / VRF Preview and Deploy 無法使用(Timeout)
