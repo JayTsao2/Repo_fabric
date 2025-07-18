@@ -5,10 +5,10 @@ import json
 
 management_IP = 'https://10.192.195.20'
 
-def getURL(api):
+def get_url(api):
     return f"{management_IP}{api}"
 
-def getAPIKeyHeader():
+def get_api_key_header():
     load_dotenv()
     NDFC_API_KEY = os.getenv("NDFC_API_KEY")
 
@@ -18,13 +18,13 @@ def getAPIKeyHeader():
     }
     return headers
 
-def checkStatusCode(r):
+def check_status_code(r):
     if r.status_code != 200:
         print(f"Request Failed, Status code: {r.status_code}")
         print(f"Error Message: {r.text}")
         sys.exit(1)
 
-def parseTemplateConfig(filename) -> str:
+def parse_template_config(filename) -> str:
     # Parse the json from the file and serialize it into a string
     try:
         with open(filename, "r") as file:
@@ -35,7 +35,7 @@ def parseTemplateConfig(filename) -> str:
         print(f"Error: {e}")
         return ""
     
-def parseFreeFormConfig(filename) -> str:
+def parse_freeform_config(filename) -> str:
     # Parse the free form config from the file and serialize it into a string
     try:
         with open(filename, "r") as file:

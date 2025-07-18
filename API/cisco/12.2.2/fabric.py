@@ -4,12 +4,12 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 from utils import *
 import json
 
-def getFabrics():
-    url = getURL("/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics")
-    headers = getAPIKeyHeader()
+def get_fabrics():
+    url = get_url("/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics")
+    headers = get_api_key_header()
 
     r = requests.get(url=url, headers=headers, verify =False)
-    checkStatusCode(r)
+    check_status_code(r)
     
 
     fabrics = r.json()
@@ -17,13 +17,13 @@ def getFabrics():
     with open("fabrics.json", "w") as f:
         json.dump(fabrics, f, indent=4)
 
-def getFabric(fabric, fabric_dir="fabrics"):
-    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}")
+def get_fabric(fabric, fabric_dir="fabrics"):
+    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}")
     
-    headers = getAPIKeyHeader()
+    headers = get_api_key_header()
 
     r = requests.get(url=url, headers=headers, verify = False)
-    checkStatusCode(r)
+    check_status_code(r)
     try: 
         data = r.json()
         if not os.path.exists(fabric_dir):
@@ -35,16 +35,16 @@ def getFabric(fabric, fabric_dir="fabrics"):
     except Exception as e:
         print(f"Error: {e}")
 
-def deleteFabric(fabric):
-    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}")
+def delete_fabric(fabric):
+    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}")
 
-    headers = getAPIKeyHeader()
+    headers = get_api_key_header()
     r = requests.delete(url=url, headers=headers, verify=False)
-    checkStatusCode(r)
+    check_status_code(r)
     print(f"Status Code: {r.status_code}")
     print(f"Message: {r.text}")
 
-def createFabric(filename, template_name, leaf_freeform_config_file="", spine_freeform_config_file="", aaa_freeform_config_file=""):
+def create_fabric(filename, template_name, leaf_freeform_config_file="", spine_freeform_config_file="", aaa_freeform_config_file=""):
     try:
         with open(filename, "r") as file:
             data = json.load(file)
@@ -62,19 +62,19 @@ def createFabric(filename, template_name, leaf_freeform_config_file="", spine_fr
             # print(f"Removing {key} in payload...")
             del payload[key]
 
-    payload["EXTRA_CONF_LEAF"] = parseFreeFormConfig(leaf_freeform_config_file) if leaf_freeform_config_file else ""
-    payload["EXTRA_CONF_SPINE"] = parseFreeFormConfig(spine_freeform_config_file) if spine_freeform_config_file else ""
-    payload["AAA_SERVER_CONF"] = parseFreeFormConfig(aaa_freeform_config_file) if aaa_freeform_config_file else ""
-    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/{template_name}")
+    payload["EXTRA_CONF_LEAF"] = parse_freeform_config(leaf_freeform_config_file) if leaf_freeform_config_file else ""
+    payload["EXTRA_CONF_SPINE"] = parse_freeform_config(spine_freeform_config_file) if spine_freeform_config_file else ""
+    payload["AAA_SERVER_CONF"] = parse_freeform_config(aaa_freeform_config_file) if aaa_freeform_config_file else ""
+    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/{template_name}")
 
-    headers = getAPIKeyHeader()
+    headers = get_api_key_header()
     headers['Content-Type'] = 'application/json'
     r = requests.post(url, headers=headers, data=json.dumps(payload), verify=False)
-    checkStatusCode(r)
+    check_status_code(r)
 
     print(f"Fabric {fabric} has been successfully created!")
 
-def updateFabric(filename, template_name, leaf_freeform_config_file="", spine_freeform_config_file="", aaa_freeform_config_file=""):
+def update_fabric(filename, template_name, leaf_freeform_config_file="", spine_freeform_config_file="", aaa_freeform_config_file=""):
     try:
         with open(filename, "r") as file:
             data = json.load(file)
@@ -91,39 +91,39 @@ def updateFabric(filename, template_name, leaf_freeform_config_file="", spine_fr
         if key in payload:
             del payload[key]
     
-    payload["EXTRA_CONF_LEAF"] = parseFreeFormConfig(leaf_freeform_config_file) if leaf_freeform_config_file else ""
-    payload["EXTRA_CONF_SPINE"] = parseFreeFormConfig(spine_freeform_config_file) if spine_freeform_config_file else ""
-    payload["AAA_SERVER_CONF"] = parseFreeFormConfig(aaa_freeform_config_file) if aaa_freeform_config_file else ""
-    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/{template_name}")
+    payload["EXTRA_CONF_LEAF"] = parse_freeform_config(leaf_freeform_config_file) if leaf_freeform_config_file else ""
+    payload["EXTRA_CONF_SPINE"] = parse_freeform_config(spine_freeform_config_file) if spine_freeform_config_file else ""
+    payload["AAA_SERVER_CONF"] = parse_freeform_config(aaa_freeform_config_file) if aaa_freeform_config_file else ""
+    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/{template_name}")
 
-    headers = getAPIKeyHeader()
+    headers = get_api_key_header()
     headers['Content-Type'] = 'application/json'
     r = requests.put(url, headers=headers, data=json.dumps(payload), verify=False)
-    checkStatusCode(r)
+    check_status_code(r)
 
     print(f"Fabric {fabric} has been successfully updated!")
 
-def recalculateConfig(fabric):
-    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/config-save")
-    headers = getAPIKeyHeader()
+def recalculate_config(fabric):
+    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/config-save")
+    headers = get_api_key_header()
     r = requests.post(url, headers=headers, verify=False)
-    checkStatusCode(r)
+    check_status_code(r)
     print(f"Status Code: {r.status_code}")
     print(f"Message: {r.text}")
 
-def deployFabricConfig(fabric):
-    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/config-deploy")
-    headers = getAPIKeyHeader()
+def deploy_fabric_config(fabric):
+    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/config-deploy")
+    headers = get_api_key_header()
     r = requests.post(url, headers=headers, verify=False)
-    checkStatusCode(r)
+    check_status_code(r)
     print(f"Status Code: {r.status_code}")
     print(f"Message: {r.text}")
 
 if __name__ == "__main__":
-    # getFabrics()
-    # getFabric("Site1-Greenfield", "fabrics")
-    # createFabric("fabrics/Site1-TSMC.json", "Easy_Fabric", "fabrics/Site1-TSMC_FreeForm/Leaf_FreeForm_Config.sh", "fabrics/Site1-TSMC_FreeForm/Spine_FreeForm_Config.sh", "fabrics/Site1-TSMC_FreeForm/AAA_Freeform_Config.sh")
-    # updateFabric("fabrics/Site1-TSMC.json", "Easy_Fabric", "fabrics/Site1-TSMC_FreeForm/Leaf_FreeForm_Config.sh", "fabrics/Site1-TSMC_FreeForm/Spine_FreeForm_Config.sh", "fabrics/Site1-TSMC_FreeForm/AAA_Freeform_Config.sh")
-    # deleteFabric("Site1-TSMC")
-    recalculateConfig(fabric="Site1")
-    deployFabricConfig(fabric="Site1")
+    # get_fabrics()
+    # get_fabric("Site1-Greenfield", "fabrics")
+    # create_fabric("fabrics/Site1-TSMC.json", "Easy_Fabric", "fabrics/Site1-TSMC_FreeForm/Leaf_FreeForm_Config.sh", "fabrics/Site1-TSMC_FreeForm/Spine_FreeForm_Config.sh", "fabrics/Site1-TSMC_FreeForm/AAA_Freeform_Config.sh")
+    # update_fabric("fabrics/Site1-TSMC.json", "Easy_Fabric", "fabrics/Site1-TSMC_FreeForm/Leaf_FreeForm_Config.sh", "fabrics/Site1-TSMC_FreeForm/Spine_FreeForm_Config.sh", "fabrics/Site1-TSMC_FreeForm/AAA_Freeform_Config.sh")
+    # delete_fabric("Site1-TSMC")
+    recalculate_config(fabric="Site1")
+    deploy_fabric_config(fabric="Site1")

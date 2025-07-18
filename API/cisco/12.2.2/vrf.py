@@ -4,16 +4,16 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 from utils import *
 import json
 
-def getVRFs(fabric, vrf_dir="vrfs", vrf_template_config_dir="vrf_template_config_dirs", vrf_filter="", range=0):
+def get_VRFs(fabric, vrf_dir="vrfs", vrf_template_config_dir="vrf_template_config_dirs", vrf_filter="", range=0):
     # range = show the vrfs from 0 to {range}
-    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric}/vrfs")
-    headers = getAPIKeyHeader()
+    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric}/vrfs")
+    headers = get_api_key_header()
     headers["range"] = f"0-{range}"
     query_params = {}
     if vrf_filter != "":
         query_params["filter"] = vrf_filter
     r = requests.get(url, headers=headers, params=query_params, verify=False)
-    checkStatusCode(r)
+    check_status_code(r)
 
     vrfs = r.json()
     # if the directory does not exist, create it
@@ -37,8 +37,8 @@ def getVRFs(fabric, vrf_dir="vrfs", vrf_template_config_dir="vrf_template_config
                 json.dump(vrf_template_config, f, indent=4)
                 print(f"VRF config template for {vrf_name} (ID: {vrf_id}) is saved to {vrf_template_config_filename}")
 
-def createVRF(filename, vrf_template_config_file=""):
-    headers = getAPIKeyHeader()
+def create_VRF(filename, vrf_template_config_file=""):
+    headers = get_api_key_header()
     headers['Content-Type'] = 'application/json'
     # Create a vrf with the data from the file
     try:
@@ -51,18 +51,18 @@ def createVRF(filename, vrf_template_config_file=""):
         print(f"Error: {e}")
 
     payload = data
-    vrf_template_config_str = parseTemplateConfig(vrf_template_config_file) if vrf_template_config_file else ""
+    vrf_template_config_str = parse_template_config(vrf_template_config_file) if vrf_template_config_file else ""
     payload["vrfTemplateConfig"] = vrf_template_config_str
-    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{payload["fabric"]}/vrfs")
+    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{payload["fabric"]}/vrfs")
 
     print(f"URL: {url}")
     r = requests.post(url, headers=headers, json=payload, verify=False)
-    checkStatusCode(r)
+    check_status_code(r)
     print(f"Status Code: {r.status_code}")
     print(f"Message: {r.text}")
 
-def updateVRF(filename, vrf_template_config_file=""):
-    headers = getAPIKeyHeader()
+def update_VRF(filename, vrf_template_config_file=""):
+    headers = get_api_key_header()
     headers['Content-Type'] = 'application/json'
     # Update a vrf with the data from the file
     try:
@@ -75,25 +75,25 @@ def updateVRF(filename, vrf_template_config_file=""):
         print(f"Error: {e}")
     
     payload = data
-    vrf_template_config_str = parseTemplateConfig(vrf_template_config_file) if vrf_template_config_file else ""
+    vrf_template_config_str = parse_template_config(vrf_template_config_file) if vrf_template_config_file else ""
     payload["vrfTemplateConfig"] = vrf_template_config_str
-    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{payload['fabric']}/vrfs/{payload['vrfName']}")
+    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{payload['fabric']}/vrfs/{payload['vrfName']}")
     r = requests.put(url, headers=headers, json=payload, verify=False)
-    checkStatusCode(r)
+    check_status_code(r)
     print(f"Status Code: {r.status_code}")
     print(f"Message: {r.text}")
 
-def deleteVRF(fabric, vrf_name):
-    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric}/vrfs/{vrf_name}")
-    headers = getAPIKeyHeader()
+def delete_VRF(fabric, vrf_name):
+    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric}/vrfs/{vrf_name}")
+    headers = get_api_key_header()
     r = requests.delete(url, headers=headers, verify=False)
-    checkStatusCode(r)
+    check_status_code(r)
     print(f"Status Code: {r.status_code}")
     print(f"Message: {r.text}")
 
-def getVRFAttachment(fabric, vrf_dir="vrfs", vrfname="", filter="", range="0-9"):
-    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric}/vrfs/attachments")
-    headers = getAPIKeyHeader()
+def get_VRF_attachment(fabric, vrf_dir="vrfs", vrfname="", filter="", range="0-9"):
+    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric}/vrfs/attachments")
+    headers = get_api_key_header()
     headers["Range"] = range
     query_params = {
         "vrf-names": vrfname,
@@ -103,7 +103,7 @@ def getVRFAttachment(fabric, vrf_dir="vrfs", vrfname="", filter="", range="0-9")
     if filter:
         headers["filter"] = filter
     r = requests.get(url, headers=headers, params=query_params, verify=False)
-    checkStatusCode(r)
+    check_status_code(r)
 
     attachments = r.json()
     if not os.path.exists(vrf_dir):
@@ -117,8 +117,8 @@ def getVRFAttachment(fabric, vrf_dir="vrfs", vrfname="", filter="", range="0-9")
             json.dump(attachment, f, indent=4)
             print(f"VRF attachments for {attachment_vrfname} are saved to {filename}")
 
-def updateVRFAttachment(filename):
-    headers = getAPIKeyHeader()
+def update_VRF_attachment(filename):
+    headers = get_api_key_header()
     headers['Content-Type'] = 'application/json'
     # Update a vrf attachment with the data from the file
     try:
@@ -132,17 +132,17 @@ def updateVRFAttachment(filename):
     
     payload = data
     fabric = payload[0].get("lanAttachList", [{}])[0].get("fabric", "unknown")
-    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric}/vrfs/attachments")
+    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric}/vrfs/attachments")
     r = requests.post(url, headers=headers, json=payload, verify=False)
-    checkStatusCode(r)
+    check_status_code(r)
     print(f"Status Code: {r.status_code}")
     print(f"Message: {r.text}")
 
 if __name__ == "__main__":
-    # getVRFs(fabric="Site1-Greenfield", vrf_dir="vrfs", vrf_template_config_dir="vrfs/vrf_templates", vrf_filter="vrfId==50000", range=0)
-    # getVRFs(fabric="Site1-TSMC", vrf_dir="vrfs", vrf_template_config_dir="vrfs/vrf_templates", vrf_filter="", range=0)
-    # createVRF(filename="vrfs/Site1-TSMC_50000_bluevrf.json", vrf_template_config_file="vrfs/vrf_templates/Site1-TSMC_50000_bluevrf.json")
-    # updateVRF(filename="vrfs/Site1-TSMC_50000_bluevrf.json", vrf_template_config_file="vrfs/vrf_templates/Site1-TSMC_50000_bluevrf.json")
-    # deleteVRF(fabric="Site1-TSMC", vrf_name="bluevrf")
-    # getVRFAttachment(fabric="Site1-TSMC", vrf_dir="vrfs", vrfname="", filter="", range="0-9")
-    updateVRFAttachment(filename="vrfs/vrf_attach_list.json")
+    # get_VRFs(fabric="Site1-Greenfield", vrf_dir="vrfs", vrf_template_config_dir="vrfs/vrf_templates", vrf_filter="vrfId==50000", range=0)
+    # get_VRFs(fabric="Site1-TSMC", vrf_dir="vrfs", vrf_template_config_dir="vrfs/vrf_templates", vrf_filter="", range=0)
+    # create_VRF(filename="vrfs/Site1-TSMC_50000_bluevrf.json", vrf_template_config_file="vrfs/vrf_templates/Site1-TSMC_50000_bluevrf.json")
+    # update_VRF(filename="vrfs/Site1-TSMC_50000_bluevrf.json", vrf_template_config_file="vrfs/vrf_templates/Site1-TSMC_50000_bluevrf.json")
+    # delete_VRF(fabric="Site1-TSMC", vrf_name="bluevrf")
+    # get_VRF_attachment(fabric="Site1-TSMC", vrf_dir="vrfs", vrfname="", filter="", range="0-9")
+    update_VRF_attachment(filename="vrfs/vrf_attach_list.json")

@@ -4,16 +4,16 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 from utils import *
 import json
 
-def getNetworks(fabric, network_dir="networks", network_template_config_dir="networks/network_templates", network_filter="", range=0):
+def get_networks(fabric, network_dir="networks", network_template_config_dir="networks/network_templates", network_filter="", range=0):
     # range = show the networks from 0 to {range}
-    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric}/networks")
-    headers = getAPIKeyHeader()
+    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric}/networks")
+    headers = get_api_key_header()
     headers["range"] = f"0-{range}"
     query_params = {}
     if network_filter != "":
         query_params["filter"] = network_filter
     r = requests.get(url, headers=headers, params=query_params, verify=False)
-    checkStatusCode(r)
+    check_status_code(r)
 
     networks = r.json()
     # if the directory does not exist, create it
@@ -38,11 +38,11 @@ def getNetworks(fabric, network_dir="networks", network_template_config_dir="net
                 json.dump(network_template_config, f, indent=4)
                 print(f"Network config template for {network_name} (ID: {network_id}) is saved to {network_template_config_filename}")
 
-def getNetwork(fabric, network_name, network_dir="networks", network_template_config_dir="networks/network_templates"):
-    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric}/networks/{network_name}")
-    headers = getAPIKeyHeader()
+def get_network(fabric, network_name, network_dir="networks", network_template_config_dir="networks/network_templates"):
+    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric}/networks/{network_name}")
+    headers = get_api_key_header()
     r = requests.get(url, headers=headers, verify=False)
-    checkStatusCode(r)
+    check_status_code(r)
 
     network = r.json()
     # Save the network to a file
@@ -61,8 +61,8 @@ def getNetwork(fabric, network_name, network_dir="networks", network_template_co
             json.dump(network_template_config, f, indent=4)
             print(f"Network config template for {network_name} (ID: {network_id}) is saved to {network_template_config_filename}")
 
-def createNetwork(filename, network_template_config_file=""):
-    headers = getAPIKeyHeader()
+def create_network(filename, network_template_config_file=""):
+    headers = get_api_key_header()
     headers['Content-Type'] = 'application/json'
     
     # Create a network with the data from the file
@@ -75,16 +75,16 @@ def createNetwork(filename, network_template_config_file=""):
     except Exception as e:
         print(f"Error: {e}")
     payload = data
-    network_template_config_str = parseTemplateConfig(network_template_config_file) if network_template_config_file else ""
+    network_template_config_str = parse_template_config(network_template_config_file) if network_template_config_file else ""
     payload["networkTemplateConfig"] = network_template_config_str
-    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{payload['fabric']}/networks")
+    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{payload['fabric']}/networks")
     r = requests.post(url, headers=headers, json=payload, verify=False)
-    checkStatusCode(r)
+    check_status_code(r)
     print(f"Status Code: {r.status_code}")
     print(f"Message: {r.text}")
 
-def updateNetwork(filename, network_template_config_file=""):
-    headers = getAPIKeyHeader()
+def update_network(filename, network_template_config_file=""):
+    headers = get_api_key_header()
     headers['Content-Type'] = 'application/json'
     
     # Update a network with the data from the file
@@ -97,27 +97,27 @@ def updateNetwork(filename, network_template_config_file=""):
     except Exception as e:
         print(f"Error: {e}")
     payload = data
-    network_template_config_str = parseTemplateConfig(network_template_config_file) if network_template_config_file else ""
+    network_template_config_str = parse_template_config(network_template_config_file) if network_template_config_file else ""
     payload["networkTemplateConfig"] = network_template_config_str
-    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{payload['fabric']}/networks/{payload['networkName']}")
+    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{payload['fabric']}/networks/{payload['networkName']}")
     r = requests.put(url, headers=headers, json=payload, verify=False)
-    checkStatusCode(r)
+    check_status_code(r)
     print(f"Status Code: {r.status_code}")
     print(f"Message: {r.text}")
 
-def deleteNetwork(fabric, network_name):
-    headers = getAPIKeyHeader()
-    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric}/networks/{network_name}")
+def delete_network(fabric, network_name):
+    headers = get_api_key_header()
+    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric}/networks/{network_name}")
     r = requests.delete(url, headers=headers, verify=False)
-    checkStatusCode(r)
+    check_status_code(r)
     print(f"Status Code: {r.status_code}")
     print(f"Message: {r.text}")
 
-def getNetworkAttachment(fabric, network_dir="networks", networkname=""):
-    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric}/networks/{networkname}/attachments")
-    headers = getAPIKeyHeader()
+def get_network_attachment(fabric, network_dir="networks", networkname=""):
+    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric}/networks/{networkname}/attachments")
+    headers = get_api_key_header()
     r = requests.get(url, headers=headers, verify=False)
-    checkStatusCode(r)
+    check_status_code(r)
 
     if not os.path.exists(network_dir):
         os.makedirs(network_dir)
@@ -131,8 +131,8 @@ def getNetworkAttachment(fabric, network_dir="networks", networkname=""):
             json.dump(attachment, f, indent=4)
             print(f"Network attachments for {networkname} on switch {attachment_switch_name} are saved to {filename}")
 
-def updateNetworkAttachment(filename):
-    headers = getAPIKeyHeader()
+def update_network_attachment(filename):
+    headers = get_api_key_header()
     headers['Content-Type'] = 'application/json'
     
     # Update a network attachment with the data from the file
@@ -148,52 +148,52 @@ def updateNetworkAttachment(filename):
     payload = data
     fabric = payload.get("fabric", "unknown")
     network_name = payload.get("networkName", "unknown")
-    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric}/networks/{network_name}/attachments")
+    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric}/networks/{network_name}/attachments")
     
     r = requests.post(url, headers=headers, json=payload, verify=False)
-    checkStatusCode(r)
+    check_status_code(r)
     print(f"Status Code: {r.status_code}")
     print(f"Message: {r.text}")
 
-def previewNetworks(fabric, network_names):
-    headers = getAPIKeyHeader()
+def preview_networks(fabric, network_names):
+    headers = get_api_key_header()
     headers['Content-Type'] = 'application/json'
     
     # Preview networks
-    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric}/networks/preview")
+    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric}/networks/preview")
     query_params = {
         "network-names": network_names
     }
     
     r = requests.get(url, headers=headers, params=query_params, verify=False)
-    checkStatusCode(r)
+    check_status_code(r)
     print(f"Status Code: {r.status_code}")
     print(f"Message: {r.text}")
 
-def deployNetworks(fabric, network_names):
-    headers = getAPIKeyHeader()
+def deploy_networks(fabric, network_names):
+    headers = get_api_key_header()
     headers['Content-Type'] = 'application/json'
     
     # Deploy networks
-    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric}/networks/deployments")
+    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric}/networks/deployments")
     payload = {
         "networkNames": network_names
     }
     
     r = requests.post(url, headers=headers, json=payload, verify=False)
-    checkStatusCode(r)
+    check_status_code(r)
     print(f"Status Code: {r.status_code}")
     print(f"Message: {r.text}")
 
 if __name__ == "__main__":
-    # getNetworks(fabric="Site1-Greenfield", network_dir="networks", network_template_config_dir="networks/network_templates", network_filter="", range=10)
-    # getNetwork(fabric="Site1-Greenfield", network_name="bluenet1", network_dir="networks", network_template_config_dir="networks/network_templates")
-    # getNetworks(fabric="Site1-TSMC", network_dir="networks", network_template_config_dir="networks/network_templates", network_filter="", range=0)
-    # createNetwork(filename="networks/Site1-TSMC_30000_bluenet1.json", network_template_config_file="networks/network_templates/Site1-TSMC_30000_bluenet1.json")
-    # updateNetwork(filename="networks/Site1-TSMC_30000_bluenet1.json", network_template_config_file="networks/network_templates/Site1-TSMC_30000_bluenet1.json")
-    # deleteNetwork(fabric="Site1-TSMC", network_name="bluenet1")
-    # updateNetworkAttachment(filename="networks/attachments/test.json")
-    # getNetworkAttachment(fabric="Site1-Greenfield", network_dir="networks", networkname="bluenet2")
-    previewNetworks(fabric="Site1-Greenfield", network_names="bluenet2")
-    # deployNetworks(fabric="Site1-Greenfield", network_names="bluenet2")
-    getNetworkAttachment(fabric="Site1-Greenfield", network_dir="networks", networkname="bluenet2")
+    # get_networks(fabric="Site1-Greenfield", network_dir="networks", network_template_config_dir="networks/network_templates", network_filter="", range=10)
+    # get_network(fabric="Site1-Greenfield", network_name="bluenet1", network_dir="networks", network_template_config_dir="networks/network_templates")
+    # get_networks(fabric="Site1-TSMC", network_dir="networks", network_template_config_dir="networks/network_templates", network_filter="", range=0)
+    # create_network(filename="networks/Site1-TSMC_30000_bluenet1.json", network_template_config_file="networks/network_templates/Site1-TSMC_30000_bluenet1.json")
+    # update_network(filename="networks/Site1-TSMC_30000_bluenet1.json", network_template_config_file="networks/network_templates/Site1-TSMC_30000_bluenet1.json")
+    # delete_network(fabric="Site1-TSMC", network_name="bluenet1")
+    # update_network_attachment(filename="networks/attachments/test.json")
+    # get_network_attachment(fabric="Site1-Greenfield", network_dir="networks", networkname="bluenet2")
+    preview_networks(fabric="Site1-Greenfield", network_names="bluenet2")
+    # deploy_networks(fabric="Site1-Greenfield", network_names="bluenet2")
+    get_network_attachment(fabric="Site1-Greenfield", network_dir="networks", networkname="bluenet2")

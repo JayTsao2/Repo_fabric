@@ -10,7 +10,7 @@ def login():
     load_dotenv()
     USERNAME = os.getenv("LOGIN_USERNAME")
     PASSWORD = os.getenv("LOGIN_PASSWORD")
-    url = getURL("/login")
+    url = get_url("/login")
 
     payload = {
         "userName" : USERNAME,
@@ -20,32 +20,32 @@ def login():
 
     r = requests.post(url=url, json=payload, verify=False)
 
-    checkStatusCode(r)
+    check_status_code(r)
     json_data = r.json()
     jwttoken = json_data.get("jwttoken")
 
     return jwttoken
 
-def addAPIKey(token):
+def add_api_key(token):
     headers = {
         'Cookie': f'AuthCookie={token}'
     }
 
     payload = {}
-    url = getURL("/api/config/addapikey")
+    url = get_url("/api/config/addapikey")
     r = requests.post(url, headers=headers, json=payload, verify=False)
 
-    checkStatusCode(r)
+    check_status_code(r)
     print(r.json())
 
-def getAPIKey(token):
-    url = getURL("/api/config/dn/userapikey/local-admin?showPassword=yes")
+def get_api_key(token):
+    url = get_url("/api/config/dn/userapikey/local-admin?showPassword=yes")
     headers = {
         'Cookie': f'AuthCookie={token}'
     }
     r = requests.get(url, headers=headers, verify=False)
 
-    checkStatusCode(r)
+    check_status_code(r)
 
     response_json = r.json()
     api_keys = response_json.get("apiKeys", [])
@@ -54,11 +54,11 @@ def getAPIKey(token):
     else:
         print("No api keys")
 
-def generateAPIKey():
+def generate_api_key():
     token = login()
-    # addAPIKey(token)
-    api_key = getAPIKey(token)
+    # add_api_key(token)
+    api_key = get_api_key(token)
     print(f"API key: {api_key}")
 
 if __name__ == "__main__":
-    generateAPIKey()
+    generate_api_key()

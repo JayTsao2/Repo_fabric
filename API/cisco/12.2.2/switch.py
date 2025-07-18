@@ -5,12 +5,12 @@ from utils import *
 import json
 from dotenv import load_dotenv
 
-def getSwitches(fabric, switch_dir="switches"):
+def get_switches(fabric, switch_dir="switches"):
     # range = show the switches from 0 to {range}
-    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/inventory/switchesByFabric")
-    headers = getAPIKeyHeader()
+    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/inventory/switchesByFabric")
+    headers = get_api_key_header()
     r = requests.get(url, headers=headers, verify=False)
-    checkStatusCode(r)
+    check_status_code(r)
 
     switches = r.json()
     # if the directory does not exist, create it
@@ -25,18 +25,18 @@ def getSwitches(fabric, switch_dir="switches"):
             json.dump(switch, f, indent=4)
             print(f"Switch config for {hostname} (ID: {serial_number}) is saved to {filename}")
 
-def deleteSwitch(fabric, serial_number):
-    headers = getAPIKeyHeader()
-    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/switches/{serial_number}")
+def delete_switch(fabric, serial_number):
+    headers = get_api_key_header()
+    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/switches/{serial_number}")
     r = requests.delete(url, headers=headers, verify=False)
-    checkStatusCode(r)
+    check_status_code(r)
     print(f"Status Code: {r.status_code}")
     print(f"Message: {r.text}")
 
-def discoverSwitch(fabric, filename):
+def discover_switch(fabric, filename):
     load_dotenv()
-    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/inventory/discover")
-    headers = getAPIKeyHeader()
+    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/inventory/discover")
+    headers = get_api_key_header()
     headers['Content-Type'] = 'application/json'
     try:
         with open(filename, "r") as file:
@@ -51,37 +51,37 @@ def discoverSwitch(fabric, filename):
 
     payload["password"] = os.getenv("SWITCH_PASSWORD") 
     r = requests.post(url, headers=headers, json=payload, verify=False)
-    checkStatusCode(r)
+    check_status_code(r)
     print(f"Status Code: {r.status_code}")
     print(f"Message: {r.text}")
 
-def changeDiscoveryIP(fabric, serial_number, new_ip):
-    headers = getAPIKeyHeader()
+def change_discovery_ip(fabric, serial_number, new_ip):
+    headers = get_api_key_header()
     headers['Content-Type'] = 'application/json'
-    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/inventory/discoveryIP")
+    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/inventory/discoveryIP")
     payload = {
         "serialNumber": serial_number,
         "ipAddress": new_ip
     }
     r = requests.put(url, headers=headers, json=payload, verify=False)
-    checkStatusCode(r)
+    check_status_code(r)
     print(f"Status Code: {r.status_code}")
     print(f"Message: {r.text}")
 
-def rediscoverDevice(fabric, serial_number):
-    headers = getAPIKeyHeader()
-    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/inventory/rediscover/{serial_number}")
+def rediscover_device(fabric, serial_number):
+    headers = get_api_key_header()
+    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/inventory/rediscover/{serial_number}")
 
     r = requests.post(url, headers=headers, verify=False)
-    checkStatusCode(r)
+    check_status_code(r)
     print(f"Status Code: {r.status_code}")
     print(f"Message: {r.text}")
 
-def getConfigPreview(fabric, serial_number):
-    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/config-preview/{serial_number}")
-    headers = getAPIKeyHeader()
+def get_config_preview(fabric, serial_number):
+    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/config-preview/{serial_number}")
+    headers = get_api_key_header()
     r = requests.get(url, headers=headers, verify=False)
-    checkStatusCode(r)
+    check_status_code(r)
     
     data = r.json()
     filename = f"switches/{fabric}_{serial_number}_config_preview.json"
@@ -91,19 +91,19 @@ def getConfigPreview(fabric, serial_number):
     for switch in data:
         parsePendingConfig(switch["pendingConfig"], f"switches/{fabric}_{serial_number}_pending_config.sh")
 
-def getConfigDiff(fabric, serial_number):
-    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/config-diff/{serial_number}")
-    headers = getAPIKeyHeader()
+def get_config_diff(fabric, serial_number):
+    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/config-diff/{serial_number}")
+    headers = get_api_key_header()
     r = requests.get(url, headers=headers, verify=False)
-    checkStatusCode(r)
+    check_status_code(r)
     data = r.json()
     # filename = f"switches/{fabric}_{serial_number}_config_diff.json"
     # with open(filename, "w") as f:
     #     json.dump(data, f, indent=4)
     #     print(f"Config diff for {serial_number} is saved to {filename}")
-    parseConfigDiff(data["diff"], f"switches/{fabric}_{serial_number}_config_diff.sh")
+    parse_config_diff(data["diff"], f"switches/{fabric}_{serial_number}_config_diff.sh")
 
-def parseConfigDiff(data, filename):
+def parse_config_diff(data, filename):
     """
     Parse config diff data and write to file in diff format
     data: JSON array with format [["EQUAL"|"INSERT"|"DELETE", "line1", "line2"], ...]
@@ -151,22 +151,22 @@ def parsePendingConfig(data, filename):
     except Exception as e:
         print(f"Error parsing pending config: {e}")
 
-def deploySwitchConfig(fabric, serial_number):
-    url = getURL(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/config-deploy/{serial_number}")
-    headers = getAPIKeyHeader()
+def deploy_switch_config(fabric, serial_number):
+    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/config-deploy/{serial_number}")
+    headers = get_api_key_header()
     r = requests.post(url, headers=headers, verify=False)
-    checkStatusCode(r)
+    check_status_code(r)
     print(f"Status Code: {r.status_code}")
     print(f"Message: {r.text}")
 
 
 if __name__ == "__main__":
-    getSwitches(fabric="Site1", switch_dir="switches")
-    # deleteSwitch(fabric="Site1-TSMC", serial_number="9J9UDVX8MMA")
-    # discoverSwitch(fabric="Site1-TSMC", filename="switches/discover/Site1-L3-73.json")
-    # changeDiscoveryIP(fabric="Site1-TSMC", serial_number="9J9UDVX8MMA", new_ip="10.192.195.73")
-    # rediscoverDevice(fabric="Site1-TSMC", serial_number="9J9UDVX8MMA")
-    # getConfigPreview(fabric="Site1", serial_number="9W4GBLXU5CR")
-    # getConfigPreview(fabric="Site1", serial_number="95H3IT6BGM0")
-    # getConfigDiff(fabric="ISN_DCI", serial_number="9IN4SP84L7L")
-    # deploySwitchConfig(fabric="Site1", serial_number="9W4GBLXU5CR")
+    get_switches(fabric="Site1", switch_dir="switches")
+    # delete_switch(fabric="Site1-TSMC", serial_number="9J9UDVX8MMA")
+    # discover_switch(fabric="Site1-TSMC", filename="switches/discover/Site1-L3-73.json")
+    # change_discovery_ip(fabric="Site1-TSMC", serial_number="9J9UDVX8MMA", new_ip="10.192.195.73")
+    # rediscover_device(fabric="Site1-TSMC", serial_number="9J9UDVX8MMA")
+    # get_config_preview(fabric="Site1", serial_number="9W4GBLXU5CR")
+    # get_config_preview(fabric="Site1", serial_number="95H3IT6BGM0")
+    # get_config_diff(fabric="ISN_DCI", serial_number="9IN4SP84L7L")
+    # deploy_switch_config(fabric="Site1", serial_number="9W4GBLXU5CR")
