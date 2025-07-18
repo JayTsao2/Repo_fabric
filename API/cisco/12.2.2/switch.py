@@ -161,12 +161,12 @@ def deploySwitchConfig(fabric, serial_number):
 
 
 if __name__ == "__main__":
-    # getSwitches(fabric="Site1-TSMC", switch_dir="switches")
+    getSwitches(fabric="Site1", switch_dir="switches")
     # deleteSwitch(fabric="Site1-TSMC", serial_number="9J9UDVX8MMA")
     # discoverSwitch(fabric="Site1-TSMC", filename="switches/discover/Site1-L3-73.json")
     # changeDiscoveryIP(fabric="Site1-TSMC", serial_number="9J9UDVX8MMA", new_ip="10.192.195.73")
     # rediscoverDevice(fabric="Site1-TSMC", serial_number="9J9UDVX8MMA")
     # getConfigPreview(fabric="Site1", serial_number="9W4GBLXU5CR")
-    getConfigPreview(fabric="Site1", serial_number="95H3IT6BGM0")
+    # getConfigPreview(fabric="Site1", serial_number="95H3IT6BGM0")
     # getConfigDiff(fabric="ISN_DCI", serial_number="9IN4SP84L7L")
     # deploySwitchConfig(fabric="Site1", serial_number="9W4GBLXU5CR")
