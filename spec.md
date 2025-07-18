@@ -1,4 +1,38 @@
 # Fabric Builder
+## 專案資料夾結構 (Project Directory Structure)
+
+```
+.
+├── API/
+├── inventory/
+├── resources/
+├── network_configs/
+├── scripts/
+├── .gitignore
+└── README.md
+```
+
+### 資料夾用途說明
+
+  * 📂 **`/API`**
+
+      * 用途: 放置所有 API 請求相關的邏輯與模組。
+
+  * 📂 **`/inventory`**
+
+      * 用途: 透過 Nornir、NAPALM 等工具進行設備資訊的獲取與管理。
+
+  * 📂 **`/resources`**
+
+      * 用途: 放置 API 請求回來的 JSON 檔案，以及要傳送給 API 的初步 JSON 範本。
+
+  * 📂 **`/network_configs`**
+
+      * 用途: 放置讓網路工程師能夠自主修改、用以簡易配置網路的 YAML 定義檔案。
+
+  * 📂 **`/scripts`**
+
+      * 用途: 放置提供給 GitLab CI/CD 等工具執行流程的腳本 (Scripts)。
 ## Network Config
 - 需求: 讓網路工程師可以簡單的設定
 - Need to check types
