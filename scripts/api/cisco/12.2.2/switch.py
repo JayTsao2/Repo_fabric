@@ -161,8 +161,8 @@ def deploy_switch_config(fabric, serial_number):
 
 
 if __name__ == "__main__":
-    get_switches(fabric="Site1", switch_dir="switches")
-    # delete_switch(fabric="Site1-TSMC", serial_number="9J9UDVX8MMA")
+    # get_switches(fabric="Site1", switch_dir="switches")
+    delete_switch(fabric="Site1-TSMC", serial_number="9J9UDVX8MMA")
     # discover_switch(fabric="Site1-TSMC", filename="switches/discover/Site1-L3-73.json")
     # change_discovery_ip(fabric="Site1-TSMC", serial_number="9J9UDVX8MMA", new_ip="10.192.195.73")
     # rediscover_device(fabric="Site1-TSMC", serial_number="9J9UDVX8MMA")

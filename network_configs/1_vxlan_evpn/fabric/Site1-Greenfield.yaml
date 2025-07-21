@@ -14,7 +14,7 @@ Resources:
 
 Manageability:
   NTP Server IPs: 10.11.82.31,10.11.83.31
-  Syslog Server IPs: 10.228.90.42,10.228.90.43, 10.11.116.100, 10.11.117.100
+  Syslog Server IPs: 10.228.90.42,10.228.90.43,10.11.116.100,10.11.117.100
 
   AAA Freeform Config: 
     Freeform: Site1-Greenfield_FreeForm\AAA Freeform Config

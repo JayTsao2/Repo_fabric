@@ -3,48 +3,61 @@
 
 ```
 .
-├── API/
-├── inventory/
-├── logs/
-├── resources/
-├── network_configs/
 ├── scripts/
+│   ├── api/
+│   │   └── cisco/
+│   │       ├── 12.1.2e/
+│   │       ├── 12.2.2/
+│   │       └── 12.3/
+│   ├── inventory/
+│   └── logs/
+├── network_configs/
+│   ├── 1_vxlan_evpn/
+│   ├── 2_bgp_fabric/
+│   ├── 3_node/
+│   └── 5_segment/
 ├── .gitignore
-└── README.md
+├── requirements.txt
+└── spec.md
 ```
 
 ### 資料夾用途說明
 
-* 📂 **`/API`**
+* 📂 **`/scripts`**
 
-    * 用途: 放置所有 API 請求相關的邏輯與模組。
+    * 用途: 放置提供給 GitLab CI/CD 等工具執行流程的腳本 (Scripts)，以及所有 API 請求相關的邏輯與模組。
+    
+    * 📂 **`/scripts/api`**
+        * 用途: 放置所有 API 請求相關的邏輯與模組。
+        
+    * 📂 **`/scripts/inventory`**
+        * 用途: 透過 Nornir、NAPALM 等工具進行設備資訊的獲取與管理。
 
-* 📂 **`/inventory`**
-
-    * 用途: 透過 Nornir、NAPALM 等工具進行設備資訊的獲取與管理。
-
-* 📂 **`/logs`**
-
-    * 用途: 放置 API 執行的回傳值
-
-* 📂 **`/resources`**
-
-    * 用途: 放置 API 請求回來的 JSON 檔案，以及要傳送給 API 的初步 JSON 範本。
+    * 📂 **`/scripts/logs`**
+        * 用途: 放置 API 執行的回傳值
 
 * 📂 **`/network_configs`**
 
     * 用途: 放置讓網路工程師能夠自主修改、用以簡易配置網路的 YAML 定義檔案。
-
-* 📂 **`/scripts`**
-
-    * 用途: 放置提供給 GitLab CI/CD 等工具執行流程的腳本 (Scripts)。
+    
+    * 📂 **`/network_configs/1_vxlan_evpn`**
+        * 用途: VXLAN EVPN 架構相關的網路配置
+        
+    * 📂 **`/network_configs/2_bgp_fabric`**
+        * 用途: BGP Fabric 架構相關的網路配置
+        
+    * 📂 **`/network_configs/3_node`**
+        * 用途: 單節點設備相關的配置
+        
+    * 📂 **`/network_configs/5_segment`**
+        * 用途: 網段相關的配置
 
 ## Network Config
 - 需求: 讓網路工程師可以簡單的設定
 - Need to check types
 ## API Interfaces
 ### Cisco NDFC 12.2.2
-#### [Fabric](API/cisco/12.2.2/fabric.py)
+#### [Fabric](scripts/api/cisco/12.2.2/fabric.py)
 - Fabric create / read / update / delete
 - Fabric recalculate
 - Fabric deploy
@@ -52,7 +65,7 @@
 - AAA Freeform config = AAA_SERVER_CONF
 - Spine Freeform config = EXTRA_CONF_SPINE
 - Leaf Freeform config = EXTRA_CONF_LEAF
-#### [Switch](API/cisco/12.2.2/switch.py)
+#### [Switch](scripts/api/cisco/12.2.2/switch.py)
 - Switch read / delete
 - Switch discover (add)
 - Read switch pending config
@@ -60,9 +73,9 @@
 - Change discovery IP / rediscover IP 尚未測試
 #### Interface
 - 尚未測試
-#### [Policy](API/cisco/12.2.2/policy.py)
+#### [Policy](scripts/api/cisco/12.2.2/policy.py)
 - Policy read / update / delete
-#### [Network](API/cisco/12.2.2/network.py)
+#### [Network](scripts/api/cisco/12.2.2/network.py)
 - Network create / read / update / delete
 - Network attachment read / update
     - deployment = true 是接, deployment = false 是拔掉
@@ -71,7 +84,7 @@
     - 拔的時候要將 deployment 設定成 false 並確定有放 detachSwitchPorts
 - Preview network (generate pending config)
 - Deploy network
-#### [VRF](API/cisco/12.2.2/vrf.py)
+#### [VRF](scripts/api/cisco/12.2.2/vrf.py)
 - VRF create / read / update / delete
 - VRF attachment read / update
 

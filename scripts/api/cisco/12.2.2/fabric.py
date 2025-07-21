@@ -119,11 +119,35 @@ def deploy_fabric_config(fabric):
     print(f"Status Code: {r.status_code}")
     print(f"Message: {r.text}")
 
+def add_MSD(parent_fabric_name, child_fabric_name):
+    url = get_url("/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/msdAdd")
+    headers = get_api_key_header()
+    payload = {
+        "destFabric": parent_fabric_name,
+        "sourceFabric": child_fabric_name
+    }
+    r = requests.post(url, headers=headers, json=payload, verify=False)
+    check_status_code(r)
+    print(f"Status Code: {r.status_code}")
+    print(f"Message: {r.text}")
+
+def remove_MSD(parent_fabric_name, child_fabric_name):
+    url = get_url("/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/msdExit")
+    headers = get_api_key_header()
+    payload = {
+        "destFabric": parent_fabric_name,
+        "sourceFabric": child_fabric_name
+    }
+    r = requests.post(url, headers=headers, json=payload, verify=False)
+    check_status_code(r)
+    print(f"Status Code: {r.status_code}")
+    print(f"Message: {r.text}")
+
 if __name__ == "__main__":
     # get_fabrics()
-    # get_fabric("Site1-Greenfield", "fabrics")
+    get_fabric("MSD-1", "fabrics")
     # create_fabric("fabrics/Site1-TSMC.json", "Easy_Fabric", "fabrics/Site1-TSMC_FreeForm/Leaf_FreeForm_Config.sh", "fabrics/Site1-TSMC_FreeForm/Spine_FreeForm_Config.sh", "fabrics/Site1-TSMC_FreeForm/AAA_Freeform_Config.sh")
     # update_fabric("fabrics/Site1-TSMC.json", "Easy_Fabric", "fabrics/Site1-TSMC_FreeForm/Leaf_FreeForm_Config.sh", "fabrics/Site1-TSMC_FreeForm/Spine_FreeForm_Config.sh", "fabrics/Site1-TSMC_FreeForm/AAA_Freeform_Config.sh")
     # delete_fabric("Site1-TSMC")
-    recalculate_config(fabric="Site1")
-    deploy_fabric_config(fabric="Site1")
+    # recalculate_config(fabric="Site1")w
+    # deploy_fabric_config(fabric="Site1")
