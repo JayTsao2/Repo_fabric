@@ -1,54 +1,54 @@
 ---
 General Parameter:
-  Layer 2 VXLAN VNI Range: # Corp_Defaults
-  Layer 3 VXLAN VNI Range: # Corp_Defaults
-  Enable IPv6 Underlay for VXLAN Fabric: # Corp_Defaults
-  VRF Template: # Corp_Defaults
-  Network Template: # Corp_Defaults
-  VRF Extension Template: # Corp_Defaults
-  Network Extension Template: # Corp_Defaults
-  Enable Private VLAN (PVLAN): # Corp_Defaults
-  PVLAN Secondary Network Template: # unused
-  Anycast-Gateway-MAC: # Corp_Defaults
-  Multi-Site VTEP VIP Loopback Id: # Corp_Defaults
-  Border Gateway IP TAG: # Corp_Defaults
-  ToR Auto-deploy Flag: # Corp_Defaults
+  Layer 2 VXLAN VNI Range: L2_SEGMENT_ID_RANGE # Corp_Defaults
+  Layer 3 VXLAN VNI Range: L3_PARTITION_ID_RANGE # Corp_Defaults
+  Enable IPv6 Underlay for VXLAN Fabric: VXLAN_UNDERLAY_IS_V6 # Corp_Defaults
+  VRF Template: default_vrf # Corp_Defaults
+  Network Template: default_network # Corp_Defaults
+  VRF Extension Template: vrf_extension_template # Corp_Defaults
+  Network Extension Template: network_extension_template # Corp_Defaults
+  Enable Private VLAN (PVLAN): ENABLE_PVLAN # Corp_Defaults
+  PVLAN Secondary Network Template: default_pvlan_sec_network # unused
+  Anycast-Gateway-MAC: ANYCAST_GW_MAC # Corp_Defaults
+  Multi-Site VTEP VIP Loopback Id: MS_LOOPBACK_ID # Corp_Defaults
+  Border Gateway IP TAG: BGW_ROUTING_TAG # Corp_Defaults
+  ToR Auto-deploy Flag: TOR_AUTO_DEPLOY # Corp_Defaults
 
 DCI:
-  Multi-Site Overlay IFC Deployment Method: # Corp_Defaults
-  Multi-Site Route Server List: # Multi-Site Deployment
-  Multi-Site Route Server BGP ASN List: # Multi-Site Deployment
-  Enable 'redistribute direct' on Route Servers: # Corp_Defaults
-  Route Server IP TAG: # unused
-  Multi-Site Underlay IFC Auto Deployment Flag: # Corp_Defaults
-  BGP Send-community on Multi-Site Underlay IFC: # unused
-  BGP log neighbor change on Multi-Site Underlay IFC: # unused
-  BGP BFD on Multi-Site Underlay IFC: # unused
-  Delay Restore time: # Corp_Defaults
-  Enable Multi-Site eBGP Password: # Corp_Defaults
-  eBGP Password: # unused
-  eBGP Authentication Key Encryption Type: # unused
-  Enable IPv4 and/or IPv6 Tenant Routed Multicast across sites: # Corp_Defaults
+  Multi-Site Overlay IFC Deployment Method: BORDER_GWY_CONNECTIONS # Corp_Defaults
+  Multi-Site Route Server List: RP_SERVER_IP # Multi-Site Deployment
+  Multi-Site Route Server BGP ASN List: BGP_RP_ASN # Multi-Site Deployment
+  Enable 'redistribute direct' on Route Servers: ENABLE_RS_REDIST_DIRECT # Corp_Defaults
+  Route Server IP TAG: RS_ROUTING_TAG # unused
+  Multi-Site Underlay IFC Auto Deployment Flag: MS_UNDERLAY_AUTOCONFIG # Corp_Defaults
+  BGP Send-community on Multi-Site Underlay IFC: ENABLE_BGP_SEND_COMM # unused
+  BGP log neighbor change on Multi-Site Underlay IFC: ENABLE_BGP_LOG_NEIGHBOR_CHANGE # unused
+  BGP BFD on Multi-Site Underlay IFC: ENABLE_BGP_BFD # unused
+  Delay Restore time: DELAY_RESTORE # Corp_Defaults
+  Enable Multi-Site eBGP Password: MS_IFC_BGP_PASSWORD_ENABLE # Corp_Defaults
+  eBGP Password: MS_IFC_BGP_PASSWORD # unused
+  eBGP Authentication Key Encryption Type: MS_IFC_BGP_AUTH_KEY_TYPE # unused
+  Enable IPv4 and/or IPv6 Tenant Routed Multicast across sites: ENABLE_TRM_TRMv6 # Corp_Defaults
 
 Security:
-  Enable Security Groups: # Corp_Defaults
-  Security Group Name Prefix: # unused
-  Security Group Tag (SGT) ID Range: # unused
-  Security Groups Pre-provision: # unused
-  Multi-Site CloudSec: # Corp_Defaults
-  CloudSec Key String: # unused
-  CloudSec Cryptographic Algorithm: # unused
-  CloudSec Enforcement: # unused
-  CloudSec Status Report Timer: # unused
+  Enable Security Groups: ENABLE_SGT # Corp_Defaults
+  Security Group Name Prefix: SGT_NAME_PREFIX # unused
+  Security Group Tag (SGT) ID Range: SGT_ID_RANGE # unused
+  Security Groups Pre-provision: SGT_PREPROVISION # unused
+  Multi-Site CloudSec: CLOUDSEC_AUTOCONFIG # Corp_Defaults
+  CloudSec Key String: CLOUDSEC_KEY_STRING # unused
+  CloudSec Cryptographic Algorithm: CLOUDSEC_ALGORITHM # unused
+  CloudSec Enforcement: CLOUDSEC_ENFORCEMENT # unused
+  CloudSec Status Report Timer: CLOUDSEC_REPORT_TIMER # unused
 
 Resources:
-  Multi-Site VTEP VIP Loopback IP Range: # Corp_Defaults
-  DCI Subnet IP Range: # Corp_Defaults
-  Subnet Target Mask: # Corp_Defaults
-  Multi-Site VTEP VIP Loopback IPv6 Range: # unused
-  DCI Subnet IPv6 Range: # unused
-  Subnet Target IPv6 Mask: # unused
+  Multi-Site VTEP VIP Loopback IP Range: LOOPBACK100_IP_RANGE # Corp_Defaults
+  DCI Subnet IP Range: DCI_SUBNET_RANGE # Corp_Defaults
+  Subnet Target Mask: DCI_SUBNET_TARGET_MASK # Corp_Defaults
+  Multi-Site VTEP VIP Loopback IPv6 Range: LOOPBACK100_IPV6_RANGE # unused
+  DCI Subnet IPv6 Range: V6_DCI_SUBNET_RANGE # unused
+  Subnet Target IPv6 Mask: V6_DCI_SUBNET_TARGET_MASK # unused
 
 Configuration Backup:
-  Scheduled Fabric Backup: # Corp_Defaults
-  Scheduled Time: # Corp_Defaults
+  Scheduled Fabric Backup: enableScheduledBackup # Corp_Defaults
+  Scheduled Time: scheduledTime # Corp_Defaults
