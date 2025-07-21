@@ -62,7 +62,7 @@ Protocols:
   OSPF Authentication Key: # unused
   IS-IS Level: # unused
   IS-IS NET Area Number: # unused
-  Previous IS-IS NET Area Number # unused
+  Previous IS-IS NET Area Number: # unused
   Enable IS-IS Network Point-to-Point: # unused
   Enable IS-IS Authentication: # unused
   IS-IS Authentication Keychain Name: # unused
