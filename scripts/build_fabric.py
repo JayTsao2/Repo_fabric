@@ -153,18 +153,14 @@ def main():
     # Determine freeform config paths based on fabric_name or corp_defaults
     fabric_freeform_dir = os.path.join(freeform_base_path, f"{fabric_name}_FreeForm")
 
-    # Get default paths from the merged config (which includes corp_defaults)
-    default_aaa_path_rel = fabric_config.get('Manageability', {}).get('AAA Freeform Config', {}).get('Freeform')
-    default_leaf_path_rel = fabric_config.get('Advanced', {}).get('Leaf Freeform Config', {}).get('Freeform')
-    default_spine_path_rel = fabric_config.get('Advanced', {}).get('Spine Freeform Config', {}).get('Freeform')
-    default_banner_path_rel = fabric_config.get('Manageability', {}).get('Banner', {}).get('Freeform')
+    # Define the base path for default freeform configs in resources/freeform/
+    resources_freeform_base_path = os.path.join(project_root, 'scripts', 'api', 'cisco', '12.2.2', 'resources', 'freeform')
 
-    # Initialize paths with defaults
-    aaa_freeform_path = os.path.join(freeform_base_path, *default_aaa_path_rel.split('/')) if default_aaa_path_rel else ""
-    leaf_freeform_path = os.path.join(freeform_base_path, *default_leaf_path_rel.split('/')) if default_leaf_path_rel else ""
-    spine_freeform_path = os.path.join(freeform_base_path, *default_spine_path_rel.split('/')) if default_spine_path_rel else ""
-    banner_freeform_path = os.path.join(project_root, 'scripts', 'api', 'cisco', '12.2.2', 'resources', 'freeform', 'Banner.sh')
-
+    # Initialize paths with default freeform files from resources/freeform/
+    aaa_freeform_path = os.path.join(resources_freeform_base_path, "AAA Freeform Config.sh")
+    leaf_freeform_path = os.path.join(resources_freeform_base_path, "Leaf Freeform Config.sh")
+    spine_freeform_path = os.path.join(resources_freeform_base_path, "Spine Freeform Config.sh")
+    banner_freeform_path = os.path.join(resources_freeform_base_path, "Banner.sh")
     # Check for fabric-specific freeform files and override if they exist
     if os.path.isdir(fabric_freeform_dir):
         temp_aaa_path = os.path.join(fabric_freeform_dir, "AAA Freeform Config.sh")
