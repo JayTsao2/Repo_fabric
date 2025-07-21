@@ -209,3 +209,5 @@ network_templates/
 fabrics/
 switches/
 vrfs/
+
+GEMINI.md
