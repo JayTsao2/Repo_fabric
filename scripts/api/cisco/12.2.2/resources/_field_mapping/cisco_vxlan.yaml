@@ -1,8 +1,4 @@
 ---
-Fabric:
-  name: fabricName
-  type: templateName
-
 General Parameter:
   BGP ASN: BGP_AS
   Enable IPv6 Underlay: UNDERLAY_IS_V6
@@ -202,7 +198,7 @@ Resources:
   Per VRF Per VTEP Loopback IPv4 Auto-Provisioning: PER_VRF_LOOPBACK_AUTO_PROVISION
   Per VRF Per VTEP IPv4 Pool for Loopbacks: PER_VRF_LOOPBACK_IP_RANGE
   Per VRF Per VTEP Loopback IPv6 Auto-Provisioning: PER_VRF_LOOPBACK_AUTO_PROVISION_V6
-  Per VRF Per VTEP IPv6 Pool for Loopbacks: PER_VRF_LOOPBACK_IPV6_RANGE
+  Per VRF Per VTEP IPv6 Pool for Loopbacks: PER_VRF_LOOPBACK_IP_RANGE_V6
   Service Level Agreement (SLA) ID Range: SLA_ID_RANGE
   Tracked Object ID Range: OBJECT_TRACKING_NUMBER_RANGE
   Service Network VLAN Range: SERVICE_NETWORK_VLAN_RANGE

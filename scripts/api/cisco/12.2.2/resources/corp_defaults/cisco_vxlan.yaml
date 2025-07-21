@@ -1,8 +1,4 @@
 ---
-Fabric:
-  name: # Fabric
-  type: # Fabric
-
 General Parameter:
   BGP ASN: # Fabric
   Enable IPv6 Underlay: False
@@ -16,7 +12,7 @@ General Parameter:
   Enable Performance Monitoring: False
 
 Replication:
-  Replication Mode: ingress # Replication Mode for BUM Traffic
+  Replication Mode: "Ingress" # Replication Mode for BUM Traffic ("Ingress" or "Multicast")
   Multicast Group Subnet: 239.1.1.0/25 # unused
   IPv6 Multicast Group Subnet: "" # unused
   Enable IPv4 Tenant Routed Multicast (TRM): False # unused
@@ -25,7 +21,7 @@ Replication:
   Default MDT IPv6 Address for TRM VRFs: # unused
   Rendezvous-Points: 2 # unused
   RP Mode: asm # unused
-  Underlay RP Loopback Id: 251 # unused
+  Underlay RP Loopback Id: "254" # unused
   Underlay Primary RP Loopback Id: "" # unused
   Underlay Backup RP Loopback Id: "" # unused
   Underlay Second Backup RP Loopback Id: "" # unused
@@ -61,7 +57,7 @@ Protocols:
   OSPF Authentication Key ID: "" # unused
   OSPF Authentication Key: "" # unused
   IS-IS Level: level-2 # unused
-  IS-IS NET Area Number: 0001 # unused
+  IS-IS NET Area Number: "0001" # unused
   Previous IS-IS NET Area Number: "" # unused
   Enable IS-IS Network Point-to-Point: False # unused
   Enable IS-IS Authentication: False # unused
@@ -84,9 +80,9 @@ Protocols:
   BFD Authentication Key ID: "" # unused
   BFD Authentication Key: "" # unused
   iBGP Peer-Template Config: # Speficies the iBGP Peer-Template config used for RR and spines with border role.
-    Template: iBGP Peer-Template Config
+    Template: "" # iBGP Peer-Template Config
   Leaf/Border/Border Gateway iBGP Peer-Template Config: # Specifies the config used for leaf, border or border gateway. If this field is empty, the peer template defined in iBGP Peer-Template Config is used on all BGP enabled devices (RRs,leafs, border or border gateway roles.
-    Template: Leaf_Border_Border Gateway iBGP Peer-Template Config
+    Template: "" # Leaf_Border_Border Gateway iBGP Peer-Template Config
 
 Security:
   Enable Security Groups: False
@@ -151,7 +147,7 @@ Advanced:
   PTP Source VLAN Id: "" # unused
   Enable MPLS Handoff: False
   Underlay MPLS Loopback Id: "" # unused
-  IS-IS NET Area Number for MPLS Handoff: 0001 # unused
+  IS-IS NET Area Number for MPLS Handoff: "0001" # unused
   Enable TCAM Allocation: True
   Enable Default Queuing Policies: False
   N9K Cloud Scale Platform Queuing Policy: queuing_policy_default_8q_cloudscale # unused
@@ -191,7 +187,7 @@ Resources:
   Network VLAN Range: 2300-2999 # Per Switch Overlay Network VLAN Range (Min:2, Max:4094)
   VRF VLAN Range: 2000-2299 # Per Switch Overlay VRF VLAN Range (Min:2, Max:4094)
   Subinterface Dot1q Range: 2-511 # Per Border Dot1q Range For VRF Lite Connectivity (Min:2, Max:4093)
-  VRF Lite Deployment: manual # VRF Lite Inter-Fabric Connection Deployment Options. If 'Back2Back&ToExternal' is selected, VRF Lite IFCs are auto created between border devices of two Easy Fabrics, and between border devices in Easy Fabric and edge routers in External Fabric. The IP address is taken from the 'VRF Lite Subnet IP Range' pool.
+  VRF Lite Deployment: "Manual" # VRF Lite Inter-Fabric Connection Deployment Options. If 'Back2Back&ToExternal' is selected, VRF Lite IFCs are auto created between border devices of two Easy Fabrics, and between border devices in Easy Fabric and edge routers in External Fabric. The IP address is taken from the 'VRF Lite Subnet IP Range' pool.
   Auto Deploy for Peer: False # Whether to auto generate VRF LITE sub-interface and BGP peering configuration on managed neighbor devices. If set, auto created VRF Lite IFC links will have 'Auto Deploy for Peer' enabled.
   Auto Deploy Default VRF: False
   Auto Deploy Default VRF for Peer: False # unused
