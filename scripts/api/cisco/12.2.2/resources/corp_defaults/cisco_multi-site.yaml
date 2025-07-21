@@ -8,7 +8,7 @@ General Parameter:
   VRF Extension Template: Default_VRF_Extension_Universal
   Network Extension Template: Default_Network_Extension_Universal
   Enable Private VLAN (PVLAN): False
-  PVLAN Secondary Network Template: # unused
+  PVLAN Secondary Network Template: "" # unused
   Anycast-Gateway-MAC: 0204.0204.0204
   Multi-Site VTEP VIP Loopback Id: 100
   Border Gateway IP TAG: 54321
@@ -19,35 +19,35 @@ DCI:
   Multi-Site Route Server List: # Multi-Site Deployment
   Multi-Site Route Server BGP ASN List: # Multi-Site Deployment
   Enable 'redistribute direct' on Route Servers: False
-  Route Server IP TAG: # unused
+  Route Server IP TAG: "" # unused
   Multi-Site Underlay IFC Auto Deployment Flag: True
-  BGP Send-community on Multi-Site Underlay IFC: # unused
-  BGP log neighbor change on Multi-Site Underlay IFC: # unused
-  BGP BFD on Multi-Site Underlay IFC: # unused
+  BGP Send-community on Multi-Site Underlay IFC: "false" # unused
+  BGP log neighbor change on Multi-Site Underlay IFC: "false" # unused
+  BGP BFD on Multi-Site Underlay IFC: "false" # unused
   Delay Restore time: 300
   Enable Multi-Site eBGP Password: False
-  eBGP Password: # unused
-  eBGP Authentication Key Encryption Type: # unused
+  eBGP Password: "" # unused
+  eBGP Authentication Key Encryption Type: "" # unused
   Enable IPv4 and/or IPv6 Tenant Routed Multicast across sites: False
 
 Security:
   Enable Security Groups: off
-  Security Group Name Prefix: # unused
-  Security Group Tag (SGT) ID Range: # unused
-  Security Groups Pre-provision: # unused
+  Security Group Name Prefix: "" # unused
+  Security Group Tag (SGT) ID Range: "" # unused
+  Security Groups Pre-provision: "false" # unused
   Multi-Site CloudSec: False
-  CloudSec Key String: # unused
-  CloudSec Cryptographic Algorithm: # unused
-  CloudSec Enforcement: # unused
-  CloudSec Status Report Timer: # unused
+  CloudSec Key String: "" # unused
+  CloudSec Cryptographic Algorithm: "" # unused
+  CloudSec Enforcement: "" # unused
+  CloudSec Status Report Timer: "" # unused
 
 Resources:
   Multi-Site VTEP VIP Loopback IP Range: 192.168.230.0/24
   DCI Subnet IP Range: 192.168.1.0/24
   Subnet Target Mask: 31
-  Multi-Site VTEP VIP Loopback IPv6 Range: # unused
-  DCI Subnet IPv6 Range: # unused
-  Subnet Target IPv6 Mask: # unused
+  Multi-Site VTEP VIP Loopback IPv6 Range: "" # unused
+  DCI Subnet IPv6 Range: "" # unused
+  Subnet Target IPv6 Mask: "" # unused
 
 Configuration Backup:
   Scheduled Fabric Backup: True
