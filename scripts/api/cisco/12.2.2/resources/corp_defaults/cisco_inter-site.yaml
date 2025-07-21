@@ -11,20 +11,20 @@ General Parameter:
 Advanced:
   Power Supply Mode: ps-redundant
   Enable MPLS Handoff: False
-  Underlay MPLS Loopback Id: # unused
+  Underlay MPLS Loopback Id: "" # unused
   Enable AAA IP Authorization: False
   Enable NDFC as Trap Host: True
   Enable CDP for Bootstrapped Switch: False
   Enable NX-API: False
-  Enable NX-API on HTTP port: # unused
-  Enable HTTP NX-API: # unused
-  NX-API HTTP Port Number: # unused
+  Enable NX-API on HTTP port: "false" # unused
+  Enable HTTP NX-API: "false" # unused
+  NX-API HTTP Port Number: "80" # unused
   Inband Mgmt: False
   Enable Precision Time Protocol (PTP): False
-  PTP Source Loopback Id: # unused
-  PTP Domain Id: # unused
+  PTP Source Loopback Id: "" # unused
+  PTP Domain Id: "" # unused
   Enable Real Time Interface Statistics Collection: False
-  Interface Statistics Load Interval: # unused
+  Interface Statistics Load Interval: "" # unused
   Fabric Freeform: 
     freeform: Fabric Freeform
   AAA Freeform Config: 
@@ -32,7 +32,7 @@ Advanced:
 
 Resources:
   Subinterface Dot1q Range: 2-511
-  Underlay MPLS Loopback IP Range: # unused
+  Underlay MPLS Loopback IP Range: "" # unused
 
 Configuration Backup:
   Hourly Fabric Backup: False
@@ -41,20 +41,20 @@ Configuration Backup:
 
 Bootstrap:
   Enable Bootstrap: False
-  Enable Inband POAP: # unused
-  Enable Local DHCP Server: # unused
-  Enable Plug n Play for Cat9K: # unused
-  DHCP Version: # unused
-  Domain name: # unused
-  DHCP Scope Start Address: # unused
-  DHCP Scope End Address: # unused
-  Switch Mgmt Default Gateway: # unused
-  Switch Mgmt IP Subnet Prefix: # unused
-  Switch Mgmt IPv6 Subnet Prefix: # unused
-  Enable AAA Config: # unused
-  Bootstrap Freeform Config (NX-OS): # unused
-  Bootstrap Freeform Config (IOS XE): # unused
-  DHCPv4 Multi Subnet Scope: # unused
+  Enable Inband POAP: "false" # unused
+  Enable Local DHCP Server: "false" # unused
+  Enable Plug n Play for Cat9K: "false" # unused
+  DHCP Version: "" # unused
+  Domain name: "" # unused
+  DHCP Scope Start Address: "" # unused
+  DHCP Scope End Address: "" # unused
+  Switch Mgmt Default Gateway: "" # unused
+  Switch Mgmt IP Subnet Prefix: "" # unused
+  Switch Mgmt IPv6 Subnet Prefix: "" # unused
+  Enable AAA Config: "false" # unused
+  Bootstrap Freeform Config (NX-OS): "" # unused
+  Bootstrap Freeform Config (IOS XE): "" # unused
+  DHCPv4 Multi Subnet Scope: "#Scope_Start_IP, Scope_End_IP, Scope_Default_Gateway, Scope_Subnet_Prefix" # unused
 
 Flow Monitor:
   Enable Netflow: False
