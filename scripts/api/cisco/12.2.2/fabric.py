@@ -44,7 +44,8 @@ def delete_fabric(fabric):
     print(f"Status Code: {r.status_code}")
     print(f"Message: {r.text}")
 
-def create_fabric(filename, template_name, leaf_freeform_config_file="", spine_freeform_config_file="", aaa_freeform_config_file=""):
+def create_fabric(filename, template_name, leaf_freeform_config_file="", spine_freeform_config_file="", aaa_freeform_config_file="", banner_freeform_config_file=""):
+
     try:
         with open(filename, "r") as file:
             data = json.load(file)
@@ -65,6 +66,7 @@ def create_fabric(filename, template_name, leaf_freeform_config_file="", spine_f
     payload["EXTRA_CONF_LEAF"] = parse_freeform_config(leaf_freeform_config_file) if leaf_freeform_config_file else ""
     payload["EXTRA_CONF_SPINE"] = parse_freeform_config(spine_freeform_config_file) if spine_freeform_config_file else ""
     payload["AAA_SERVER_CONF"] = parse_freeform_config(aaa_freeform_config_file) if aaa_freeform_config_file else ""
+    payload["BANNER"] = parse_freeform_config(banner_freeform_config_file) if banner_freeform_config_file else ""
     url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/{template_name}")
 
     headers = get_api_key_header()
@@ -74,7 +76,7 @@ def create_fabric(filename, template_name, leaf_freeform_config_file="", spine_f
 
     print(f"Fabric {fabric} has been successfully created!")
 
-def update_fabric(filename, template_name, leaf_freeform_config_file="", spine_freeform_config_file="", aaa_freeform_config_file=""):
+def update_fabric(filename, template_name, leaf_freeform_config_file="", spine_freeform_config_file="", aaa_freeform_config_file="", banner_freeform_config_file=""):
     try:
         with open(filename, "r") as file:
             data = json.load(file)
@@ -94,6 +96,7 @@ def update_fabric(filename, template_name, leaf_freeform_config_file="", spine_f
     payload["EXTRA_CONF_LEAF"] = parse_freeform_config(leaf_freeform_config_file) if leaf_freeform_config_file else ""
     payload["EXTRA_CONF_SPINE"] = parse_freeform_config(spine_freeform_config_file) if spine_freeform_config_file else ""
     payload["AAA_SERVER_CONF"] = parse_freeform_config(aaa_freeform_config_file) if aaa_freeform_config_file else ""
+    payload["BANNER"] = parse_freeform_config(banner_freeform_config_file) if banner_freeform_config_file else ""
     url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/{template_name}")
 
     headers = get_api_key_header()

@@ -40,6 +40,8 @@ def parse_freeform_config(filename) -> str:
     try:
         with open(filename, "r") as file:
             data = file.read()
+        if "Banner.sh" in filename:
+            data = "`" + data + "`"
         return data
     except Exception as e:
         print(f"Error: {e}")
