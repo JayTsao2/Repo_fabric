@@ -1,14 +1,6 @@
-
 import yaml
 import json
 import os
-import sys
-
-# Dynamically add the path containing the fabric.py module to sys.path
-# This is necessary because '12.2.2' is not a valid Python package name for direct import
-module_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'api', 'cisco', '12.2.2'))
-if module_path not in sys.path:
-    sys.path.append(module_path)
 
 import fabric as fabric_api
 
@@ -65,18 +57,20 @@ def apply_field_mapping(config, mapping):
     for key, value in config.items():
         if key in mapping and mapping[key] is not None:
             mapped_config[mapping[key]] = value
-        # Keep unmapped keys for now, might be needed for template logic
-        # else:
-        #     mapped_config[key] = value
     return mapped_config
 
-def main():
-    # Get the absolute path of the directory where the script is located
+def build_data_center_VXLAN_EVPN(fabric_site_name: str):
+    """
+    Builds a fabric configuration for a given site.
+
+    Args:
+        fabric_site_name: The name of the fabric site (e.g., "Site3-test").
+    """
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    project_root = os.path.dirname(script_dir)
+    project_root = os.path.abspath(os.path.join(script_dir, '..', '..', '..', '..'))
 
     # --- Configuration (paths are relative to the project root) ---
-    fabric_config_path = os.path.join(project_root, 'network_configs', '1_vxlan_evpn', 'fabric', 'Site3-test.yaml')
+    fabric_config_path = os.path.join(project_root, 'network_configs', '1_vxlan_evpn', 'fabric', f'{fabric_site_name}.yaml')
     defaults_path = os.path.join(project_root, 'scripts', 'api', 'cisco', '12.2.2', 'resources', 'corp_defaults', 'cisco_vxlan.yaml')
     template_map_path = os.path.join(project_root, 'scripts', 'api', 'cisco', '12.2.2', 'resources', 'fabric_template.yaml')
     field_mapping_path = os.path.join(project_root, 'scripts', 'api', 'cisco', '12.2.2', 'resources', '_field_mapping', 'cisco_vxlan.yaml')
@@ -100,7 +94,7 @@ def main():
             final_config[key] = defaults_config[key]
 
     flat_config = flatten_config(final_config)
-    mapped_config = apply_field_mapping(flat_config, flatten_config(field_mapping)) # Flatten the mapping file as well
+    mapped_config = apply_field_mapping(flat_config, flatten_config(field_mapping))
 
     # --- Get Template Name ---
     fabric_type = fabric_config.get('Fabric', {}).get('type')
@@ -116,27 +110,23 @@ def main():
     # --- Prepare Payload for API ---
     fabric_name = fabric_config.get('Fabric', {}).get('name')
     
-    # Extract template names that should be outside nvPairs
     vrf_template = final_config.get('Advanced', {}).get('VRF Template')
     network_template = final_config.get('Advanced', {}).get('Network Template')
     vrf_extension_template = final_config.get('Advanced', {}).get('VRF Extension Template')
     network_extension_template = final_config.get('Advanced', {}).get('Network Extension Template')
 
-    # Remove these from mapped_config as they will be top-level
-    if vrf_template:
+    if vrf_template and 'vrfTemplate' in mapped_config:
         del mapped_config['vrfTemplate']
-    if network_template:
+    if network_template and 'networkTemplate' in mapped_config:
         del mapped_config['networkTemplate']
-    if vrf_extension_template:
+    if vrf_extension_template and 'vrfExtensionTemplate' in mapped_config:
         del mapped_config['vrfExtensionTemplate']
-    if network_extension_template:
+    if network_extension_template and 'networkExtensionTemplate' in mapped_config:
         del mapped_config['networkExtensionTemplate']
 
-    # The API expects a flat nvPairs dictionary with mapped keys
     mapped_config["FABRIC_NAME"] = fabric_name
     mapped_config["FF"] = template_name
 
-    # Ensure SITE_ID uses the value of BGP_AS
     if "BGP_AS" in mapped_config:
         mapped_config["SITE_ID"] = mapped_config["BGP_AS"]
 
@@ -150,18 +140,14 @@ def main():
     }
 
     # --- Read and Add Freeform Configs ---
-    # Determine freeform config paths based on fabric_name or corp_defaults
     fabric_freeform_dir = os.path.join(freeform_base_path, f"{fabric_name}_FreeForm")
-
-    # Define the base path for default freeform configs in resources/freeform/
     resources_freeform_base_path = os.path.join(project_root, 'scripts', 'api', 'cisco', '12.2.2', 'resources', 'freeform')
 
-    # Initialize paths with default freeform files from resources/freeform/
     aaa_freeform_path = os.path.join(resources_freeform_base_path, "AAA Freeform Config.sh")
     leaf_freeform_path = os.path.join(resources_freeform_base_path, "Leaf Freeform Config.sh")
     spine_freeform_path = os.path.join(resources_freeform_base_path, "Spine Freeform Config.sh")
     banner_freeform_path = os.path.join(resources_freeform_base_path, "Banner.sh")
-    # Check for fabric-specific freeform files and override if they exist
+
     if os.path.isdir(fabric_freeform_dir):
         temp_aaa_path = os.path.join(fabric_freeform_dir, "AAA Freeform Config.sh")
         if os.path.exists(temp_aaa_path):
@@ -179,13 +165,11 @@ def main():
         if os.path.exists(temp_banner_path):
             banner_freeform_path = temp_banner_path
     
-    # --- Save the payload to a temporary file to pass to create_fabric ---
     temp_payload_file = "temp_fabric_payload.json"
     with open(temp_payload_file, 'w') as f:
         json.dump(api_payload, f, indent=4)
 
     print(f"Payload saved to {temp_payload_file}")
-    # --- Call Create Fabric ---
     print("\nCalling create_fabric API...")
     fabric_api.create_fabric(
         filename=temp_payload_file,
@@ -196,10 +180,16 @@ def main():
         banner_freeform_config_file=banner_freeform_path
     )
 
-    # --- Cleanup ---
     os.remove(temp_payload_file)
     print(f"Cleaned up temporary file: {temp_payload_file}")
 
+def main():
+    """
+    Main function to run the fabric build process.
+    You can change the site name here to build a different fabric.
+    """
+    fabric_site_to_build = "Site3-test" 
+    build_data_center_VXLAN_EVPN(fabric_site_to_build)
 
 if __name__ == "__main__":
     main()
