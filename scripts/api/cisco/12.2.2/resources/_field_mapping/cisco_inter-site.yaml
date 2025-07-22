@@ -24,7 +24,7 @@ Advanced:
   Fabric Freeform: 
     freeform: FABRIC_FREEFORM # Corp_Defaults
   AAA Freeform Config: 
-    Freeform: AAA_SERVER_CONF # Corp_Defaults
+    freeform: AAA_SERVER_CONF # Corp_Defaults
 
 Resources:
   Subinterface Dot1q Range: SUBINTERFACE_RANGE # Corp_Defaults
