@@ -155,13 +155,13 @@ def remove_MSD(parent_fabric_name, child_fabric_name):
 
 if __name__ == "__main__":
     # get_fabrics()
-    # get_fabric("test", "fabrics")
-    create_fabric("fabrics/MSD-4.json", "MSD_Fabric")
+    get_fabric("Site3-test", "fabrics")
+    # create_fabric("fabrics/MSD-4.json", "MSD_Fabric")
     # create_fabric("fabrics/test.json", "MSD_Fabric")
     # create_fabric("fabrics/Site1-TSMC.json", "Easy_Fabric", "fabrics/Site1-TSMC_FreeForm/Leaf_FreeForm_Config.sh", "fabrics/Site1-TSMC_FreeForm/Spine_FreeForm_Config.sh", "fabrics/Site1-TSMC_FreeForm/AAA_Freeform_Config.sh")
     # update_fabric("fabrics/Site1-TSMC.json", "Easy_Fabric", "fabrics/Site1-TSMC_FreeForm/Leaf_FreeForm_Config.sh", "fabrics/Site1-TSMC_FreeForm/Spine_FreeForm_Config.sh", "fabrics/Site1-TSMC_FreeForm/AAA_Freeform_Config.sh")
     # delete_fabric("MSD-2")
     # recalculate_config(fabric="Site1")
     # deploy_fabric_config(fabric="Site1")
-    # add_MSD("MSD-1", "Site3-test")
+    add_MSD("MSD-Test", "Site3-test")
     # remove_MSD("MSD-1", "Site3-test")

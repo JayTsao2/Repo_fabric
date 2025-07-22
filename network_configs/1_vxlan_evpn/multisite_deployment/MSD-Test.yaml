@@ -5,10 +5,9 @@ Fabric:
 
 Child Fabric:
   Fabric:
-    - Site1-Greenfield
-    - Site2-Brownfield
+    - Site3-Test
   ISN:
-    - ISN
+    - ISN-Test
 
 DCI:
   Multi-Site Route Server List: 192.168.240.1,192.168.240.2,192.168.240.3 # Multi-Site Route-Server peer list (typically loopback IP address on Route-Server for Multi-Site EVPN peering with BGWs), e.g. 128.89.0.1, 128.89.0.2. Provide a list of IPv6 addresses for IPv6 underlay, e.g. fd00::b10:1, fd00::b10:2

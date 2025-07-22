@@ -50,6 +50,16 @@ class FreeformPaths:
     banner: str = ""
     fabric: str = ""
 
+@dataclass
+class ChildFabrics:
+    """Container for child fabric information."""
+    regular_fabrics: List[str]
+    isn_fabrics: List[str]
+    
+    def get_all_child_fabrics(self) -> List[str]:
+        """Get a list of all child fabrics (both regular and ISN)."""
+        return self.regular_fabrics + self.isn_fabrics
+
 # --- Utility Classes ---
 
 class FabricBuilder:
@@ -240,6 +250,29 @@ def get_nested_value(config_dict: Dict[str, Any], keys: Tuple[str, ...]) -> Any:
         else:
             return None
     return value
+
+def extract_child_fabrics(config_dict: Dict[str, Any]) -> ChildFabrics:
+    """Extract child fabric information from MSD configuration."""
+    child_fabric_config = config_dict.get("Child Fabric", {})
+    
+    # Extract regular fabrics
+    regular_fabrics = child_fabric_config.get("Fabric", [])
+    if isinstance(regular_fabrics, str):
+        regular_fabrics = [regular_fabrics]
+    elif not isinstance(regular_fabrics, list):
+        regular_fabrics = []
+    
+    # Extract ISN fabrics
+    isn_fabrics = child_fabric_config.get("ISN", [])
+    if isinstance(isn_fabrics, str):
+        isn_fabrics = [isn_fabrics]
+    elif not isinstance(isn_fabrics, list):
+        isn_fabrics = []
+    
+    return ChildFabrics(
+        regular_fabrics=regular_fabrics,
+        isn_fabrics=isn_fabrics
+    )
 
 # --- Core Logic ---
 
@@ -483,11 +516,106 @@ class FabricBuilderMethods:
             )
             
             cleanup_temp_file(temp_payload_file)
-            print(f"✅ Successfully built Multi-Site Domain: {msd_name}")
+            print_build_summary("Multi-Site Domain", msd_name, True)
             return True
             
         except Exception as e:
             print(f"❌ Error building Multi-Site Domain {msd_name}: {e}")
+            print_build_summary("Multi-Site Domain", msd_name, False)
+            return False
+
+    def _add_child_fabrics_to_msd(self, msd_name: str, child_fabrics: ChildFabrics) -> bool:
+        """Add child fabrics to the MSD."""
+        print(f"\n=== Adding Child Fabrics to MSD: {msd_name} ===")
+        
+        all_success = True
+        all_child_fabrics = child_fabrics.get_all_child_fabrics()
+        
+        for child_fabric in all_child_fabrics:
+            try:
+                print(f"Adding child fabric '{child_fabric}' to MSD '{msd_name}'...")
+                fabric_api.add_MSD(parent_fabric_name=msd_name, child_fabric_name=child_fabric)
+                print(f"✅ Successfully added '{child_fabric}' to '{msd_name}'")
+            except Exception as e:
+                print(f"❌ Failed to add '{child_fabric}' to '{msd_name}': {e}")
+                all_success = False
+        
+        if all_success:
+            print(f"✅ All child fabrics successfully added to MSD '{msd_name}'")
+        else:
+            print(f"⚠️  Some child fabrics failed to be added to MSD '{msd_name}'")
+        
+        return all_success
+
+    def add_child_fabrics_to_msd(self, msd_name: str) -> bool:
+        """Add child fabrics to an MSD based on its configuration file."""
+        print(f"\n=== Adding Child Fabrics to MSD: {msd_name} ===")
+        
+        try:
+            # Load the MSD configuration
+            config = self.builder.get_fabric_config(FabricType.MULTI_SITE_DOMAIN, msd_name)
+            fabric_config = load_yaml_file(config.config_path)
+            
+            if not fabric_config:
+                print(f"Failed to load configuration for MSD '{msd_name}'")
+                return False
+            
+            # Extract child fabric information
+            child_fabrics = extract_child_fabrics(fabric_config)
+            print(f"Found child fabrics: Regular={child_fabrics.regular_fabrics}, ISN={child_fabrics.isn_fabrics}")
+            
+            if not child_fabrics.get_all_child_fabrics():
+                print(f"No child fabrics found in configuration for MSD '{msd_name}'")
+                return True
+            
+            # Add child fabrics
+            return self._add_child_fabrics_to_msd(msd_name, child_fabrics)
+            
+        except Exception as e:
+            print(f"❌ Error adding child fabrics to MSD {msd_name}: {e}")
+            return False
+
+    def remove_child_fabrics_from_msd(self, msd_name: str) -> bool:
+        """Remove child fabrics from an MSD based on its configuration file."""
+        print(f"\n=== Removing Child Fabrics from MSD: {msd_name} ===")
+        
+        try:
+            # Load the MSD configuration
+            config = self.builder.get_fabric_config(FabricType.MULTI_SITE_DOMAIN, msd_name)
+            fabric_config = load_yaml_file(config.config_path)
+            
+            if not fabric_config:
+                print(f"Failed to load configuration for MSD '{msd_name}'")
+                return False
+            
+            # Extract child fabric information
+            child_fabrics = extract_child_fabrics(fabric_config)
+            
+            if not child_fabrics.get_all_child_fabrics():
+                print(f"No child fabrics found in configuration for MSD '{msd_name}'")
+                return True
+            
+            all_success = True
+            all_child_fabrics = child_fabrics.get_all_child_fabrics()
+            
+            for child_fabric in all_child_fabrics:
+                try:
+                    print(f"Removing child fabric '{child_fabric}' from MSD '{msd_name}'...")
+                    fabric_api.remove_MSD(parent_fabric_name=msd_name, child_fabric_name=child_fabric)
+                    print(f"✅ Successfully removed '{child_fabric}' from '{msd_name}'")
+                except Exception as e:
+                    print(f"❌ Failed to remove '{child_fabric}' from '{msd_name}': {e}")
+                    all_success = False
+            
+            if all_success:
+                print(f"✅ All child fabrics successfully removed from MSD '{msd_name}'")
+            else:
+                print(f"⚠️  Some child fabrics failed to be removed from MSD '{msd_name}'")
+            
+            return all_success
+            
+        except Exception as e:
+            print(f"❌ Error removing child fabrics from MSD {msd_name}: {e}")
             return False
 
     def build_inter_site_network(self, isn_name: str) -> bool:
@@ -582,12 +710,12 @@ def main():
         print(f"Failed to build Inter-Site Network: {isn_to_build}")
         return 1
 
-    # --- Link Fabrics ---
-    # Uncomment to link fabrics
-    # success = fabric_methods.link_fabrics(parent_fabric=msd_to_build, child_fabric=isn_to_build)
-    # if not success:
-    #     print(f"Failed to link fabrics: {child_fabric} -> {parent_fabric}")
-    #     return 1
+    # --- Add Child Fabrics to MSD ---
+    # Uncomment to add child fabrics to the MSD
+    success = fabric_methods.add_child_fabrics_to_msd(msd_to_build)
+    if not success:
+        print(f"Failed to add child fabrics to MSD: {msd_to_build}")
+        return 1
     
     print("\n🎉 Fabric build process completed successfully!")
     return 0

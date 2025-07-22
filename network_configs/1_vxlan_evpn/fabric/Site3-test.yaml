@@ -1,6 +1,6 @@
 ---
 Fabric:
-  name: Site3-test
+  name: Site3-Test
   type: Data Center VXLAN EVPN
   Location: Taipei, TW
 
@@ -17,10 +17,10 @@ Manageability:
   Syslog Server IPs: 10.228.90.42,10.228.90.43, 10.11.116.100, 10.11.117.100
 
   AAA Freeform Config: 
-    Freeform: Site3-test_FreeForm/AAA Freeform Config
+    Freeform: Site3-Test_FreeForm/AAA Freeform Config
 
 Advanced:
   Leaf Freeform Config:
-    Freeform: Site3-test_FreeForm/Leaf Freeform Config
+    Freeform: Site3-Test_FreeForm/Leaf Freeform Config
   Spine Freeform Config: 
-    Freeform: Site3-test_FreeForm/Spine Freeform Config
+    Freeform: Site3-Test_FreeForm/Spine Freeform Config
