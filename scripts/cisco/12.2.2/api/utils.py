@@ -192,3 +192,21 @@ def get_base_headers() -> Dict[str, str]:
         'Accept': 'application/json',
         'User-Agent': 'NDFC-Fabric-Builder/1.0'
     }
+ 
+def parse_template_config(template_config_file: str) -> str:
+    """
+    Parse a JSON template configuration file and return its JSON string.
+    Used by API modules for embedding template config in payloads.
+    """
+    try:
+        import json
+        with open(template_config_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        return json.dumps(data)
+    except FileNotFoundError:
+        print(f"Warning: Template config file not found at {template_config_file}")
+    except json.JSONDecodeError as e:
+        print(f"Error parsing JSON config {template_config_file}: {e}")
+    except Exception as e:
+        print(f"Error reading template config {template_config_file}: {e}")
+    return ""
