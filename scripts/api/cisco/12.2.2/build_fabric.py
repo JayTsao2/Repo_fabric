@@ -289,6 +289,18 @@ def build_inter_site_network(isn_name: str):
 
     if not api_payload or not template_name:
         return
+    
+    # Read freeform config from cisco_inter-site.yaml
+    defaults_config = load_yaml_file(defaults_path)
+    fabric_freeform_path = defaults_config.get('Advanced', {}).get('Fabric Freeform', {}).get('freeform')
+    
+    if fabric_freeform_path:
+        fabric_freeform_absolute_path = os.path.join(project_root, 'scripts', 'api', 'cisco', '12.2.2', 'resources', 'freeform', os.path.basename(fabric_freeform_path))
+
+    AAA_freeform_path = defaults_config.get('Advanced', {}).get('AAA Freeform Config', {}).get('freeform')
+    if AAA_freeform_path:
+        AAA_freeform_absolute_path = os.path.join(project_root, 'scripts', 'api', 'cisco', '12.2.2', 'resources', 'freeform', os.path.basename(AAA_freeform_path))
+
     del api_payload["nvPairs"]["SITE_ID"]  # Remove SITE_ID if it exists
     api_payload["nvPairs"]["FABRIC_TYPE"] = "External"  # Set the fabric type to ISN
     api_payload["nvPairs"]["EXT_FABRIC_TYPE"] = "Multi-Site External Network"  
@@ -300,7 +312,9 @@ def build_inter_site_network(isn_name: str):
     print("\nCalling create_fabric API for Inter-Site Network...")
     fabric_api.create_fabric(
         filename=temp_payload_file,
-        template_name=template_name
+        template_name=template_name,
+        aaa_freeform_config_file=AAA_freeform_absolute_path if 'AAA_freeform_absolute_path' in locals() else "",
+        fabric_freeform_config_file=fabric_freeform_absolute_path if 'fabric_freeform_absolute_path' in locals() else ""
     )
 
     os.remove(temp_payload_file)
