@@ -195,8 +195,12 @@ fabric_methods.add_child_fabrics_to_msd("MSD-Test")
 
 ## Current Issue
 ### 進行中項目 (Work in Progress)
-- 🔄 **測試與驗證**: 完整的功能測試和驗證
-- 🔄 **文件更新**: API 文檔和使用指南的完善
+- 根據 5_segment 內部的檔案打造出讀取 yaml 檔案以及 resources/ 檔案建立 network / VRF 配置
+- 根據 3_node 內部的檔案打造出讀取 yaml 檔案以及 resources 檔案建立 Switch 配置
+- 根據 5_segment 內部的檔案打造出能夠自動化建造、調整 network / VRF 的 CI/CD 流程
+- 根據 1_vxlan_evpn 內部的檔案打造出能夠自動化建造、調整 fabric 的 CI/CD 流程
+- 根據 3_node 內部的檔案打造出能夠自動化建造、調整 fabric 的 CI/CD 流程
+- 透過 Nornir / NAPALM 等套件打造出能夠獲取 inventory/ 內部檔案的 Switch 資訊
 
 ## Future works
 ### 短期目標 (Short-term Goals)
