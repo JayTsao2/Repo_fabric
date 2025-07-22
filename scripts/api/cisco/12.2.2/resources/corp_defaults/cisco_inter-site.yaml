@@ -1,8 +1,4 @@
 ---
-Fabric:
-  name: # Inter-Site Network
-  type: # Inter-Site Network
-
 General Parameter:
   BGP ASN for spines: 64999
   Fabric Monitor Mode: False

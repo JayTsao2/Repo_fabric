@@ -1,8 +1,4 @@
 ---
-Fabric:
-  name: FABRIC_NAME # Inter-Site Network
-  type: FABRIC_TYPE # Inter-Site Network
-
 General Parameter:
   BGP ASN for spines: BGP_AS # Corp_Defaults
   Fabric Monitor Mode: IS_READ_ONLY # Corp_Defaults
