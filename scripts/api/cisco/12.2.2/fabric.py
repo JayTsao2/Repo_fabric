@@ -55,20 +55,20 @@ def create_fabric(filename, template_name, leaf_freeform_config_file="", spine_f
     except Exception as e:
         print(f"Error: {e}")
         exit()
-    fabric= data.get("fabricName")
     payload = data["nvPairs"]
+    fabric = payload.get("FABRIC_NAME")
     invalid_fields = ["USE_LINK_LOCAL", "ISIS_OVERLOAD_ENABLE", "ISIS_P2P_ENABLE","PNP_ENABLE_INTERNAL", "DOMAIN_NAME_INTERNAL"]
     for key in invalid_fields:
         if key in payload:
             # print(f"Removing {key} in payload...")
             del payload[key]
 
-    payload["EXTRA_CONF_LEAF"] = parse_freeform_config(leaf_freeform_config_file) if leaf_freeform_config_file else ""
-    payload["EXTRA_CONF_SPINE"] = parse_freeform_config(spine_freeform_config_file) if spine_freeform_config_file else ""
-    payload["AAA_SERVER_CONF"] = parse_freeform_config(aaa_freeform_config_file) if aaa_freeform_config_file else ""
-    payload["BANNER"] = parse_freeform_config(banner_freeform_config_file) if banner_freeform_config_file else ""
+    if template_name == "Easy_Fabric":
+        payload["EXTRA_CONF_LEAF"] = parse_freeform_config(leaf_freeform_config_file) if leaf_freeform_config_file else ""
+        payload["EXTRA_CONF_SPINE"] = parse_freeform_config(spine_freeform_config_file) if spine_freeform_config_file else ""
+        payload["AAA_SERVER_CONF"] = parse_freeform_config(aaa_freeform_config_file) if aaa_freeform_config_file else ""
+        payload["BANNER"] = parse_freeform_config(banner_freeform_config_file) if banner_freeform_config_file else ""
     url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/{template_name}")
-
     headers = get_api_key_header()
     headers['Content-Type'] = 'application/json'
     r = requests.post(url, headers=headers, data=json.dumps(payload), verify=False)
@@ -86,17 +86,18 @@ def update_fabric(filename, template_name, leaf_freeform_config_file="", spine_f
     except Exception as e:
         print(f"Error: {e}")
         exit()
-    fabric = data.get("fabricName")
+    fabric = payload.get("FABRIC_NAME")
     payload = data["nvPairs"]
     invalid_fields = ["USE_LINK_LOCAL", "ISIS_OVERLOAD_ENABLE", "ISIS_P2P_ENABLE","PNP_ENABLE_INTERNAL", "DOMAIN_NAME_INTERNAL"]
     for key in invalid_fields:
         if key in payload:
             del payload[key]
-    
-    payload["EXTRA_CONF_LEAF"] = parse_freeform_config(leaf_freeform_config_file) if leaf_freeform_config_file else ""
-    payload["EXTRA_CONF_SPINE"] = parse_freeform_config(spine_freeform_config_file) if spine_freeform_config_file else ""
-    payload["AAA_SERVER_CONF"] = parse_freeform_config(aaa_freeform_config_file) if aaa_freeform_config_file else ""
-    payload["BANNER"] = parse_freeform_config(banner_freeform_config_file) if banner_freeform_config_file else ""
+        
+    if template_name == "Easy_Fabric":
+        payload["EXTRA_CONF_LEAF"] = parse_freeform_config(leaf_freeform_config_file) if leaf_freeform_config_file else ""
+        payload["EXTRA_CONF_SPINE"] = parse_freeform_config(spine_freeform_config_file) if spine_freeform_config_file else ""
+        payload["AAA_SERVER_CONF"] = parse_freeform_config(aaa_freeform_config_file) if aaa_freeform_config_file else ""
+        payload["BANNER"] = parse_freeform_config(banner_freeform_config_file) if banner_freeform_config_file else ""
     url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/{template_name}")
 
     headers = get_api_key_header()
@@ -148,9 +149,13 @@ def remove_MSD(parent_fabric_name, child_fabric_name):
 
 if __name__ == "__main__":
     # get_fabrics()
-    get_fabric("MSD-1", "fabrics")
+    # get_fabric("test", "fabrics")
+    create_fabric("fabrics/MSD-4.json", "MSD_Fabric")
+    # create_fabric("fabrics/test.json", "MSD_Fabric")
     # create_fabric("fabrics/Site1-TSMC.json", "Easy_Fabric", "fabrics/Site1-TSMC_FreeForm/Leaf_FreeForm_Config.sh", "fabrics/Site1-TSMC_FreeForm/Spine_FreeForm_Config.sh", "fabrics/Site1-TSMC_FreeForm/AAA_Freeform_Config.sh")
     # update_fabric("fabrics/Site1-TSMC.json", "Easy_Fabric", "fabrics/Site1-TSMC_FreeForm/Leaf_FreeForm_Config.sh", "fabrics/Site1-TSMC_FreeForm/Spine_FreeForm_Config.sh", "fabrics/Site1-TSMC_FreeForm/AAA_Freeform_Config.sh")
-    # delete_fabric("Site1-TSMC")
-    # recalculate_config(fabric="Site1")w
+    # delete_fabric("MSD-2")
+    # recalculate_config(fabric="Site1")
     # deploy_fabric_config(fabric="Site1")
+    # add_MSD("MSD-1", "Site3-test")
+    # remove_MSD("MSD-1", "Site3-test")
