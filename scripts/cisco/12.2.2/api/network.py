@@ -1,7 +1,7 @@
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-from utils import *
+from .utils import *
 import json
 
 def get_networks(fabric, network_dir="networks", network_template_config_dir="networks/network_templates", network_filter="", range=0):

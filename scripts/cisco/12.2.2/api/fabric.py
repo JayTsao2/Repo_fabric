@@ -1,7 +1,7 @@
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-from utils import *
+from .utils import *
 import json
 from typing import Dict, Any, Optional
 
@@ -167,8 +167,8 @@ def remove_MSD(parent_fabric_name: str, child_fabric_name: str) -> bool:
 if __name__ == "__main__":
     # Example usage
     # get_fabrics()
-    # get_fabric("Site3-test", "fabrics")
-    delete_fabric("MSD-Test")
+    get_fabric("Site3-Test", "fabrics")
+    # delete_fabric("MSD-Test")
     # recalculate_config("Site1")
     # deploy_fabric_config("Site1")
     # add_MSD("MSD-Test", "Site3-test")

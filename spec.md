@@ -5,11 +5,13 @@
 ```
 .
 ├── scripts/
-│   ├── api/
-│   │   └── cisco/
-│   │       ├── 12.1.2e/
-│   │       ├── 12.2.2/
-│   │       └── 12.3/
+│   ├── cisco/
+│   │   ├── 12.1.2e/
+│   │   ├── 12.2.2/
+│   │   │   ├── api/
+│   │   │   ├── resources/
+│   │   │   └── build_fabric.py
+│   │   └── 12.3/
 │   ├── inventory/
 │   └── logs/
 ├── network_configs/
@@ -28,8 +30,17 @@
 
     * 用途: 放置提供給 GitLab CI/CD 等工具執行流程的腳本 (Scripts)，以及所有 API 請求相關的邏輯與模組。
     
-    * 📂 **`/scripts/api`**
-        * 用途: 放置所有 API 請求相關的邏輯與模組。
+    * 📂 **`/scripts/cisco`**
+        * 用途: 放置 Cisco 相關的 API 請求邏輯與模組，按版本分類。
+        
+        * 📂 **`/scripts/cisco/12.2.2/api`**
+            * 用途: Cisco NDFC 12.2.2 版本的 API 操作模組。
+            
+        * 📂 **`/scripts/cisco/12.2.2/resources`**
+            * 用途: 配置檔案、模板、欄位映射等資源檔案。
+            
+        * 📂 **`/scripts/cisco/12.2.2/build_fabric.py`**
+            * 用途: 自動化 Fabric 建置工具。
         
     * 📂 **`/scripts/inventory`**
         * 用途: 透過 Nornir、NAPALM 等工具進行設備資訊的獲取與管理。
@@ -59,7 +70,7 @@
 ## API Interfaces
 ### Cisco NDFC 12.2.2
 
-#### [Fabric](scripts/api/cisco/12.2.2/fabric.py)
+#### [Fabric](scripts/cisco/12.2.2/api/fabric.py)
 **純 API 介面 (Pure API Interface)**
 - `create_fabric(fabric_name, template_name, payload_data)` - 使用直接傳遞的 payload 資料創建 fabric
 - `update_fabric(fabric_name, template_name, payload_data)` - 使用直接傳遞的 payload 資料更新 fabric
@@ -70,7 +81,7 @@
 - `add_MSD(parent_fabric_name, child_fabric_name)` - 將子 fabric 添加到 Multi-Site Domain
 - `remove_MSD(parent_fabric_name, child_fabric_name)` - 從 Multi-Site Domain 移除子 fabric
 
-#### [Fabric Builder](scripts/api/cisco/12.2.2/build_fabric.py)
+#### [Fabric Builder](scripts/cisco/12.2.2/build_fabric.py)
 **自動化網路 Fabric 配置工具 (Automated Network Fabric Configuration Tool)**
 
 **核心功能 (Core Functions):**
@@ -120,7 +131,7 @@
 - AAA Freeform config = AAA_SERVER_CONF
 - Spine Freeform config = EXTRA_CONF_SPINE
 - Leaf Freeform config = EXTRA_CONF_LEAF
-#### [Switch](scripts/api/cisco/12.2.2/switch.py)
+#### [Switch](scripts/cisco/12.2.2/api/switch.py)
 - Switch read / delete
 - Switch discover (add)
 - Read switch pending config
@@ -128,9 +139,9 @@
 - Change discovery IP / rediscover IP 尚未測試
 #### Interface
 - 尚未測試
-#### [Policy](scripts/api/cisco/12.2.2/policy.py)
+#### [Policy](scripts/cisco/12.2.2/api/policy.py)
 - Policy read / update / delete
-#### [Network](scripts/api/cisco/12.2.2/network.py)
+#### [Network](scripts/cisco/12.2.2/api/network.py)
 - Network create / read / update / delete
 - Network attachment read / update
     - deployment = true 是接, deployment = false 是拔掉
@@ -139,19 +150,20 @@
     - 拔的時候要將 deployment 設定成 false 並確定有放 detachSwitchPorts
 - Preview network (generate pending config)
 - Deploy network
-#### [VRF](scripts/api/cisco/12.2.2/vrf.py)
+#### [VRF](scripts/cisco/12.2.2/api/vrf.py)
 - VRF create / read / update / delete
 - VRF attachment read / update
 
 ## Scripts
 ### 腳本執行環境 (Script Execution Environment)
 - **Python 3.x** 環境
-- **工作目錄**: `scripts/api/cisco/12.2.2/`
+- **工作目錄**: `scripts/cisco/12.2.2/`
+- **API 模組目錄**: `scripts/cisco/12.2.2/api/`
 - **主要依賴**: `yaml`, `json`, `requests`, `pathlib`, `dataclasses`
 
 ### 使用方式 (Usage)
 ```python
-# 初始化 Fabric Builder
+# 初始化 Fabric Builder (在 scripts/cisco/12.2.2/ 目錄下執行)
 from build_fabric import FabricBuilderMethods
 fabric_methods = FabricBuilderMethods()
 

@@ -20,8 +20,8 @@ from pathlib import Path
 from dataclasses import dataclass
 from enum import Enum
 
-import fabric as fabric_api
-from utils import parse_freeform_config
+import api.fabric as fabric_api
+from api.utils import parse_freeform_config
 
 # --- Constants and Enums ---
 
