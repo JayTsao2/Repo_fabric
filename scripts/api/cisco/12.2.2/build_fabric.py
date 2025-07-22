@@ -127,16 +127,6 @@ def load_json_file(filepath: str) -> Optional[Dict[str, Any]]:
         print(f"Error parsing JSON file {filepath}: {e}")
         return None
 
-def save_json_file(data: Dict[str, Any], filepath: str) -> bool:
-    """Save data to a JSON file."""
-    try:
-        with open(filepath, 'w', encoding='utf-8') as file:
-            json.dump(data, file, indent=4)
-        return True
-    except Exception as e:
-        print(f"Error saving JSON file {filepath}: {e}")
-        return False
-
 def merge_configs(base_config: Dict[str, Any], override_config: Dict[str, Any]) -> Dict[str, Any]:
     """Merge two configurations with override taking precedence."""
     if not isinstance(base_config, dict) or not isinstance(override_config, dict):
@@ -172,15 +162,6 @@ def get_template_name(fabric_type: str, template_mapping_file: str) -> Optional[
 def validate_file_exists(filepath: str) -> bool:
     """Check if a file exists."""
     return Path(filepath).exists()
-
-def cleanup_temp_file(filepath: str) -> None:
-    """Remove a temporary file safely."""
-    try:
-        if Path(filepath).exists():
-            os.remove(filepath)
-            print(f"Cleaned up temporary file: {filepath}")
-    except Exception as e:
-        print(f"Warning: Could not clean up {filepath}: {e}")
 
 def validate_configuration_files(config: FabricConfig) -> bool:
     """Validate that all required configuration files exist."""
@@ -280,7 +261,7 @@ class PayloadGenerator:
     """Handles the generation of API payloads for fabric creation."""
     
     @staticmethod
-    def prepare_fabric_payload(config: FabricConfig) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
+    def prepare_fabric_payload(config: FabricConfig) -> Tuple[Optional[Dict[str, Any]], Optional[str], Optional[str]]:
         """Prepare the API payload for creating a fabric-like entity."""
         # Load configurations
         fabric_config = load_yaml_file(config.config_path)
@@ -289,7 +270,7 @@ class PayloadGenerator:
 
         if not all([fabric_config, defaults_config, field_mapping]):
             print("Could not load required configurations or mappings. Exiting.")
-            return None, None
+            return None, None, None
 
         # Merge configurations
         final_config = PayloadGenerator._merge_all_configs(defaults_config, fabric_config)
@@ -302,23 +283,23 @@ class PayloadGenerator:
         fabric_type = get_nested_value(fabric_config, config.type_keys)
         if not fabric_type:
             print(f"Fabric type not specified at '{'.'.join(config.type_keys)}' in the config.")
-            return None, None
+            return None, None, None
 
         template_name = get_template_name(fabric_type, config.template_map_path)
         if not template_name:
             print(f"Could not find a template for fabric type '{fabric_type}'.")
-            return None, None
+            return None, None, None
 
         # Prepare payload
         fabric_name = get_nested_value(fabric_config, config.name_keys)
         if not fabric_name:
             print(f"Fabric name not specified at '{'.'.join(config.name_keys)}' in the config.")
-            return None, None
+            return None, None, None
 
         # Build API payload
         api_payload = PayloadGenerator._build_api_payload(mapped_config, final_config, fabric_name, template_name)
         
-        return api_payload, template_name
+        return api_payload, template_name, fabric_name
 
     @staticmethod
     def _merge_all_configs(defaults_config: Dict[str, Any], fabric_config: Dict[str, Any]) -> Dict[str, Any]:
@@ -349,44 +330,35 @@ class PayloadGenerator:
 
         # Set required fields
         mapped_config["FABRIC_NAME"] = fabric_name
-        # mapped_config["FABRIC_TYPE"] = template_name
 
         if "BGP_AS" in mapped_config:
             mapped_config["SITE_ID"] = mapped_config["BGP_AS"]
 
-        return {
-            "nvPairs": mapped_config,
-            "vrfTemplate": vrf_template,
-            "networkTemplate": network_template,
-            "vrfExtensionTemplate": vrf_extension_template,
-            "networkExtensionTemplate": network_extension_template
-        }
+        return mapped_config
 
     @staticmethod
-    def add_freeform_content_to_payload(api_payload: Dict[str, Any], template_name: str, 
+    def add_freeform_content_to_payload(payload_data: Dict[str, Any], template_name: str, 
                                        freeform_paths: 'FreeformPaths') -> None:
         """Add freeform configuration content to the API payload."""
-        nvpairs = api_payload["nvPairs"]
-        
         if template_name == "Easy_Fabric":
             if freeform_paths.leaf and validate_file_exists(freeform_paths.leaf):
-                nvpairs["EXTRA_CONF_LEAF"] = parse_freeform_config(freeform_paths.leaf)
+                payload_data["EXTRA_CONF_LEAF"] = parse_freeform_config(freeform_paths.leaf)
             
             if freeform_paths.spine and validate_file_exists(freeform_paths.spine):
-                nvpairs["EXTRA_CONF_SPINE"] = parse_freeform_config(freeform_paths.spine)
+                payload_data["EXTRA_CONF_SPINE"] = parse_freeform_config(freeform_paths.spine)
             
             if freeform_paths.aaa and validate_file_exists(freeform_paths.aaa):
-                nvpairs["AAA_SERVER_CONF"] = parse_freeform_config(freeform_paths.aaa)
+                payload_data["AAA_SERVER_CONF"] = parse_freeform_config(freeform_paths.aaa)
                 
             if freeform_paths.banner and validate_file_exists(freeform_paths.banner):
-                nvpairs["BANNER"] = parse_freeform_config(freeform_paths.banner)
+                payload_data["BANNER"] = parse_freeform_config(freeform_paths.banner)
         
         elif template_name == "External_Fabric":
             if freeform_paths.fabric and validate_file_exists(freeform_paths.fabric):
-                nvpairs["FABRIC_FREEFORM"] = parse_freeform_config(freeform_paths.fabric)
+                payload_data["FABRIC_FREEFORM"] = parse_freeform_config(freeform_paths.fabric)
                 
             if freeform_paths.aaa and validate_file_exists(freeform_paths.aaa):
-                nvpairs["AAA_SERVER_CONF"] = parse_freeform_config(freeform_paths.aaa)
+                payload_data["AAA_SERVER_CONF"] = parse_freeform_config(freeform_paths.aaa)
 
 # --- Builders ---
 
@@ -454,31 +426,30 @@ class FabricBuilderMethods:
                 return False
             
             # Generate payload
-            api_payload, template_name = self.payload_generator.prepare_fabric_payload(config)
-            if not api_payload or not template_name:
+            payload_data, template_name, fabric_name = self.payload_generator.prepare_fabric_payload(config)
+            if not payload_data or not template_name or not fabric_name:
                 print("Failed to generate payload for VXLAN EVPN fabric")
                 return False
             
             # Get freeform paths and add content to payload
             freeform_paths = self.get_freeform_paths(fabric_site_name, FabricType.VXLAN_EVPN)
-            self.payload_generator.add_freeform_content_to_payload(api_payload, template_name, freeform_paths)
+            self.payload_generator.add_freeform_content_to_payload(payload_data, template_name, freeform_paths)
             
-            # Save payload and call API
-            temp_payload_file = f"temp_payload_{fabric_site_name}.json"
-            if not save_json_file(api_payload, temp_payload_file):
-                return False
-            
-            print(f"Payload saved to {temp_payload_file}")
             print("Calling create_fabric API for VXLAN EVPN Fabric...")
             
-            fabric_api.create_fabric(
-                filename=temp_payload_file,
-                template_name=template_name
+            # Call fabric API directly with payload data
+            success = fabric_api.create_fabric(
+                fabric_name=fabric_name,
+                template_name=template_name,
+                payload_data=payload_data
             )
             
-            cleanup_temp_file(temp_payload_file)
-            print_build_summary("VXLAN EVPN Fabric", fabric_site_name, True)
-            return True
+            if success:
+                print_build_summary("VXLAN EVPN Fabric", fabric_site_name, True)
+                return True
+            else:
+                print_build_summary("VXLAN EVPN Fabric", fabric_site_name, False)
+                return False
             
         except Exception as e:
             print(f"❌ Error building VXLAN EVPN fabric {fabric_site_name}: {e}")
@@ -492,32 +463,31 @@ class FabricBuilderMethods:
         try:
             # Get configuration and generate payload
             config = self.builder.get_fabric_config(FabricType.MULTI_SITE_DOMAIN, msd_name)
-            api_payload, template_name = self.payload_generator.prepare_fabric_payload(config)
+            payload_data, template_name, fabric_name = self.payload_generator.prepare_fabric_payload(config)
             
-            if not api_payload or not template_name:
+            if not payload_data or not template_name or not fabric_name:
                 print("Failed to generate payload for Multi-Site Domain")
                 return False
             
             # Set MSD-specific parameters
-            api_payload["nvPairs"]["FABRIC_TYPE"] = "MFD"
-            api_payload["nvPairs"]["FF"] = "MSD"
+            payload_data["FABRIC_TYPE"] = "MFD"
+            payload_data["FF"] = "MSD"
             
-            # Save payload and call API
-            temp_payload_file = f"temp_payload_{msd_name}.json"
-            if not save_json_file(api_payload, temp_payload_file):
-                return False
-            
-            print(f"Payload saved to {temp_payload_file}")
             print("Calling create_fabric API for Multi-Site Domain...")
             
-            fabric_api.create_fabric(
-                filename=temp_payload_file,
-                template_name=template_name
+            # Call fabric API directly with payload data
+            success = fabric_api.create_fabric(
+                fabric_name=fabric_name,
+                template_name=template_name,
+                payload_data=payload_data
             )
             
-            cleanup_temp_file(temp_payload_file)
-            print_build_summary("Multi-Site Domain", msd_name, True)
-            return True
+            if success:
+                print_build_summary("Multi-Site Domain", msd_name, True)
+                return True
+            else:
+                print_build_summary("Multi-Site Domain", msd_name, False)
+                return False
             
         except Exception as e:
             print(f"❌ Error building Multi-Site Domain {msd_name}: {e}")
@@ -625,37 +595,36 @@ class FabricBuilderMethods:
         try:
             # Get configuration and generate payload
             config = self.builder.get_fabric_config(FabricType.INTER_SITE_NETWORK, isn_name)
-            api_payload, template_name = self.payload_generator.prepare_fabric_payload(config)
+            payload_data, template_name, fabric_name = self.payload_generator.prepare_fabric_payload(config)
             
-            if not api_payload or not template_name:
+            if not payload_data or not template_name or not fabric_name:
                 print("Failed to generate payload for Inter-Site Network")
                 return False
             
             # Set ISN-specific parameters
-            api_payload["nvPairs"].pop("SITE_ID", None)  # Remove SITE_ID if it exists
-            api_payload["nvPairs"]["FABRIC_TYPE"] = "External"
-            api_payload["nvPairs"]["EXT_FABRIC_TYPE"] = "Multi-Site External Network"
+            payload_data.pop("SITE_ID", None)  # Remove SITE_ID if it exists
+            payload_data["FABRIC_TYPE"] = "External"
+            payload_data["EXT_FABRIC_TYPE"] = "Multi-Site External Network"
             
-            # Get freeform paths
+            # Get freeform paths and add content to payload
             freeform_paths = self.get_freeform_paths(isn_name, FabricType.INTER_SITE_NETWORK)
+            self.payload_generator.add_freeform_content_to_payload(payload_data, template_name, freeform_paths)
             
-            # Save payload and call API
-            temp_payload_file = f"temp_payload_{isn_name}.json"
-            if not save_json_file(api_payload, temp_payload_file):
-                return False
-            
-            print(f"Payload saved to {temp_payload_file}")
             print("Calling create_fabric API for Inter-Site Network...")
-            fabric_api.create_fabric(
-                filename=temp_payload_file,
+            
+            # Call fabric API directly with payload data
+            success = fabric_api.create_fabric(
+                fabric_name=fabric_name,
                 template_name=template_name,
-                aaa_freeform_config_file=freeform_paths.aaa,
-                fabric_freeform_config_file=freeform_paths.fabric
+                payload_data=payload_data
             )
             
-            cleanup_temp_file(temp_payload_file)
-            print(f"✅ Successfully built Inter-Site Network: {isn_name}")
-            return True
+            if success:
+                print(f"✅ Successfully built Inter-Site Network: {isn_name}")
+                return True
+            else:
+                print(f"❌ Failed to build Inter-Site Network: {isn_name}")
+                return False
             
         except Exception as e:
             print(f"❌ Error building Inter-Site Network {isn_name}: {e}")
