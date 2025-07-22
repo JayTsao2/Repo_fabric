@@ -68,7 +68,7 @@ class FabricBuilder:
     def __init__(self):
         """Initialize the FabricBuilder with project paths."""
         self.script_dir = Path(__file__).parent.absolute()
-        self.project_root = self.script_dir.parents[3]
+        self.project_root = self.script_dir.parents[2]
         self.resources_dir = self.script_dir / "resources"
     
     def get_fabric_config(self, fabric_type: FabricType, name: str) -> FabricConfig:
