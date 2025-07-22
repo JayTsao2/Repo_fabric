@@ -11,8 +11,6 @@ It handles configuration merging, field mapping, and API payload generation
 for Cisco NDFC fabric management.
 """
 
-import yaml
-import json
 import os
 import sys
 from typing import List, Dict, Any, Tuple, Optional
@@ -21,7 +19,14 @@ from dataclasses import dataclass
 from enum import Enum
 
 import api.fabric as fabric_api
-from api.utils import parse_freeform_config
+from config_utils import (
+    load_yaml_file, load_json_file, merge_configs, 
+    read_freeform_config, apply_field_mapping, 
+    get_nested_value, extract_child_fabrics_config,
+    print_build_summary, validate_file_exists, 
+    validate_configuration_files, flatten_config,
+    get_template_name
+)
 
 # --- Constants and Enums ---
 
@@ -101,161 +106,7 @@ class FabricBuilder:
         }
         return base_configs[fabric_type]
 
-# --- Helper Functions ---
-
-def load_yaml_file(filepath: str) -> Optional[Dict[str, Any]]:
-    """Load a YAML file and return its content."""
-    try:
-        with open(filepath, 'r', encoding='utf-8') as file:
-            return yaml.safe_load(file)
-    except FileNotFoundError:
-        print(f"Error: File not found at {filepath}")
-        return None
-    except yaml.YAMLError as e:
-        print(f"Error parsing YAML file {filepath}: {e}")
-        return None
-
-def load_json_file(filepath: str) -> Optional[Dict[str, Any]]:
-    """Load a JSON file and return its content."""
-    try:
-        with open(filepath, 'r', encoding='utf-8') as file:
-            return json.load(file)
-    except FileNotFoundError:
-        print(f"Error: File not found at {filepath}")
-        return None
-    except json.JSONDecodeError as e:
-        print(f"Error parsing JSON file {filepath}: {e}")
-        return None
-
-def merge_configs(base_config: Dict[str, Any], override_config: Dict[str, Any]) -> Dict[str, Any]:
-    """Merge two configurations with override taking precedence."""
-    if not isinstance(base_config, dict) or not isinstance(override_config, dict):
-        return override_config if override_config else base_config
-    
-    merged = base_config.copy()
-    for key, value in override_config.items():
-        if isinstance(value, dict) and isinstance(merged.get(key), dict):
-            merged[key] = merge_configs(merged[key], value)
-        else:
-            merged[key] = value
-    return merged
-
-def read_freeform_config(file_path: str) -> str:
-    """Read the content of a freeform configuration file."""
-    try:
-        with open(file_path, 'r', encoding='utf-8') as f:
-            return f.read()
-    except FileNotFoundError:
-        print(f"Warning: Freeform config file not found at {file_path}")
-        return ""
-    except Exception as e:
-        print(f"Error reading freeform config {file_path}: {e}")
-        return ""
-
-def get_template_name(fabric_type: str, template_mapping_file: str) -> Optional[str]:
-    """Get the template name from the mapping file based on fabric type."""
-    templates = load_yaml_file(template_mapping_file)
-    if templates:
-        return templates.get(fabric_type)
-    return None
-
-def validate_file_exists(filepath: str) -> bool:
-    """Check if a file exists."""
-    return Path(filepath).exists()
-
-def validate_configuration_files(config: FabricConfig) -> bool:
-    """Validate that all required configuration files exist."""
-    required_files = [
-        config.config_path,
-        config.defaults_path,
-        config.field_mapping_path,
-        config.template_map_path
-    ]
-    
-    missing_files = [f for f in required_files if not Path(f).exists()]
-    
-    if missing_files:
-        print("❌ Missing required configuration files:")
-        for file in missing_files:
-            print(f"   - {file}")
-        return False
-    
-    return True
-
-def print_build_summary(fabric_type: str, fabric_name: str, success: bool) -> None:
-    """Print a build summary message."""
-    status = "✅ SUCCESS" if success else "❌ FAILED"
-    print(f"\n{status}: {fabric_type} - {fabric_name}")
-    if success:
-        print(f"   Fabric '{fabric_name}' has been created successfully")
-    else:
-        print(f"   Failed to create fabric '{fabric_name}'")
-
-def flatten_config(nested_config: Dict[str, Any], parent_key: str = '', separator: str = '_') -> Dict[str, Any]:
-    """Flatten a nested dictionary into a single-level dictionary."""
-    if not isinstance(nested_config, dict):
-        return {parent_key: nested_config} if parent_key else {}
-    
-    items = []
-    for key, value in nested_config.items():
-        new_key = f"{parent_key}{separator}{key}" if parent_key else key
-        if isinstance(value, dict):
-            items.extend(flatten_config(value, new_key, separator).items())
-        else:
-            items.append((new_key, value))
-    return dict(items)
-
-def apply_field_mapping(config: Dict[str, Any], mapping: Dict[str, Any]) -> Dict[str, Any]:
-    """Apply field mapping to a configuration dictionary."""
-    if not isinstance(mapping, dict):
-        return config
-    
-    mapped_config = {}
-    for key, value in config.items():
-        if key in mapping and mapping[key] is not None:
-            mapped_config[mapping[key]] = value
-        elif key not in mapping:
-            # Keep unmapped fields as-is
-            mapped_config[key] = value
-    return mapped_config
-
-def get_nested_value(config_dict: Dict[str, Any], keys: Tuple[str, ...]) -> Any:
-    """Get a nested value from a dictionary using a tuple of keys."""
-    if not isinstance(config_dict, dict) or not keys:
-        return None
-    
-    value = config_dict
-    for key in keys:
-        if isinstance(value, dict) and key in value:
-            value = value[key]
-        else:
-            return None
-    return value
-
-def extract_child_fabrics(config_dict: Dict[str, Any]) -> ChildFabrics:
-    """Extract child fabric information from MSD configuration."""
-    child_fabric_config = config_dict.get("Child Fabric", {})
-    
-    # Extract regular fabrics
-    regular_fabrics = child_fabric_config.get("Fabric", [])
-    if isinstance(regular_fabrics, str):
-        regular_fabrics = [regular_fabrics]
-    elif not isinstance(regular_fabrics, list):
-        regular_fabrics = []
-    
-    # Extract ISN fabrics
-    isn_fabrics = child_fabric_config.get("ISN", [])
-    if isinstance(isn_fabrics, str):
-        isn_fabrics = [isn_fabrics]
-    elif not isinstance(isn_fabrics, list):
-        isn_fabrics = []
-    
-    return ChildFabrics(
-        regular_fabrics=regular_fabrics,
-        isn_fabrics=isn_fabrics
-    )
-
-# --- Core Logic ---
+# --- Main Fabric Building Functions ---
 
 class PayloadGenerator:
     """Handles the generation of API payloads for fabric creation."""
@@ -342,23 +193,23 @@ class PayloadGenerator:
         """Add freeform configuration content to the API payload."""
         if template_name == "Easy_Fabric":
             if freeform_paths.leaf and validate_file_exists(freeform_paths.leaf):
-                payload_data["EXTRA_CONF_LEAF"] = parse_freeform_config(freeform_paths.leaf)
+                payload_data["EXTRA_CONF_LEAF"] = read_freeform_config(freeform_paths.leaf)
             
             if freeform_paths.spine and validate_file_exists(freeform_paths.spine):
-                payload_data["EXTRA_CONF_SPINE"] = parse_freeform_config(freeform_paths.spine)
+                payload_data["EXTRA_CONF_SPINE"] = read_freeform_config(freeform_paths.spine)
             
             if freeform_paths.aaa and validate_file_exists(freeform_paths.aaa):
-                payload_data["AAA_SERVER_CONF"] = parse_freeform_config(freeform_paths.aaa)
+                payload_data["AAA_SERVER_CONF"] = read_freeform_config(freeform_paths.aaa)
                 
             if freeform_paths.banner and validate_file_exists(freeform_paths.banner):
-                payload_data["BANNER"] = parse_freeform_config(freeform_paths.banner)
+                payload_data["BANNER"] = read_freeform_config(freeform_paths.banner)
         
         elif template_name == "External_Fabric":
             if freeform_paths.fabric and validate_file_exists(freeform_paths.fabric):
-                payload_data["FABRIC_FREEFORM"] = parse_freeform_config(freeform_paths.fabric)
+                payload_data["FABRIC_FREEFORM"] = read_freeform_config(freeform_paths.fabric)
                 
             if freeform_paths.aaa and validate_file_exists(freeform_paths.aaa):
-                payload_data["AAA_SERVER_CONF"] = parse_freeform_config(freeform_paths.aaa)
+                payload_data["AAA_SERVER_CONF"] = read_freeform_config(freeform_paths.aaa)
 
 # --- Builders ---
 
@@ -422,7 +273,19 @@ class FabricBuilderMethods:
         try:
             # Get configuration and validate files
             config = self.builder.get_fabric_config(FabricType.VXLAN_EVPN, fabric_site_name)
-            if not validate_configuration_files(config):
+            
+            # Check required files
+            required_files = [
+                config.config_path,
+                config.defaults_path, 
+                config.field_mapping_path,
+                config.template_map_path
+            ]
+            files_exist, missing_files = validate_configuration_files(required_files)
+            if not files_exist:
+                print("❌ Missing required configuration files:")
+                for file in missing_files:
+                    print(f"   - {file}")
                 return False
             
             # Generate payload
@@ -531,7 +394,11 @@ class FabricBuilderMethods:
                 return False
             
             # Extract child fabric information
-            child_fabrics = extract_child_fabrics(fabric_config)
+            child_fabrics_info = extract_child_fabrics_config(fabric_config)
+            child_fabrics = ChildFabrics(
+                regular_fabrics=child_fabrics_info.get("regular_fabrics", []),
+                isn_fabrics=child_fabrics_info.get("isn_fabrics", [])
+            )
             print(f"Found child fabrics: Regular={child_fabrics.regular_fabrics}, ISN={child_fabrics.isn_fabrics}")
             
             if not child_fabrics.get_all_child_fabrics():
@@ -559,7 +426,11 @@ class FabricBuilderMethods:
                 return False
             
             # Extract child fabric information
-            child_fabrics = extract_child_fabrics(fabric_config)
+            child_fabrics_info = extract_child_fabrics_config(fabric_config)
+            child_fabrics = ChildFabrics(
+                regular_fabrics=child_fabrics_info.get("regular_fabrics", []),
+                isn_fabrics=child_fabrics_info.get("isn_fabrics", [])
+            )
             
             if not child_fabrics.get_all_child_fabrics():
                 print(f"No child fabrics found in configuration for MSD '{msd_name}'")

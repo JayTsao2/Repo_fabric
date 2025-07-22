@@ -1,48 +1,194 @@
+"""
+API Utilities - Low-level HTTP communication utilities for Cisco NDFC API
+Contains authentication, URL building, and HTTP response handling.
+Used exclusively by API modules for network communication.
+"""
 from dotenv import load_dotenv
-import sys
 import os
-import json
+import sys
+import requests
+from typing import Dict, Optional, Any
 
-management_IP = 'https://10.192.195.20'
+# NDFC management IP - configurable via environment or direct setting
+DEFAULT_MANAGEMENT_IP = 'https://10.192.195.20'
 
-def get_url(api):
-    return f"{management_IP}{api}"
-
-def get_api_key_header():
+def get_management_ip() -> str:
+    """
+    Get NDFC management IP from environment variable or use default.
+    
+    Returns:
+        Complete NDFC management URL
+    """
     load_dotenv()
-    NDFC_API_KEY = os.getenv("NDFC_API_KEY")
+    return os.getenv('NDFC_MANAGEMENT_IP', DEFAULT_MANAGEMENT_IP)
 
-    headers = {
-        'X-Nd-Apikey': NDFC_API_KEY,
-        'X-Nd-Username': 'admin',
-    }
-    return headers
+def get_url(api_endpoint: str) -> str:
+    """
+    Constructs the full URL for NDFC API endpoints.
+    
+    Args:
+        api_endpoint: The API endpoint path
+        
+    Returns:
+        Complete URL for the NDFC API endpoint
+    """
+    return f"{get_management_ip()}{api_endpoint}"
 
-def check_status_code(r):
-    if r.status_code != 200:
-        print(f"Request Failed, Status code: {r.status_code}")
-        print(f"Error Message: {r.text}")
+def get_api_key_header() -> Dict[str, str]:
+    """
+    Get the API key from environment variable and format it as a header.
+    
+    Returns:
+        Dictionary with authorization header for API requests
+        
+    Raises:
+        SystemExit: If NDFC_API_KEY environment variable is not set
+    """
+    load_dotenv()
+    api_key = os.getenv("NDFC_API_KEY")
+    
+    if not api_key:
+        print("Error: NDFC_API_KEY environment variable not set.")
+        print("Please set your API key in your .env file or environment variables.")
         sys.exit(1)
 
-def parse_template_config(filename) -> str:
-    # Parse the json from the file and serialize it into a string
-    try:
-        with open(filename, "r") as file:
-            data = json.load(file)
-        json_string = json.dumps(data)
-        return json_string
-    except Exception as e:
-        print(f"Error: {e}")
-        return ""
+    return {
+        'X-Nd-Apikey': api_key,
+        'X-Nd-Username': 'admin',
+        'Content-Type': 'application/json'
+    }
+
+def check_status_code(response: requests.Response, operation_name: str = "API operation") -> bool:
+    """
+    Check HTTP response status and handle errors.
     
-def parse_freeform_config(filename) -> str:
-    # Parse the free form config from the file and serialize it into a string
+    Args:
+        response: HTTP response object from requests
+        operation_name: Descriptive name of the operation for error messages
+        
+    Returns:
+        True if successful, otherwise exits the program
+        
+    Raises:
+        SystemExit: If the response indicates failure
+    """
+    if response.status_code == 200:
+        print(f"✅ {operation_name} successful")
+        return True
+    else:
+        print(f"❌ {operation_name} failed")
+        print(f"Status Code: {response.status_code}")
+        print(f"Error Message: {response.text}")
+        sys.exit(1)
+
+def get_api_timeout() -> int:
+    """
+    Get API timeout value from environment variable or return default.
+    
+    Returns:
+        Timeout value in seconds (default: 30)
+    """
+    load_dotenv()
     try:
-        with open(filename, "r") as file:
-            data = file.read()
-        if "Banner.sh" in filename:
-            data = "`" + data + "`"
-        return data
-    except Exception as e:
-        print(f"Error: {e}")
-        return ""
+        return int(os.getenv('NDFC_API_TIMEOUT', '30'))
+    except ValueError:
+        return 30
+
+def validate_response_format(response: requests.Response, expected_format: str = 'json') -> bool:
+    """
+    Validate that the response is in the expected format.
+    
+    Args:
+        response: HTTP response object
+        expected_format: Expected response format ('json' or 'text')
+        
+    Returns:
+        True if response format is valid
+    """
+    if expected_format == 'json':
+        try:
+            response.json()
+            return True
+        except Exception:
+            return False
+    elif expected_format == 'text':
+        return isinstance(response.text, str)
+    else:
+        return False
+
+def prepare_api_payload(data: Dict[str, Any]) -> str:
+    """
+    Prepare data for API request by converting to JSON string.
+    
+    Args:
+        data: Dictionary to convert to JSON
+        
+    Returns:
+        JSON string representation of the data
+        
+    Raises:
+        ValueError: If data cannot be serialized to JSON
+    """
+    try:
+        import json
+        return json.dumps(data)
+    except (TypeError, ValueError) as e:
+        raise ValueError(f"Failed to serialize data to JSON: {e}")
+
+def handle_api_error(response: requests.Response, context: str = "API operation") -> None:
+    """
+    Enhanced error handling for API responses with detailed context.
+    
+    Args:
+        response: HTTP response object
+        context: Additional context about the failed operation
+    """
+    print(f"❌ {context} failed")
+    print(f"Status Code: {response.status_code}")
+    print(f"URL: {response.url}")
+    
+    # Try to extract detailed error information
+    try:
+        error_data = response.json()
+        if isinstance(error_data, dict):
+            error_message = error_data.get('message', error_data.get('error', 'Unknown error'))
+            print(f"Error Message: {error_message}")
+            
+            # Print additional error details if available
+            if 'details' in error_data:
+                print(f"Error Details: {error_data['details']}")
+        else:
+            print(f"Response: {error_data}")
+    except Exception:
+        print(f"Response: {response.text}")
+
+def verify_connectivity() -> bool:
+    """
+    Verify basic connectivity to NDFC management interface.
+    
+    Returns:
+        True if NDFC is reachable, False otherwise
+    """
+    try:
+        # Simple connectivity test to the management IP
+        response = requests.get(
+            get_management_ip(),
+            timeout=get_api_timeout(),
+            verify=False  # Disable SSL verification for self-signed certificates
+        )
+        return response.status_code in [200, 401, 403]  # Any response indicates connectivity
+    except requests.exceptions.RequestException:
+        return False
+
+def get_base_headers() -> Dict[str, str]:
+    """
+    Get base headers required for all API requests.
+    
+    Returns:
+        Dictionary with standard headers for NDFC API
+    """
+    return {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'User-Agent': 'NDFC-Fabric-Builder/1.0'
+    }
