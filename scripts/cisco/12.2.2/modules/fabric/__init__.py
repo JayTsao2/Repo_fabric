@@ -36,6 +36,16 @@ class FabricType(Enum):
     VXLAN_EVPN = "Easy_Fabric"
     MULTI_SITE_DOMAIN = "MSD_Fabric"
     INTER_SITE_NETWORK = "External_Fabric"
+    
+    @classmethod
+    def from_yaml_type(cls, yaml_type: str) -> Optional['FabricType']:
+        """Convert YAML fabric type string to FabricType enum."""
+        yaml_to_enum_mapping = {
+            "Data Center VXLAN EVPN": cls.VXLAN_EVPN,
+            "VXLAN EVPN Multi-Site": cls.MULTI_SITE_DOMAIN,
+            "Multi-Site Interconnect Network": cls.INTER_SITE_NETWORK
+        }
+        return yaml_to_enum_mapping.get(yaml_type)
 
 @dataclass
 class FabricConfig:
@@ -129,13 +139,7 @@ class PayloadGenerator:
             return None, None, None
 
         # Map fabric type string to FabricType enum and get template name
-        fabric_type_to_enum = {
-            "Data Center VXLAN EVPN": FabricType.VXLAN_EVPN,
-            "VXLAN EVPN Multi-Site": FabricType.MULTI_SITE_DOMAIN,
-            "Multi-Site Interconnect Network": FabricType.INTER_SITE_NETWORK
-        }
-        
-        fabric_enum = fabric_type_to_enum.get(fabric_type_str)
+        fabric_enum = FabricType.from_yaml_type(fabric_type_str)
         if not fabric_enum:
             print(f"Could not determine template for fabric type '{fabric_type_str}'.")
             return None, None, None
@@ -284,14 +288,9 @@ class BaseFabricMethods:
                     config_type = get_nested_value(fabric_config, ('Fabric', 'type'))
                     if config_type:
                         # Map the type string from YAML to FabricType enum
-                        type_mapping = {
-                            "Data Center VXLAN EVPN": FabricType.VXLAN_EVPN,
-                            "VXLAN EVPN Multi-Site": FabricType.MULTI_SITE_DOMAIN,
-                            "Multi-Site Interconnect Network": FabricType.INTER_SITE_NETWORK
-                        }
-                        
-                        if config_type in type_mapping:
-                            return type_mapping[config_type]
+                        fabric_enum = FabricType.from_yaml_type(config_type)
+                        if fabric_enum:
+                            return fabric_enum
                         else:
                             print(f"⚠️  Unknown fabric type in config: {config_type}")
         
