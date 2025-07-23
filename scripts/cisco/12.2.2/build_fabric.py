@@ -666,6 +666,27 @@ class FabricBuilderMethods:
             print(f"❌ Unsupported fabric type: {fabric_type}")
             return False
 
+    def build_fabric(self, fabric_name: str, fabric_type: FabricType) -> bool:
+        """
+        Generic method to build any type of fabric.
+        
+        Args:
+            fabric_name: Name of the fabric configuration file (without .yaml extension)
+            fabric_type: Type of fabric to build (VXLAN_EVPN, MULTI_SITE_DOMAIN, or INTER_SITE_NETWORK)
+        
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        if fabric_type == FabricType.VXLAN_EVPN:
+            return self.build_vxlan_evpn_fabric(fabric_name)
+        elif fabric_type == FabricType.MULTI_SITE_DOMAIN:
+            return self.build_multi_site_domain(fabric_name)
+        elif fabric_type == FabricType.INTER_SITE_NETWORK:
+            return self.build_inter_site_network(fabric_name)
+        else:
+            print(f"❌ Unsupported fabric type: {fabric_type}")
+            return False
+
 def main():
     """
     Main function to run the fabric build process.
@@ -682,26 +703,25 @@ def main():
     msd_to_build = "MSD-Test_15"
     isn_to_build = "ISN-Test"
     
-    # --- Build Data Center VXLAN EVPN Fabric ---
-    # Uncomment to build VXLAN EVPN fabric
-    # success = fabric_methods.build_vxlan_evpn_fabric(fabric_site_to_build)
-    # if not success:
-    #     print(f"Failed to build VXLAN EVPN fabric: {fabric_site_to_build}")
-    #     return 1
-
-    # --- Build Multi-Site Domain ---
-    # Uncomment to build Multi-Site Domain
-    # success = fabric_methods.build_multi_site_domain(msd_to_build)
-    # if not success:
-    #     print(f"Failed to build Multi-Site Domain: {msd_to_build}")
-    #     return 1
-
-    # --- Build Inter-Site Network ---
-    # Uncomment to build Inter-Site Network
-    # success = fabric_methods.build_inter_site_network(isn_to_build)
-    # if not success:
-    #     print(f"Failed to build Inter-Site Network: {isn_to_build}")
-    #     return 1
+    # --- Generic Build Method (Alternative way to build fabrics) ---
+    
+    # Build VXLAN EVPN fabric using generic method
+    success = fabric_methods.build_fabric(fabric_site_to_build, FabricType.VXLAN_EVPN)
+    if not success:
+        print(f"Failed to build VXLAN EVPN fabric: {fabric_site_to_build}")
+        return 1
+    
+    # Build Multi-Site Domain using generic method
+    success = fabric_methods.build_fabric(msd_to_build, FabricType.MULTI_SITE_DOMAIN)
+    if not success:
+        print(f"Failed to build Multi-Site Domain: {msd_to_build}")
+        return 1
+    
+    # Build Inter-Site Network using generic method
+    success = fabric_methods.build_fabric(isn_to_build, FabricType.INTER_SITE_NETWORK)
+    if not success:
+        print(f"Failed to build Inter-Site Network: {isn_to_build}")
+        return 1
 
     # --- Add Child Fabrics to MSD ---
     # Uncomment to add child fabrics to the MSD
