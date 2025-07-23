@@ -22,9 +22,9 @@ from enum import Enum
 sys.path.append(str(Path(__file__).parent.parent.absolute()))
 import api.fabric as fabric_api
 from modules.config_utils import (
-    load_yaml_file, load_json_file, merge_configs, 
+    load_yaml_file, merge_configs, 
     read_freeform_config, apply_field_mapping, 
-    get_nested_value, extract_child_fabrics_config,
+    get_nested_value,
     print_build_summary, validate_file_exists, 
     validate_configuration_files, flatten_config
 )
@@ -62,16 +62,6 @@ class FreeformPaths:
     spine: str = ""
     banner: str = ""
     fabric: str = ""
-
-@dataclass
-class ChildFabrics:
-    """Container for child fabric information."""
-    regular_fabrics: List[str]
-    isn_fabrics: List[str]
-    
-    def get_all_child_fabrics(self) -> List[str]:
-        """Get a list of all child fabrics (both regular and ISN)."""
-        return self.regular_fabrics + self.isn_fabrics
 
 # --- Utility Classes ---
 
@@ -302,7 +292,6 @@ __all__ = [
     'FabricType', 
     'FabricConfig', 
     'FreeformPaths', 
-    'ChildFabrics',
     'FabricBuilder', 
     'PayloadGenerator', 
     'BaseFabricMethods'
