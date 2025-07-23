@@ -78,7 +78,7 @@ def create_fabric(fabric_name: str, template_name: str, payload_data: Dict[str, 
         r = requests.post(url, headers=headers, data=json.dumps(cleaned_payload), verify=False)
         check_status_code(r)
 
-        print(f"Fabric {fabric_name} has been successfully created!")
+        # print(f"Fabric {fabric_name} has been successfully created!")
         return True
         
     except Exception as e:
@@ -110,7 +110,7 @@ def update_fabric(fabric_name: str, template_name: str, payload_data: Dict[str, 
         r = requests.put(url, headers=headers, data=json.dumps(cleaned_payload), verify=False)
         check_status_code(r)
 
-        print(f"Fabric {fabric_name} has been successfully updated!")
+        # print(f"Fabric {fabric_name} has been successfully updated!")
         return True
         
     except Exception as e:

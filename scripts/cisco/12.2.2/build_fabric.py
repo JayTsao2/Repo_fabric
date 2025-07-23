@@ -117,7 +117,7 @@ class PayloadGenerator:
         # Extract fabric name from filename
         config_file = Path(config.config_path)
         fabric_name = config_file.stem  # Gets filename without extension
-        print(f"Using fabric name from filename: {fabric_name}")
+        # print(f"Using fabric name from filename: {fabric_name}")
         
         # Load configurations
         fabric_config = load_yaml_file(config.config_path)
@@ -219,6 +219,103 @@ class FabricBuilderMethods:
         self.builder = FabricBuilder()
         self.payload_generator = PayloadGenerator()
     
+    def _get_fabric_specific_params(self, fabric_type: FabricType, payload_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Get fabric-type specific parameters and modifications."""
+        if fabric_type == FabricType.MULTI_SITE_DOMAIN:
+            payload_data["FABRIC_TYPE"] = "MFD"
+            payload_data["FF"] = "MSD"
+        elif fabric_type == FabricType.INTER_SITE_NETWORK:
+            payload_data.pop("SITE_ID", None)  # Remove SITE_ID if it exists
+            payload_data["FABRIC_TYPE"] = "External"
+            payload_data["EXT_FABRIC_TYPE"] = "Multi-Site External Network"
+        
+        return payload_data
+    
+    def _execute_fabric_operation(self, fabric_name: str, fabric_type: FabricType, operation: str = "create") -> bool:
+        """
+        Execute fabric operation (create or update) for any fabric type.
+        
+        Args:
+            fabric_name: Name of the fabric
+            fabric_type: Type of fabric to operate on
+            operation: "create" or "update"
+            
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        operation_verb = "Building" if operation == "create" else "Updating"
+        past_verb = "built" if operation == "create" else "updated"
+        
+        type_names = {
+            FabricType.VXLAN_EVPN: "VXLAN EVPN Fabric",
+            FabricType.MULTI_SITE_DOMAIN: "Multi-Site Domain",
+            FabricType.INTER_SITE_NETWORK: "Inter-Site Network"
+        }
+        
+        type_name = type_names.get(fabric_type, str(fabric_type))
+        print(f"\n=== {operation_verb} {type_name}: {fabric_name} ===")
+        
+        try:
+            # Get configuration and validate files for VXLAN EVPN
+            config = self.builder.get_fabric_config(fabric_type, fabric_name)
+            
+            if fabric_type == FabricType.VXLAN_EVPN:
+                required_files = [
+                    config.config_path, config.defaults_path, 
+                    config.field_mapping_path, config.template_map_path
+                ]
+                files_exist, missing_files = validate_configuration_files(required_files)
+                if not files_exist:
+                    print("❌ Missing required configuration files:")
+                    for file in missing_files:
+                        print(f"   - {file}")
+                    return False
+            
+            # Generate payload
+            payload_data, template_name, fabric_name_from_file = self.payload_generator.prepare_fabric_payload(config)
+            if not payload_data or not template_name or not fabric_name_from_file:
+                print(f"Failed to generate payload for {type_name} {operation}")
+                return False
+            
+            # Apply fabric-specific parameters
+            payload_data = self._get_fabric_specific_params(fabric_type, payload_data)
+            
+            # Get freeform paths and add content to payload (for VXLAN_EVPN and ISN)
+            if fabric_type in [FabricType.VXLAN_EVPN, FabricType.INTER_SITE_NETWORK]:
+                freeform_paths = self.get_freeform_paths(fabric_name, fabric_type)
+                self.payload_generator.add_freeform_content_to_payload(payload_data, template_name, freeform_paths)
+            
+            print(f"Calling {operation}_fabric API for {type_name}...")
+            
+            # Call appropriate fabric API
+            if operation == "create":
+                success = fabric_api.create_fabric(
+                    fabric_name=fabric_name_from_file,
+                    template_name=template_name,
+                    payload_data=payload_data
+                )
+            else:  # update
+                success = fabric_api.update_fabric(
+                    fabric_name=fabric_name_from_file,
+                    template_name=template_name,
+                    payload_data=payload_data
+                )
+            
+            if success:
+                operation_suffix = " Update" if operation == "update" else ""
+                print_build_summary(f"{type_name}{operation_suffix}", fabric_name, True, past_verb if operation == "update" else "created")
+                return True
+            else:
+                operation_suffix = " Update" if operation == "update" else ""
+                print_build_summary(f"{type_name}{operation_suffix}", fabric_name, False, past_verb if operation == "update" else "created")
+                return False
+                
+        except Exception as e:
+            print(f"❌ Error {operation}ing {type_name} {fabric_name}: {e}")
+            operation_suffix = " Update" if operation == "update" else ""
+            print_build_summary(f"{type_name}{operation_suffix}", fabric_name, False, past_verb if operation == "update" else "created")
+            return False
+    
     def get_freeform_paths(self, fabric_name: str, fabric_type: FabricType) -> FreeformPaths:
         """Get freeform configuration file paths for a fabric."""
         freeform_paths = FreeformPaths()
@@ -267,238 +364,110 @@ class FabricBuilderMethods:
 
     def build_vxlan_evpn_fabric(self, fabric_site_name: str) -> bool:
         """Build a VXLAN EVPN fabric configuration."""
-        print(f"\n=== Building VXLAN EVPN Fabric: {fabric_site_name} ===")
-        
-        try:
-            # Get configuration and validate files
-            config = self.builder.get_fabric_config(FabricType.VXLAN_EVPN, fabric_site_name)
-            
-            # Check required files
-            required_files = [
-                config.config_path,
-                config.defaults_path, 
-                config.field_mapping_path,
-                config.template_map_path
-            ]
-            files_exist, missing_files = validate_configuration_files(required_files)
-            if not files_exist:
-                print("❌ Missing required configuration files:")
-                for file in missing_files:
-                    print(f"   - {file}")
-                return False
-            
-            # Generate payload
-            payload_data, template_name, fabric_name = self.payload_generator.prepare_fabric_payload(config)
-            if not payload_data or not template_name or not fabric_name:
-                print("Failed to generate payload for VXLAN EVPN fabric")
-                return False
-            
-            # Get freeform paths and add content to payload
-            freeform_paths = self.get_freeform_paths(fabric_site_name, FabricType.VXLAN_EVPN)
-            self.payload_generator.add_freeform_content_to_payload(payload_data, template_name, freeform_paths)
-            
-            print("Calling create_fabric API for VXLAN EVPN Fabric...")
-            
-            # Call fabric API directly with payload data
-            success = fabric_api.create_fabric(
-                fabric_name=fabric_name,
-                template_name=template_name,
-                payload_data=payload_data
-            )
-            
-            if success:
-                print_build_summary("VXLAN EVPN Fabric", fabric_site_name, True)
-                return True
-            else:
-                print_build_summary("VXLAN EVPN Fabric", fabric_site_name, False)
-                return False
-            
-        except Exception as e:
-            print(f"❌ Error building VXLAN EVPN fabric {fabric_site_name}: {e}")
-            print_build_summary("VXLAN EVPN Fabric", fabric_site_name, False)
-            return False
+        return self._execute_fabric_operation(fabric_site_name, FabricType.VXLAN_EVPN, "create")
 
     def build_multi_site_domain(self, msd_name: str) -> bool:
         """Build a Multi-Site Domain (MSD) configuration."""
-        print(f"\n=== Building Multi-Site Domain: {msd_name} ===")
-        
-        try:
-            # Get configuration and generate payload
-            config = self.builder.get_fabric_config(FabricType.MULTI_SITE_DOMAIN, msd_name)
-            payload_data, template_name, fabric_name = self.payload_generator.prepare_fabric_payload(config)
-            
-            if not payload_data or not template_name or not fabric_name:
-                print("Failed to generate payload for Multi-Site Domain")
-                return False
-            
-            # Set MSD-specific parameters
-            payload_data["FABRIC_TYPE"] = "MFD"
-            payload_data["FF"] = "MSD"
-            
-            print("Calling create_fabric API for Multi-Site Domain...")
-            
-            # Call fabric API directly with payload data
-            success = fabric_api.create_fabric(
-                fabric_name=fabric_name,
-                template_name=template_name,
-                payload_data=payload_data
-            )
-            
-            if success:
-                print_build_summary("Multi-Site Domain", msd_name, True)
-                return True
-            else:
-                print_build_summary("Multi-Site Domain", msd_name, False)
-                return False
-            
-        except Exception as e:
-            print(f"❌ Error building Multi-Site Domain {msd_name}: {e}")
-            print_build_summary("Multi-Site Domain", msd_name, False)
-            return False
+        return self._execute_fabric_operation(msd_name, FabricType.MULTI_SITE_DOMAIN, "create")
 
-    def _add_child_fabrics_to_msd(self, msd_name: str, child_fabrics: ChildFabrics) -> bool:
-        """Add child fabrics to the MSD."""
-        print(f"\n=== Adding Child Fabrics to MSD: {msd_name} ===")
+    def build_inter_site_network(self, isn_name: str) -> bool:
+        """Build an Inter-Site Network (ISN) configuration."""
+        return self._execute_fabric_operation(isn_name, FabricType.INTER_SITE_NETWORK, "create")
+
+    def update_vxlan_evpn_fabric(self, fabric_site_name: str) -> bool:
+        """Update an existing VXLAN EVPN fabric configuration."""
+        return self._execute_fabric_operation(fabric_site_name, FabricType.VXLAN_EVPN, "update")
+
+    def update_multi_site_domain(self, msd_name: str) -> bool:
+        """Update an existing Multi-Site Domain (MSD) configuration."""
+        return self._execute_fabric_operation(msd_name, FabricType.MULTI_SITE_DOMAIN, "update")
+
+    def update_inter_site_network(self, isn_name: str) -> bool:
+        """Update an existing Inter-Site Network (ISN) configuration."""
+        return self._execute_fabric_operation(isn_name, FabricType.INTER_SITE_NETWORK, "update")
+
+    def _get_child_fabrics_from_msd_config(self, msd_name: str) -> Optional[ChildFabrics]:
+        """Load child fabric information from MSD configuration file."""
+        try:
+            config = self.builder.get_fabric_config(FabricType.MULTI_SITE_DOMAIN, msd_name)
+            fabric_config = load_yaml_file(config.config_path)
+            
+            if not fabric_config:
+                print(f"Failed to load configuration for MSD '{msd_name}'")
+                return None
+            
+            # Extract child fabric information
+            child_fabrics_info = extract_child_fabrics_config(fabric_config)
+            return ChildFabrics(
+                regular_fabrics=child_fabrics_info.get("regular_fabrics", []),
+                isn_fabrics=child_fabrics_info.get("isn_fabrics", [])
+            )
+        except Exception as e:
+            print(f"❌ Error loading child fabrics configuration for MSD {msd_name}: {e}")
+            return None
+
+    def _execute_msd_child_fabric_operation(self, msd_name: str, operation: str) -> bool:
+        """
+        Execute add or remove operation for child fabrics in MSD.
         
+        Args:
+            msd_name: Name of the MSD
+            operation: "add" or "remove"
+            
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        operation_verb = "Adding" if operation == "add" else "Removing"
+        operation_preposition = "to" if operation == "add" else "from"
+        
+        print(f"\n=== {operation_verb} Child Fabrics {operation_preposition} MSD: {msd_name} ===")
+        
+        # Load child fabric configuration
+        child_fabrics = self._get_child_fabrics_from_msd_config(msd_name)
+        if not child_fabrics:
+            return False
+        
+        print(f"Found child fabrics: Regular={child_fabrics.regular_fabrics}, ISN={child_fabrics.isn_fabrics}")
+        
+        if not child_fabrics.get_all_child_fabrics():
+            print(f"No child fabrics found in configuration for MSD '{msd_name}'")
+            return True
+        
+        # Execute operation on each child fabric
         all_success = True
         all_child_fabrics = child_fabrics.get_all_child_fabrics()
         
         for child_fabric in all_child_fabrics:
             try:
-                print(f"Adding child fabric '{child_fabric}' to MSD '{msd_name}'...")
-                fabric_api.add_MSD(parent_fabric_name=msd_name, child_fabric_name=child_fabric)
-                print(f"✅ Successfully added '{child_fabric}' to '{msd_name}'")
+                print(f"{operation_verb} child fabric '{child_fabric}' {operation_preposition} MSD '{msd_name}'...")
+                
+                if operation == "add":
+                    fabric_api.add_MSD(parent_fabric_name=msd_name, child_fabric_name=child_fabric)
+                    print(f"✅ Successfully added '{child_fabric}' to '{msd_name}'")
+                else:  # remove
+                    fabric_api.remove_MSD(parent_fabric_name=msd_name, child_fabric_name=child_fabric)
+                    print(f"✅ Successfully removed '{child_fabric}' from '{msd_name}'")
+                    
             except Exception as e:
-                print(f"❌ Failed to add '{child_fabric}' to '{msd_name}': {e}")
+                print(f"❌ Failed to {operation} '{child_fabric}' {operation_preposition} '{msd_name}': {e}")
                 all_success = False
         
         if all_success:
-            print(f"✅ All child fabrics successfully added to MSD '{msd_name}'")
+            action_past = "added to" if operation == "add" else "removed from"
+            print(f"✅ All child fabrics successfully {action_past} MSD '{msd_name}'")
         else:
-            print(f"⚠️  Some child fabrics failed to be added to MSD '{msd_name}'")
+            action_past = "be added to" if operation == "add" else "be removed from"
+            print(f"⚠️  Some child fabrics failed to {action_past} MSD '{msd_name}'")
         
         return all_success
 
     def add_child_fabrics_to_msd(self, msd_name: str) -> bool:
         """Add child fabrics to an MSD based on its configuration file."""
-        print(f"\n=== Adding Child Fabrics to MSD: {msd_name} ===")
-        
-        try:
-            # Load the MSD configuration
-            config = self.builder.get_fabric_config(FabricType.MULTI_SITE_DOMAIN, msd_name)
-            fabric_config = load_yaml_file(config.config_path)
-            
-            if not fabric_config:
-                print(f"Failed to load configuration for MSD '{msd_name}'")
-                return False
-            
-            # Extract child fabric information
-            child_fabrics_info = extract_child_fabrics_config(fabric_config)
-            child_fabrics = ChildFabrics(
-                regular_fabrics=child_fabrics_info.get("regular_fabrics", []),
-                isn_fabrics=child_fabrics_info.get("isn_fabrics", [])
-            )
-            print(f"Found child fabrics: Regular={child_fabrics.regular_fabrics}, ISN={child_fabrics.isn_fabrics}")
-            
-            if not child_fabrics.get_all_child_fabrics():
-                print(f"No child fabrics found in configuration for MSD '{msd_name}'")
-                return True
-            
-            # Add child fabrics
-            return self._add_child_fabrics_to_msd(msd_name, child_fabrics)
-            
-        except Exception as e:
-            print(f"❌ Error adding child fabrics to MSD {msd_name}: {e}")
-            return False
+        return self._execute_msd_child_fabric_operation(msd_name, "add")
 
     def remove_child_fabrics_from_msd(self, msd_name: str) -> bool:
         """Remove child fabrics from an MSD based on its configuration file."""
-        print(f"\n=== Removing Child Fabrics from MSD: {msd_name} ===")
-        
-        try:
-            # Load the MSD configuration
-            config = self.builder.get_fabric_config(FabricType.MULTI_SITE_DOMAIN, msd_name)
-            fabric_config = load_yaml_file(config.config_path)
-            
-            if not fabric_config:
-                print(f"Failed to load configuration for MSD '{msd_name}'")
-                return False
-            
-            # Extract child fabric information
-            child_fabrics_info = extract_child_fabrics_config(fabric_config)
-            child_fabrics = ChildFabrics(
-                regular_fabrics=child_fabrics_info.get("regular_fabrics", []),
-                isn_fabrics=child_fabrics_info.get("isn_fabrics", [])
-            )
-            
-            if not child_fabrics.get_all_child_fabrics():
-                print(f"No child fabrics found in configuration for MSD '{msd_name}'")
-                return True
-            
-            all_success = True
-            all_child_fabrics = child_fabrics.get_all_child_fabrics()
-            
-            for child_fabric in all_child_fabrics:
-                try:
-                    print(f"Removing child fabric '{child_fabric}' from MSD '{msd_name}'...")
-                    fabric_api.remove_MSD(parent_fabric_name=msd_name, child_fabric_name=child_fabric)
-                    print(f"✅ Successfully removed '{child_fabric}' from '{msd_name}'")
-                except Exception as e:
-                    print(f"❌ Failed to remove '{child_fabric}' from '{msd_name}': {e}")
-                    all_success = False
-            
-            if all_success:
-                print(f"✅ All child fabrics successfully removed from MSD '{msd_name}'")
-            else:
-                print(f"⚠️  Some child fabrics failed to be removed from MSD '{msd_name}'")
-            
-            return all_success
-            
-        except Exception as e:
-            print(f"❌ Error removing child fabrics from MSD {msd_name}: {e}")
-            return False
-
-    def build_inter_site_network(self, isn_name: str) -> bool:
-        """Build an Inter-Site Network (ISN) configuration."""
-        print(f"\n=== Building Inter-Site Network: {isn_name} ===")
-        
-        try:
-            # Get configuration and generate payload
-            config = self.builder.get_fabric_config(FabricType.INTER_SITE_NETWORK, isn_name)
-            payload_data, template_name, fabric_name = self.payload_generator.prepare_fabric_payload(config)
-            
-            if not payload_data or not template_name or not fabric_name:
-                print("Failed to generate payload for Inter-Site Network")
-                return False
-            
-            # Set ISN-specific parameters
-            payload_data.pop("SITE_ID", None)  # Remove SITE_ID if it exists
-            payload_data["FABRIC_TYPE"] = "External"
-            payload_data["EXT_FABRIC_TYPE"] = "Multi-Site External Network"
-            
-            # Get freeform paths and add content to payload
-            freeform_paths = self.get_freeform_paths(isn_name, FabricType.INTER_SITE_NETWORK)
-            self.payload_generator.add_freeform_content_to_payload(payload_data, template_name, freeform_paths)
-            
-            print("Calling create_fabric API for Inter-Site Network...")
-            
-            # Call fabric API directly with payload data
-            success = fabric_api.create_fabric(
-                fabric_name=fabric_name,
-                template_name=template_name,
-                payload_data=payload_data
-            )
-            
-            if success:
-                print(f"✅ Successfully built Inter-Site Network: {isn_name}")
-                return True
-            else:
-                print(f"❌ Failed to build Inter-Site Network: {isn_name}")
-                return False
-            
-        except Exception as e:
-            print(f"❌ Error building Inter-Site Network {isn_name}: {e}")
-            return False
+        return self._execute_msd_child_fabric_operation(msd_name, "remove")
 
     def link_fabrics(self, parent_fabric: str, child_fabric: str) -> bool:
         """Link a child fabric to a parent fabric."""
@@ -510,139 +479,6 @@ class FabricBuilderMethods:
             return True
         except Exception as e:
             print(f"❌ Error linking fabrics: {e}")
-            return False
-
-    def update_vxlan_evpn_fabric(self, fabric_site_name: str) -> bool:
-        """Update an existing VXLAN EVPN fabric configuration."""
-        print(f"\n=== Updating VXLAN EVPN Fabric: {fabric_site_name} ===")
-        
-        try:
-            # Get configuration and validate files
-            config = self.builder.get_fabric_config(FabricType.VXLAN_EVPN, fabric_site_name)
-            
-            # Check required files
-            required_files = [
-                config.config_path,
-                config.defaults_path, 
-                config.field_mapping_path,
-                config.template_map_path
-            ]
-            files_exist, missing_files = validate_configuration_files(required_files)
-            if not files_exist:
-                print("❌ Missing required configuration files:")
-                for file in missing_files:
-                    print(f"   - {file}")
-                return False
-            
-            # Generate payload
-            payload_data, template_name, fabric_name = self.payload_generator.prepare_fabric_payload(config)
-            if not payload_data or not template_name or not fabric_name:
-                print("Failed to generate payload for VXLAN EVPN fabric update")
-                return False
-            
-            # Get freeform paths and add content to payload
-            freeform_paths = self.get_freeform_paths(fabric_site_name, FabricType.VXLAN_EVPN)
-            self.payload_generator.add_freeform_content_to_payload(payload_data, template_name, freeform_paths)
-            
-            print("Calling update_fabric API for VXLAN EVPN Fabric...")
-            
-            # Call fabric API to update the fabric
-            success = fabric_api.update_fabric(
-                fabric_name=fabric_name,
-                template_name=template_name,
-                payload_data=payload_data
-            )
-            
-            if success:
-                print_build_summary("VXLAN EVPN Fabric Update", fabric_site_name, True, "updated")
-                return True
-            else:
-                print_build_summary("VXLAN EVPN Fabric Update", fabric_site_name, False, "updated")
-                return False
-            
-        except Exception as e:
-            print(f"❌ Error updating VXLAN EVPN fabric {fabric_site_name}: {e}")
-            print_build_summary("VXLAN EVPN Fabric Update", fabric_site_name, False, "updated")
-            return False
-
-    def update_multi_site_domain(self, msd_name: str) -> bool:
-        """Update an existing Multi-Site Domain (MSD) configuration."""
-        print(f"\n=== Updating Multi-Site Domain: {msd_name} ===")
-        
-        try:
-            # Get configuration and generate payload
-            config = self.builder.get_fabric_config(FabricType.MULTI_SITE_DOMAIN, msd_name)
-            payload_data, template_name, fabric_name = self.payload_generator.prepare_fabric_payload(config)
-            
-            if not payload_data or not template_name or not fabric_name:
-                print("Failed to generate payload for Multi-Site Domain update")
-                return False
-            
-            # Set MSD-specific parameters
-            payload_data["FABRIC_TYPE"] = "MFD"
-            payload_data["FF"] = "MSD"
-            
-            print("Calling update_fabric API for Multi-Site Domain...")
-            
-            # Call fabric API to update the fabric
-            success = fabric_api.update_fabric(
-                fabric_name=fabric_name,
-                template_name=template_name,
-                payload_data=payload_data
-            )
-            
-            if success:
-                print_build_summary("Multi-Site Domain Update", msd_name, True, "updated")
-                return True
-            else:
-                print_build_summary("Multi-Site Domain Update", msd_name, False, "updated")
-                return False
-            
-        except Exception as e:
-            print(f"❌ Error updating Multi-Site Domain {msd_name}: {e}")
-            print_build_summary("Multi-Site Domain Update", msd_name, False, "updated")
-            return False
-
-    def update_inter_site_network(self, isn_name: str) -> bool:
-        """Update an existing Inter-Site Network (ISN) configuration."""
-        print(f"\n=== Updating Inter-Site Network: {isn_name} ===")
-        
-        try:
-            # Get configuration and generate payload
-            config = self.builder.get_fabric_config(FabricType.INTER_SITE_NETWORK, isn_name)
-            payload_data, template_name, fabric_name = self.payload_generator.prepare_fabric_payload(config)
-            
-            if not payload_data or not template_name or not fabric_name:
-                print("Failed to generate payload for Inter-Site Network update")
-                return False
-            
-            # Set ISN-specific parameters
-            payload_data.pop("SITE_ID", None)  # Remove SITE_ID if it exists
-            payload_data["FABRIC_TYPE"] = "External"
-            payload_data["EXT_FABRIC_TYPE"] = "Multi-Site External Network"
-            
-            # Get freeform paths and add content to payload
-            freeform_paths = self.get_freeform_paths(isn_name, FabricType.INTER_SITE_NETWORK)
-            self.payload_generator.add_freeform_content_to_payload(payload_data, template_name, freeform_paths)
-            
-            print("Calling update_fabric API for Inter-Site Network...")
-            
-            # Call fabric API to update the fabric
-            success = fabric_api.update_fabric(
-                fabric_name=fabric_name,
-                template_name=template_name,
-                payload_data=payload_data
-            )
-            
-            if success:
-                print(f"✅ Successfully updated Inter-Site Network: {isn_name}")
-                return True
-            else:
-                print(f"❌ Failed to update Inter-Site Network: {isn_name}")
-                return False
-            
-        except Exception as e:
-            print(f"❌ Error updating Inter-Site Network {isn_name}: {e}")
             return False
 
     def _determine_fabric_type_from_file(self, fabric_name: str) -> Optional[FabricType]:
@@ -668,7 +504,7 @@ class FabricBuilderMethods:
                 if fabric_config:
                     config_type = get_nested_value(fabric_config, ('Fabric', 'type'))
                     if config_type:
-                        print(f"Found fabric type in {config_path}: {config_type}")
+                        # print(f"Found fabric type in {config_path}: {config_type}")
                         
                         # Map the type string from YAML to FabricType enum
                         type_mapping = {
@@ -679,7 +515,7 @@ class FabricBuilderMethods:
                         
                         if config_type in type_mapping:
                             determined_type = type_mapping[config_type]
-                            print(f"Mapped to FabricType: {determined_type}")
+                            # print(f"Mapped to FabricType: {determined_type}")
                             return determined_type
                         else:
                             print(f"⚠️  Unknown fabric type in config: {config_type}")
@@ -704,7 +540,7 @@ class FabricBuilderMethods:
             print(f"❌ Cannot determine fabric type for: {fabric_name}")
             return False
         
-        print(f"Updating fabric '{fabric_name}' of type: {fabric_type}")
+        # print(f"Updating fabric '{fabric_name}' of type: {fabric_type}")
         
         if fabric_type == FabricType.VXLAN_EVPN:
             return self.update_vxlan_evpn_fabric(fabric_name)
@@ -769,20 +605,20 @@ def main():
     #     print(f"Failed to build fabric: {fabric_site_to_build}")
     #     return 1
     
-    # Build Multi-Site Domain using generic method (fabric type determined from YAML)
+    # # Build Multi-Site Domain using generic method (fabric type determined from YAML)
     # success = fabric_methods.build_fabric(msd_to_build)
     # if not success:
     #     print(f"Failed to build fabric: {msd_to_build}")
     #     return 1
     
-    # Build Inter-Site Network using generic method (fabric type determined from YAML)
+    # # Build Inter-Site Network using generic method (fabric type determined from YAML)
     # success = fabric_methods.build_fabric(isn_to_build)
     # if not success:
     #     print(f"Failed to build fabric: {isn_to_build}")
     #     return 1
 
-    # --- Add Child Fabrics to MSD ---
-    # Uncomment to add child fabrics to the MSD
+    # # --- Add Child Fabrics to MSD ---
+    # # Uncomment to add child fabrics to the MSD
     # success = fabric_methods.add_child_fabrics_to_msd(msd_to_build)
     # if not success:
     #     print(f"Failed to add child fabrics to MSD: {msd_to_build}")
