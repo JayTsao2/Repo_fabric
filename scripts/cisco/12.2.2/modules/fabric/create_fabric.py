@@ -10,7 +10,6 @@ This module handles fabric creation operations:
 """
 
 import sys
-from typing import Optional
 from pathlib import Path
 
 # Add parent directory to path to access api and config_utils
@@ -20,7 +19,6 @@ from config_utils import print_build_summary, validate_configuration_files
 from . import (
     FabricType, 
     BaseFabricMethods, 
-    load_yaml_file
 )
 
 class FabricCreator(BaseFabricMethods):
@@ -97,18 +95,6 @@ class FabricCreator(BaseFabricMethods):
             print_build_summary(type_name, fabric_name, False, "created")
             return False
 
-    def build_vxlan_evpn_fabric(self, fabric_site_name: str) -> bool:
-        """Build a VXLAN EVPN fabric configuration."""
-        return self._execute_fabric_creation(fabric_site_name, FabricType.VXLAN_EVPN)
-
-    def build_multi_site_domain(self, msd_name: str) -> bool:
-        """Build a Multi-Site Domain (MSD) configuration."""
-        return self._execute_fabric_creation(msd_name, FabricType.MULTI_SITE_DOMAIN)
-
-    def build_inter_site_network(self, isn_name: str) -> bool:
-        """Build an Inter-Site Network (ISN) configuration."""
-        return self._execute_fabric_creation(isn_name, FabricType.INTER_SITE_NETWORK)
-
     def link_fabrics(self, parent_fabric: str, child_fabric: str) -> bool:
         """Link a child fabric to a parent fabric."""
         print(f"\n=== Linking {child_fabric} to {parent_fabric} ===")
@@ -146,21 +132,13 @@ class FabricCreator(BaseFabricMethods):
         """
         # Determine fabric type from the configuration file
         fabric_type = self._determine_fabric_type_from_file(fabric_name)
-        if not fabric_type:
-            print(f"❌ Cannot determine fabric type for: {fabric_name}")
-            return False
         
-        # print(f"Building fabric '{fabric_name}' of type: {fabric_type}")
-        
-        if fabric_type == FabricType.VXLAN_EVPN:
-            return self.build_vxlan_evpn_fabric(fabric_name)
-        elif fabric_type == FabricType.MULTI_SITE_DOMAIN:
-            return self.build_multi_site_domain(fabric_name)
-        elif fabric_type == FabricType.INTER_SITE_NETWORK:
-            return self.build_inter_site_network(fabric_name)
-        else:
+        # Check if the fabric type is supported
+        if not fabric_type or fabric_type not in FabricType:
             print(f"❌ Unsupported fabric type: {fabric_type}")
             return False
+
+        return self._execute_fabric_creation(fabric_name, fabric_type)
 
 
 def main():

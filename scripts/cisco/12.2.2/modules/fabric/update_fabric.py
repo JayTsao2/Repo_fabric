@@ -91,18 +91,6 @@ class FabricUpdater(BaseFabricMethods):
             print_build_summary(f"{type_name} Update", fabric_name, False, "updated")
             return False
 
-    def update_vxlan_evpn_fabric(self, fabric_site_name: str) -> bool:
-        """Update an existing VXLAN EVPN fabric configuration."""
-        return self._execute_fabric_update(fabric_site_name, FabricType.VXLAN_EVPN)
-
-    def update_multi_site_domain(self, msd_name: str) -> bool:
-        """Update an existing Multi-Site Domain (MSD) configuration."""
-        return self._execute_fabric_update(msd_name, FabricType.MULTI_SITE_DOMAIN)
-
-    def update_inter_site_network(self, isn_name: str) -> bool:
-        """Update an existing Inter-Site Network (ISN) configuration."""
-        return self._execute_fabric_update(isn_name, FabricType.INTER_SITE_NETWORK)
-
     def update_fabric(self, fabric_name: str) -> bool:
         """
         Generic method to update any type of fabric.
@@ -116,19 +104,13 @@ class FabricUpdater(BaseFabricMethods):
         """
         # Determine fabric type from the configuration file
         fabric_type = self._determine_fabric_type_from_file(fabric_name)
-        if not fabric_type:
-            print(f"❌ Cannot determine fabric type for: {fabric_name}")
-            return False
-        
-        if fabric_type == FabricType.VXLAN_EVPN:
-            return self.update_vxlan_evpn_fabric(fabric_name)
-        elif fabric_type == FabricType.MULTI_SITE_DOMAIN:
-            return self.update_multi_site_domain(fabric_name)
-        elif fabric_type == FabricType.INTER_SITE_NETWORK:
-            return self.update_inter_site_network(fabric_name)
-        else:
+
+        # Check if the fabric type is supported
+        if not fabric_type or fabric_type not in FabricType:
             print(f"❌ Unsupported fabric type: {fabric_type}")
             return False
+
+        return self._execute_fabric_update(fabric_name, fabric_type)
 
 
 def main():
