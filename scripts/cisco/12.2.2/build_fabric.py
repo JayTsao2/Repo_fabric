@@ -645,17 +645,67 @@ class FabricBuilderMethods:
             print(f"❌ Error updating Inter-Site Network {isn_name}: {e}")
             return False
 
-    def update_fabric(self, fabric_name: str, fabric_type: FabricType) -> bool:
+    def _determine_fabric_type_from_file(self, fabric_name: str) -> Optional[FabricType]:
         """
-        Generic method to update any type of fabric.
+        Determine the fabric type by reading the YAML configuration file.
         
         Args:
             fabric_name: Name of the fabric configuration file (without .yaml extension)
-            fabric_type: Type of fabric to update (VXLAN_EVPN, MULTI_SITE_DOMAIN, or INTER_SITE_NETWORK)
+            
+        Returns:
+            FabricType or None if type cannot be determined
+        """
+        # Try each possible fabric type configuration path
+        possible_paths = [
+            (FabricType.VXLAN_EVPN, str(self.builder.project_root / "network_configs" / "1_vxlan_evpn" / "fabric" / f"{fabric_name}.yaml")),
+            (FabricType.MULTI_SITE_DOMAIN, str(self.builder.project_root / "network_configs" / "1_vxlan_evpn" / "multisite_deployment" / f"{fabric_name}.yaml")),
+            (FabricType.INTER_SITE_NETWORK, str(self.builder.project_root / "network_configs" / "1_vxlan_evpn" / "inter-site_network" / f"{fabric_name}.yaml"))
+        ]
+        
+        for fabric_type, config_path in possible_paths:
+            if validate_file_exists(config_path):
+                fabric_config = load_yaml_file(config_path)
+                if fabric_config:
+                    config_type = get_nested_value(fabric_config, ('Fabric', 'type'))
+                    if config_type:
+                        print(f"Found fabric type in {config_path}: {config_type}")
+                        
+                        # Map the type string from YAML to FabricType enum
+                        type_mapping = {
+                            "Data Center VXLAN EVPN": FabricType.VXLAN_EVPN,
+                            "VXLAN EVPN Multi-Site": FabricType.MULTI_SITE_DOMAIN,
+                            "Multi-Site Interconnect Network": FabricType.INTER_SITE_NETWORK
+                        }
+                        
+                        if config_type in type_mapping:
+                            determined_type = type_mapping[config_type]
+                            print(f"Mapped to FabricType: {determined_type}")
+                            return determined_type
+                        else:
+                            print(f"⚠️  Unknown fabric type in config: {config_type}")
+        
+        print(f"❌ Could not determine fabric type for: {fabric_name}")
+        return None
+
+    def update_fabric(self, fabric_name: str) -> bool:
+        """
+        Generic method to update any type of fabric.
+        Determines the fabric type from the YAML configuration file.
+        
+        Args:
+            fabric_name: Name of the fabric configuration file (without .yaml extension)
         
         Returns:
             bool: True if successful, False otherwise
         """
+        # Determine fabric type from the configuration file
+        fabric_type = self._determine_fabric_type_from_file(fabric_name)
+        if not fabric_type:
+            print(f"❌ Cannot determine fabric type for: {fabric_name}")
+            return False
+        
+        print(f"Updating fabric '{fabric_name}' of type: {fabric_type}")
+        
         if fabric_type == FabricType.VXLAN_EVPN:
             return self.update_vxlan_evpn_fabric(fabric_name)
         elif fabric_type == FabricType.MULTI_SITE_DOMAIN:
@@ -666,17 +716,25 @@ class FabricBuilderMethods:
             print(f"❌ Unsupported fabric type: {fabric_type}")
             return False
 
-    def build_fabric(self, fabric_name: str, fabric_type: FabricType) -> bool:
+    def build_fabric(self, fabric_name: str) -> bool:
         """
         Generic method to build any type of fabric.
+        Determines the fabric type from the YAML configuration file.
         
         Args:
             fabric_name: Name of the fabric configuration file (without .yaml extension)
-            fabric_type: Type of fabric to build (VXLAN_EVPN, MULTI_SITE_DOMAIN, or INTER_SITE_NETWORK)
         
         Returns:
             bool: True if successful, False otherwise
         """
+        # Determine fabric type from the configuration file
+        fabric_type = self._determine_fabric_type_from_file(fabric_name)
+        if not fabric_type:
+            print(f"❌ Cannot determine fabric type for: {fabric_name}")
+            return False
+        
+        print(f"Building fabric '{fabric_name}' of type: {fabric_type}")
+        
         if fabric_type == FabricType.VXLAN_EVPN:
             return self.build_vxlan_evpn_fabric(fabric_name)
         elif fabric_type == FabricType.MULTI_SITE_DOMAIN:
@@ -703,25 +761,25 @@ def main():
     msd_to_build = "MSD-Test_15"
     isn_to_build = "ISN-Test"
     
-    # --- Generic Build Method (Alternative way to build fabrics) ---
+    # --- Generic Build Method (reads fabric type from YAML files) ---
     
-    # Build VXLAN EVPN fabric using generic method
-    success = fabric_methods.build_fabric(fabric_site_to_build, FabricType.VXLAN_EVPN)
-    if not success:
-        print(f"Failed to build VXLAN EVPN fabric: {fabric_site_to_build}")
-        return 1
+    # Build VXLAN EVPN fabric using generic method (fabric type determined from YAML)
+    # success = fabric_methods.build_fabric(fabric_site_to_build)
+    # if not success:
+    #     print(f"Failed to build fabric: {fabric_site_to_build}")
+    #     return 1
     
-    # Build Multi-Site Domain using generic method
-    success = fabric_methods.build_fabric(msd_to_build, FabricType.MULTI_SITE_DOMAIN)
-    if not success:
-        print(f"Failed to build Multi-Site Domain: {msd_to_build}")
-        return 1
+    # Build Multi-Site Domain using generic method (fabric type determined from YAML)
+    # success = fabric_methods.build_fabric(msd_to_build)
+    # if not success:
+    #     print(f"Failed to build fabric: {msd_to_build}")
+    #     return 1
     
-    # Build Inter-Site Network using generic method
-    success = fabric_methods.build_fabric(isn_to_build, FabricType.INTER_SITE_NETWORK)
-    if not success:
-        print(f"Failed to build Inter-Site Network: {isn_to_build}")
-        return 1
+    # Build Inter-Site Network using generic method (fabric type determined from YAML)
+    # success = fabric_methods.build_fabric(isn_to_build)
+    # if not success:
+    #     print(f"Failed to build fabric: {isn_to_build}")
+    #     return 1
 
     # --- Add Child Fabrics to MSD ---
     # Uncomment to add child fabrics to the MSD
@@ -733,29 +791,28 @@ def main():
     # --- Update Existing Fabrics ---
     # Uncomment to update existing fabrics instead of creating new ones
     
-    # Update VXLAN EVPN fabric
-    success = fabric_methods.update_vxlan_evpn_fabric(fabric_site_to_build)
+    # Update VXLAN EVPN fabric (fabric type determined from YAML)
+    success = fabric_methods.update_fabric(fabric_site_to_build)
     if not success:
-        print(f"Failed to update VXLAN EVPN fabric: {fabric_site_to_build}")
+        print(f"Failed to update fabric: {fabric_site_to_build}")
         return 1
     
-    # Update Multi-Site Domain
-    # success = fabric_methods.update_multi_site_domain(msd_to_build)
-    # if not success:
-    #     print(f"Failed to update Multi-Site Domain: {msd_to_build}")
-    #     return 1
+    # Update Multi-Site Domain (fabric type determined from YAML)
+    success = fabric_methods.update_fabric(msd_to_build)
+    if not success:
+        print(f"Failed to update fabric: {msd_to_build}")
+        return 1
     
-    # Update Inter-Site Network
+    # Update Inter-Site Network (fabric type determined from YAML)
+    success = fabric_methods.update_fabric(isn_to_build)
+    if not success:
+        print(f"Failed to update fabric: {isn_to_build}")
+        return 1
+    
+    # Alternative: Use specific update methods if preferred
+    # success = fabric_methods.update_vxlan_evpn_fabric(fabric_site_to_build)
+    # success = fabric_methods.update_multi_site_domain(msd_to_build) 
     # success = fabric_methods.update_inter_site_network(isn_to_build)
-    # if not success:
-    #     print(f"Failed to update Inter-Site Network: {isn_to_build}")
-    #     return 1
-    
-    # Generic update method (alternative way to call updates)
-    # success = fabric_methods.update_fabric(fabric_site_to_build, FabricType.VXLAN_EVPN)
-    # if not success:
-    #     print(f"Failed to update fabric: {fabric_site_to_build}")
-    #     return 1
     
     print("\n🎉 Fabric build process completed successfully!")
     return 0
