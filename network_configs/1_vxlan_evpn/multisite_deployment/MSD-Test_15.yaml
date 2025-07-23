@@ -1,6 +1,5 @@
 ---
 Fabric:
-  name: MSD-Test
   type: VXLAN EVPN Multi-Site
 
 Child Fabric:

@@ -1,6 +1,5 @@
 ---
 Fabric:
-  name: Site1-Greenfield
   type: Data Center VXLAN EVPN
   Location: San Jose, US
 

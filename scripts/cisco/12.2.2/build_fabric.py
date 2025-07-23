@@ -114,6 +114,11 @@ class PayloadGenerator:
     @staticmethod
     def prepare_fabric_payload(config: FabricConfig) -> Tuple[Optional[Dict[str, Any]], Optional[str], Optional[str]]:
         """Prepare the API payload for creating a fabric-like entity."""
+        # Extract fabric name from filename
+        config_file = Path(config.config_path)
+        fabric_name = config_file.stem  # Gets filename without extension
+        print(f"Using fabric name from filename: {fabric_name}")
+        
         # Load configurations
         fabric_config = load_yaml_file(config.config_path)
         defaults_config = load_yaml_file(config.defaults_path)
@@ -141,13 +146,7 @@ class PayloadGenerator:
             print(f"Could not find a template for fabric type '{fabric_type}'.")
             return None, None, None
 
-        # Prepare payload
-        fabric_name = get_nested_value(fabric_config, config.name_keys)
-        if not fabric_name:
-            print(f"Fabric name not specified at '{'.'.join(config.name_keys)}' in the config.")
-            return None, None, None
-
-        # Build API payload
+        # Build API payload using filename as fabric name
         api_payload = PayloadGenerator._build_api_payload(mapped_config, final_config, fabric_name, template_name)
         
         return api_payload, template_name, fabric_name
@@ -526,7 +525,7 @@ def main():
     
     # Configuration - Update these values as needed
     fabric_site_to_build = "Site3-Test"
-    msd_to_build = "MSD-Test"
+    msd_to_build = "MSD-Test_15"
     isn_to_build = "ISN-Test"
     
     # --- Build Data Center VXLAN EVPN Fabric ---
