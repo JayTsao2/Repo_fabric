@@ -9,8 +9,15 @@
 │   │   ├── 12.1.2e/
 │   │   ├── 12.2.2/
 │   │   │   ├── api/
+│   │   │   ├── modules/
+│   │   │   │   └── fabric/
+│   │   │   │       ├── __init__.py
+│   │   │   │       ├── create_fabric.py
+│   │   │   │       ├── update_fabric.py
+│   │   │   │       └── delete_fabric.py
 │   │   │   ├── resources/
-│   │   │   └── build_fabric.py
+│   │   │   ├── fabric_cli.py
+│   │   │   └── config_utils.py
 │   │   └── 12.3/
 │   ├── inventory/
 │   └── logs/
@@ -36,11 +43,23 @@
         * 📂 **`/scripts/cisco/12.2.2/api`**
             * 用途: Cisco NDFC 12.2.2 版本的 API 操作模組。
             
+        * 📂 **`/scripts/cisco/12.2.2/modules`**
+            * 用途: 模組化功能組織，包含 fabric、VRF、network、policy、switch 等模組。
+            
+            * 📂 **`/scripts/cisco/12.2.2/modules/fabric`**
+                * 用途: Fabric 管理模組，包含建立、更新、刪除功能。
+            
         * 📂 **`/scripts/cisco/12.2.2/resources`**
             * 用途: 配置檔案、模板、欄位映射等資源檔案。
             
-        * 📂 **`/scripts/cisco/12.2.2/build_fabric.py`**
-            * 用途: 自動化 Fabric 建置工具。
+        * � **`/scripts/cisco/12.2.2/build_fabric.py`**
+            * 用途: 原始版本的 Fabric 建置工具 (已重構為模組化架構)。
+            
+        * 📄 **`/scripts/cisco/12.2.2/fabric_cli.py`**
+            * 用途: Fabric 管理命令列介面工具。
+            
+        * 📄 **`/scripts/cisco/12.2.2/config_utils.py`**
+            * 用途: 配置處理工具函數庫。
         
     * 📂 **`/scripts/inventory`**
         * 用途: 透過 Nornir、NAPALM 等工具進行設備資訊的獲取與管理。
@@ -69,51 +88,65 @@
 - Need to check types
 ## Scripts
 ### Cisco NDFC 12.2.2
-#### [Fabric Builder](scripts/cisco/12.2.2/build_fabric.py)
-**自動化網路 Fabric 配置工具 (Automated Network Fabric Configuration Tool)**
 
-**核心功能 (Core Functions):**
+#### [Fabric CLI](scripts/cisco/12.2.2/fabric_cli.py)
+**Fabric 管理命令列介面工具 (Fabric Management CLI Tool)**
 
-##### 1. VXLAN EVPN Fabric 建置
-- `build_vxlan_evpn_fabric(fabric_site_name)` - 建立資料中心 VXLAN EVPN Fabric
-  - 自動解析 YAML 配置檔案
-  - 處理 freeform 配置 (AAA, Leaf, Spine, Banner)
-  - 支援 Easy_Fabric 模板
-  - 配置合併與欄位映射
+**功能說明 (Features):**
+- 🏗️ **建立 Fabric**: 支援各種類型的 fabric 建立
+- 🔧 **更新 Fabric**: 更新現有 fabric 配置
+- 🗑️ **刪除 Fabric**: 安全刪除 fabric (含確認提示)
+- 📋 **自動類型偵測**: 自動從 YAML 配置檔案偵測 fabric 類型
 
-##### 2. Multi-Site Domain (MSD) 建置
-- `build_multi_site_domain(msd_name)` - 建立多站點網域
-  - 支援 MSD_Fabric 模板
-  - 自動設定 FABRIC_TYPE="MFD" 和 FF="MSD"
-  - 與子 fabric 管理分離
+**使用方式 (Usage):**
+```bash
+# 在 scripts/cisco/12.2.2/ 目錄下執行
+python fabric_cli.py create <fabric_name>   # 建立特定 fabric
+python fabric_cli.py update <fabric_name>   # 更新特定 fabric
+python fabric_cli.py delete <fabric_name>   # 刪除特定 fabric (需確認)
 
-##### 3. Inter-Site Network (ISN) 建置
-- `build_inter_site_network(isn_name)` - 建立站點間網路
-  - 支援 External_Fabric 模板
-  - 自動設定 FABRIC_TYPE="External"
-  - 處理 ISN 特有的 freeform 配置
-
-##### 4. 子 Fabric 管理 (Child Fabric Management)
-- `add_child_fabrics_to_msd(msd_name)` - 將子 fabric 添加到 MSD
-  - 自動從 YAML 配置提取子 fabric 清單
-  - 支援一般 fabric 和 ISN fabric
-  - 批次處理多個子 fabric
-- `remove_child_fabrics_from_msd(msd_name)` - 從 MSD 移除子 fabric
-  - 批次移除所有配置的子 fabric
-- `link_fabrics(parent_fabric, child_fabric)` - 手動連結個別 fabric
-
-**建議的執行順序 (Recommended Execution Sequence):**
-```python
-1. build_vxlan_evpn_fabric(fabric_name)  # 建立資料中心 fabric
-2. build_multi_site_domain(msd_name)     # 建立 MSD (不含子 fabric)
-3. build_inter_site_network(isn_name)    # 建立 ISN
-4. add_child_fabrics_to_msd(msd_name)    # 添加子 fabric 到 MSD
+# 顯示幫助資訊
+python fabric_cli.py --help
 ```
 
-**支援的配置類型 (Supported Configuration Types):**
-- 🏗️ **Easy_Fabric**: VXLAN EVPN 資料中心 fabric
-- 🌐 **MSD_Fabric**: Multi-Site Domain 跨站點管理
-- 🔗 **External_Fabric**: Inter-Site Network 站點間連接
+**支援的 Fabric 類型:**
+- ✅ **VXLAN EVPN Fabric**: 資料中心 VXLAN EVPN 架構
+- ✅ **Multi-Site Domain (MSD)**: 多站點網域管理
+- ✅ **Inter-Site Network (ISN)**: 站點間網路連接
+
+#### [Fabric Builder Modules](scripts/cisco/12.2.2/modules/fabric/)
+**模組化 Fabric 管理系統 (Modular Fabric Management System)**
+
+**模組結構 (Module Structure):**
+
+##### 1. 核心模組 (`__init__.py`)
+- `FabricType` - Fabric 類型枚舉
+- `FabricConfig` - 配置路徑資料類別
+- `FreeformPaths` - Freeform 配置路徑
+- `ChildFabrics` - 子 Fabric 容器
+- `FabricBuilder` - 主要建置類別
+- `PayloadGenerator` - API 資料產生器
+- `BaseFabricMethods` - 基礎方法類別
+
+##### 2. 建立模組 (`create_fabric.py`)
+- `FabricCreator` - Fabric 建立操作類別
+  - `build_fabric(fabric_name)` - 通用 fabric 建立方法
+  - `build_vxlan_evpn_fabric()` - VXLAN EVPN fabric 建立
+  - `build_multi_site_domain()` - MSD 建立
+  - `build_inter_site_network()` - ISN 建立
+  - `add_child_fabrics_to_msd()` - 添加子 fabric 到 MSD
+  - `remove_child_fabrics_from_msd()` - 從 MSD 移除子 fabric
+
+##### 3. 更新模組 (`update_fabric.py`)
+- `FabricUpdater` - Fabric 更新操作類別
+  - `update_fabric(fabric_name)` - 通用 fabric 更新方法
+  - `update_vxlan_evpn_fabric()` - VXLAN EVPN fabric 更新
+  - `update_multi_site_domain()` - MSD 更新
+  - `update_inter_site_network()` - ISN 更新
+
+##### 4. 刪除模組 (`delete_fabric.py`)
+- `FabricDeleter` - Fabric 刪除操作類別
+  - `delete_fabric(fabric_name)` - 通用 fabric 刪除方法
 
 ##### Note
 - AAA Freeform config = AAA_SERVER_CONF
@@ -158,20 +191,50 @@
 #### 腳本執行環境 (Script Execution Environment)
 - **Python 3.x** 環境
 - **工作目錄**: `scripts/cisco/12.2.2/`
+- **CLI 工具**: `fabric_cli.py` (推薦使用)
+- **模組目錄**: `scripts/cisco/12.2.2/modules/fabric/`
 - **API 模組目錄**: `scripts/cisco/12.2.2/api/`
-- **主要依賴**: `yaml`, `json`, `requests`, `pathlib`, `dataclasses`
+- **工具函數**: `config_utils.py`
+- **主要依賴**: `yaml`, `json`, `requests`, `pathlib`, `dataclasses`, `argparse`
 
 #### 使用方式 (Usage)
+
+**推薦使用 CLI 工具 (Recommended CLI Usage):**
+```bash
+# 在 scripts/cisco/12.2.2/ 目錄下執行
+python fabric_cli.py create Site1-Greenfield
+python fabric_cli.py create MSD-Test
+python fabric_cli.py create ISN-Test
+python fabric_cli.py update Site1-Greenfield
+python fabric_cli.py delete ISN-Test  # 需要確認
+```
+
+**程式化使用模組 (Programmatic Module Usage):**
 ```python
-# 初始化 Fabric Builder (在 scripts/cisco/12.2.2/ 目錄下執行)
+# 在 scripts/cisco/12.2.2/ 目錄下執行
+from modules.fabric.create_fabric import FabricCreator
+from modules.fabric.update_fabric import FabricUpdater
+from modules.fabric.delete_fabric import FabricDeleter
+
+# 建立 fabric
+creator = FabricCreator()
+creator.build_fabric("Site1-Greenfield")
+
+# 更新 fabric
+updater = FabricUpdater() 
+updater.update_fabric("Site1-Greenfield")
+
+# 刪除 fabric
+deleter = FabricDeleter()
+deleter.delete_fabric("Site1-Greenfield")
+```
+
+**Legacy 使用方式 (Legacy Usage):**
+```python
+# 使用原始 build_fabric.py (不推薦)
 from build_fabric import FabricBuilderMethods
 fabric_methods = FabricBuilderMethods()
-
-# 建置完整的網路架構
 fabric_methods.build_vxlan_evpn_fabric("Site1-Greenfield")
-fabric_methods.build_multi_site_domain("MSD-Test") 
-fabric_methods.build_inter_site_network("ISN-Test")
-fabric_methods.add_child_fabrics_to_msd("MSD-Test")
 ```
 
 ## Gitlab Flow
@@ -194,6 +257,14 @@ fabric_methods.add_child_fabrics_to_msd("MSD-Test")
 
 
 ## Current Issue
+### 已完成項目 (Completed Items)
+- ✅ **Fabric 模組化重構**: 將原始 `build_fabric.py` 重構為模組化架構
+  - 建立 `modules/fabric/` 目錄結構
+  - 分離 create、update、delete 功能到獨立模組
+  - 建立 `fabric_cli.py` 命令列介面
+  - 簡化 delete 功能，移除不必要的類型複雜性
+  - 移除 bulk 操作，專注於單一 fabric 操作
+
 ### 進行中項目 (Work in Progress)
 - 根據 5_segment 內部的檔案打造出讀取 yaml 檔案以及 resources/ 檔案建立 network / VRF 配置
 - 根據 3_node 內部的檔案打造出讀取 yaml 檔案以及 resources 檔案建立 Switch 配置
