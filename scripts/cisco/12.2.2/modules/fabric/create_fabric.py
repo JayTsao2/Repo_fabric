@@ -20,8 +20,6 @@ from config_utils import print_build_summary, validate_configuration_files
 from . import (
     FabricType, 
     BaseFabricMethods, 
-    ChildFabrics,
-    extract_child_fabrics_config,
     load_yaml_file
 )
 
@@ -111,89 +109,6 @@ class FabricCreator(BaseFabricMethods):
         """Build an Inter-Site Network (ISN) configuration."""
         return self._execute_fabric_creation(isn_name, FabricType.INTER_SITE_NETWORK)
 
-    def _get_child_fabrics_from_msd_config(self, msd_name: str) -> Optional[ChildFabrics]:
-        """Load child fabric information from MSD configuration file."""
-        try:
-            config = self.builder.get_fabric_config(FabricType.MULTI_SITE_DOMAIN, msd_name)
-            fabric_config = load_yaml_file(config.config_path)
-            
-            if not fabric_config:
-                print(f"Failed to load configuration for MSD '{msd_name}'")
-                return None
-            
-            # Extract child fabric information
-            child_fabrics_info = extract_child_fabrics_config(fabric_config)
-            return ChildFabrics(
-                regular_fabrics=child_fabrics_info.get("regular_fabrics", []),
-                isn_fabrics=child_fabrics_info.get("isn_fabrics", [])
-            )
-        except Exception as e:
-            print(f"❌ Error loading child fabrics configuration for MSD {msd_name}: {e}")
-            return None
-
-    def _execute_msd_child_fabric_operation(self, msd_name: str, operation: str) -> bool:
-        """
-        Execute add or remove operation for child fabrics in MSD.
-        
-        Args:
-            msd_name: Name of the MSD
-            operation: "add" or "remove"
-            
-        Returns:
-            bool: True if successful, False otherwise
-        """
-        operation_verb = "Adding" if operation == "add" else "Removing"
-        operation_preposition = "to" if operation == "add" else "from"
-        
-        print(f"\n=== {operation_verb} Child Fabrics {operation_preposition} MSD: {msd_name} ===")
-        
-        # Load child fabric configuration
-        child_fabrics = self._get_child_fabrics_from_msd_config(msd_name)
-        if not child_fabrics:
-            return False
-        
-        print(f"Found child fabrics: Regular={child_fabrics.regular_fabrics}, ISN={child_fabrics.isn_fabrics}")
-        
-        if not child_fabrics.get_all_child_fabrics():
-            print(f"No child fabrics found in configuration for MSD '{msd_name}'")
-            return True
-        
-        # Execute operation on each child fabric
-        all_success = True
-        all_child_fabrics = child_fabrics.get_all_child_fabrics()
-        
-        for child_fabric in all_child_fabrics:
-            try:
-                print(f"{operation_verb} child fabric '{child_fabric}' {operation_preposition} MSD '{msd_name}'...")
-                
-                if operation == "add":
-                    fabric_api.add_MSD(parent_fabric_name=msd_name, child_fabric_name=child_fabric)
-                    print(f"✅ Successfully added '{child_fabric}' to '{msd_name}'")
-                else:  # remove
-                    fabric_api.remove_MSD(parent_fabric_name=msd_name, child_fabric_name=child_fabric)
-                    print(f"✅ Successfully removed '{child_fabric}' from '{msd_name}'")
-                    
-            except Exception as e:
-                print(f"❌ Failed to {operation} '{child_fabric}' {operation_preposition} '{msd_name}': {e}")
-                all_success = False
-        
-        if all_success:
-            action_past = "added to" if operation == "add" else "removed from"
-            print(f"✅ All child fabrics successfully {action_past} MSD '{msd_name}'")
-        else:
-            action_past = "be added to" if operation == "add" else "be removed from"
-            print(f"⚠️  Some child fabrics failed to {action_past} MSD '{msd_name}'")
-        
-        return all_success
-
-    def add_child_fabrics_to_msd(self, msd_name: str) -> bool:
-        """Add child fabrics to an MSD based on its configuration file."""
-        return self._execute_msd_child_fabric_operation(msd_name, "add")
-
-    def remove_child_fabrics_from_msd(self, msd_name: str) -> bool:
-        """Remove child fabrics from an MSD based on its configuration file."""
-        return self._execute_msd_child_fabric_operation(msd_name, "remove")
-
     def link_fabrics(self, parent_fabric: str, child_fabric: str) -> bool:
         """Link a child fabric to a parent fabric."""
         print(f"\n=== Linking {child_fabric} to {parent_fabric} ===")
@@ -204,6 +119,18 @@ class FabricCreator(BaseFabricMethods):
             return True
         except Exception as e:
             print(f"❌ Error linking fabrics: {e}")
+            return False
+
+    def unlink_fabrics(self, parent_fabric: str, child_fabric: str) -> bool:
+        """Unlink a child fabric from a parent fabric."""
+        print(f"\n=== Unlinking {child_fabric} from {parent_fabric} ===")
+        
+        try:
+            fabric_api.remove_MSD(parent_fabric_name=parent_fabric, child_fabric_name=child_fabric)
+            print(f"✅ Successfully unlinked {child_fabric} from {parent_fabric}")
+            return True
+        except Exception as e:
+            print(f"❌ Error unlinking fabrics: {e}")
             return False
 
     def build_fabric(self, fabric_name: str) -> bool:
@@ -223,7 +150,7 @@ class FabricCreator(BaseFabricMethods):
             print(f"❌ Cannot determine fabric type for: {fabric_name}")
             return False
         
-        print(f"Building fabric '{fabric_name}' of type: {fabric_type}")
+        # print(f"Building fabric '{fabric_name}' of type: {fabric_type}")
         
         if fabric_type == FabricType.VXLAN_EVPN:
             return self.build_vxlan_evpn_fabric(fabric_name)
