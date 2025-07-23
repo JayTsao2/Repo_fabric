@@ -512,6 +512,160 @@ class FabricBuilderMethods:
             print(f"❌ Error linking fabrics: {e}")
             return False
 
+    def update_vxlan_evpn_fabric(self, fabric_site_name: str) -> bool:
+        """Update an existing VXLAN EVPN fabric configuration."""
+        print(f"\n=== Updating VXLAN EVPN Fabric: {fabric_site_name} ===")
+        
+        try:
+            # Get configuration and validate files
+            config = self.builder.get_fabric_config(FabricType.VXLAN_EVPN, fabric_site_name)
+            
+            # Check required files
+            required_files = [
+                config.config_path,
+                config.defaults_path, 
+                config.field_mapping_path,
+                config.template_map_path
+            ]
+            files_exist, missing_files = validate_configuration_files(required_files)
+            if not files_exist:
+                print("❌ Missing required configuration files:")
+                for file in missing_files:
+                    print(f"   - {file}")
+                return False
+            
+            # Generate payload
+            payload_data, template_name, fabric_name = self.payload_generator.prepare_fabric_payload(config)
+            if not payload_data or not template_name or not fabric_name:
+                print("Failed to generate payload for VXLAN EVPN fabric update")
+                return False
+            
+            # Get freeform paths and add content to payload
+            freeform_paths = self.get_freeform_paths(fabric_site_name, FabricType.VXLAN_EVPN)
+            self.payload_generator.add_freeform_content_to_payload(payload_data, template_name, freeform_paths)
+            
+            print("Calling update_fabric API for VXLAN EVPN Fabric...")
+            
+            # Call fabric API to update the fabric
+            success = fabric_api.update_fabric(
+                fabric_name=fabric_name,
+                template_name=template_name,
+                payload_data=payload_data
+            )
+            
+            if success:
+                print_build_summary("VXLAN EVPN Fabric Update", fabric_site_name, True, "updated")
+                return True
+            else:
+                print_build_summary("VXLAN EVPN Fabric Update", fabric_site_name, False, "updated")
+                return False
+            
+        except Exception as e:
+            print(f"❌ Error updating VXLAN EVPN fabric {fabric_site_name}: {e}")
+            print_build_summary("VXLAN EVPN Fabric Update", fabric_site_name, False, "updated")
+            return False
+
+    def update_multi_site_domain(self, msd_name: str) -> bool:
+        """Update an existing Multi-Site Domain (MSD) configuration."""
+        print(f"\n=== Updating Multi-Site Domain: {msd_name} ===")
+        
+        try:
+            # Get configuration and generate payload
+            config = self.builder.get_fabric_config(FabricType.MULTI_SITE_DOMAIN, msd_name)
+            payload_data, template_name, fabric_name = self.payload_generator.prepare_fabric_payload(config)
+            
+            if not payload_data or not template_name or not fabric_name:
+                print("Failed to generate payload for Multi-Site Domain update")
+                return False
+            
+            # Set MSD-specific parameters
+            payload_data["FABRIC_TYPE"] = "MFD"
+            payload_data["FF"] = "MSD"
+            
+            print("Calling update_fabric API for Multi-Site Domain...")
+            
+            # Call fabric API to update the fabric
+            success = fabric_api.update_fabric(
+                fabric_name=fabric_name,
+                template_name=template_name,
+                payload_data=payload_data
+            )
+            
+            if success:
+                print_build_summary("Multi-Site Domain Update", msd_name, True, "updated")
+                return True
+            else:
+                print_build_summary("Multi-Site Domain Update", msd_name, False, "updated")
+                return False
+            
+        except Exception as e:
+            print(f"❌ Error updating Multi-Site Domain {msd_name}: {e}")
+            print_build_summary("Multi-Site Domain Update", msd_name, False, "updated")
+            return False
+
+    def update_inter_site_network(self, isn_name: str) -> bool:
+        """Update an existing Inter-Site Network (ISN) configuration."""
+        print(f"\n=== Updating Inter-Site Network: {isn_name} ===")
+        
+        try:
+            # Get configuration and generate payload
+            config = self.builder.get_fabric_config(FabricType.INTER_SITE_NETWORK, isn_name)
+            payload_data, template_name, fabric_name = self.payload_generator.prepare_fabric_payload(config)
+            
+            if not payload_data or not template_name or not fabric_name:
+                print("Failed to generate payload for Inter-Site Network update")
+                return False
+            
+            # Set ISN-specific parameters
+            payload_data.pop("SITE_ID", None)  # Remove SITE_ID if it exists
+            payload_data["FABRIC_TYPE"] = "External"
+            payload_data["EXT_FABRIC_TYPE"] = "Multi-Site External Network"
+            
+            # Get freeform paths and add content to payload
+            freeform_paths = self.get_freeform_paths(isn_name, FabricType.INTER_SITE_NETWORK)
+            self.payload_generator.add_freeform_content_to_payload(payload_data, template_name, freeform_paths)
+            
+            print("Calling update_fabric API for Inter-Site Network...")
+            
+            # Call fabric API to update the fabric
+            success = fabric_api.update_fabric(
+                fabric_name=fabric_name,
+                template_name=template_name,
+                payload_data=payload_data
+            )
+            
+            if success:
+                print(f"✅ Successfully updated Inter-Site Network: {isn_name}")
+                return True
+            else:
+                print(f"❌ Failed to update Inter-Site Network: {isn_name}")
+                return False
+            
+        except Exception as e:
+            print(f"❌ Error updating Inter-Site Network {isn_name}: {e}")
+            return False
+
+    def update_fabric(self, fabric_name: str, fabric_type: FabricType) -> bool:
+        """
+        Generic method to update any type of fabric.
+        
+        Args:
+            fabric_name: Name of the fabric configuration file (without .yaml extension)
+            fabric_type: Type of fabric to update (VXLAN_EVPN, MULTI_SITE_DOMAIN, or INTER_SITE_NETWORK)
+        
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        if fabric_type == FabricType.VXLAN_EVPN:
+            return self.update_vxlan_evpn_fabric(fabric_name)
+        elif fabric_type == FabricType.MULTI_SITE_DOMAIN:
+            return self.update_multi_site_domain(fabric_name)
+        elif fabric_type == FabricType.INTER_SITE_NETWORK:
+            return self.update_inter_site_network(fabric_name)
+        else:
+            print(f"❌ Unsupported fabric type: {fabric_type}")
+            return False
+
 def main():
     """
     Main function to run the fabric build process.
@@ -530,31 +684,58 @@ def main():
     
     # --- Build Data Center VXLAN EVPN Fabric ---
     # Uncomment to build VXLAN EVPN fabric
-    success = fabric_methods.build_vxlan_evpn_fabric(fabric_site_to_build)
-    if not success:
-        print(f"Failed to build VXLAN EVPN fabric: {fabric_site_to_build}")
-        return 1
+    # success = fabric_methods.build_vxlan_evpn_fabric(fabric_site_to_build)
+    # if not success:
+    #     print(f"Failed to build VXLAN EVPN fabric: {fabric_site_to_build}")
+    #     return 1
 
     # --- Build Multi-Site Domain ---
     # Uncomment to build Multi-Site Domain
-    success = fabric_methods.build_multi_site_domain(msd_to_build)
-    if not success:
-        print(f"Failed to build Multi-Site Domain: {msd_to_build}")
-        return 1
+    # success = fabric_methods.build_multi_site_domain(msd_to_build)
+    # if not success:
+    #     print(f"Failed to build Multi-Site Domain: {msd_to_build}")
+    #     return 1
 
     # --- Build Inter-Site Network ---
     # Uncomment to build Inter-Site Network
-    success = fabric_methods.build_inter_site_network(isn_to_build)
-    if not success:
-        print(f"Failed to build Inter-Site Network: {isn_to_build}")
-        return 1
+    # success = fabric_methods.build_inter_site_network(isn_to_build)
+    # if not success:
+    #     print(f"Failed to build Inter-Site Network: {isn_to_build}")
+    #     return 1
 
     # --- Add Child Fabrics to MSD ---
     # Uncomment to add child fabrics to the MSD
-    success = fabric_methods.add_child_fabrics_to_msd(msd_to_build)
+    # success = fabric_methods.add_child_fabrics_to_msd(msd_to_build)
+    # if not success:
+    #     print(f"Failed to add child fabrics to MSD: {msd_to_build}")
+    #     return 1
+    
+    # --- Update Existing Fabrics ---
+    # Uncomment to update existing fabrics instead of creating new ones
+    
+    # Update VXLAN EVPN fabric
+    success = fabric_methods.update_vxlan_evpn_fabric(fabric_site_to_build)
     if not success:
-        print(f"Failed to add child fabrics to MSD: {msd_to_build}")
+        print(f"Failed to update VXLAN EVPN fabric: {fabric_site_to_build}")
         return 1
+    
+    # Update Multi-Site Domain
+    # success = fabric_methods.update_multi_site_domain(msd_to_build)
+    # if not success:
+    #     print(f"Failed to update Multi-Site Domain: {msd_to_build}")
+    #     return 1
+    
+    # Update Inter-Site Network
+    # success = fabric_methods.update_inter_site_network(isn_to_build)
+    # if not success:
+    #     print(f"Failed to update Inter-Site Network: {isn_to_build}")
+    #     return 1
+    
+    # Generic update method (alternative way to call updates)
+    # success = fabric_methods.update_fabric(fabric_site_to_build, FabricType.VXLAN_EVPN)
+    # if not success:
+    #     print(f"Failed to update fabric: {fabric_site_to_build}")
+    #     return 1
     
     print("\n🎉 Fabric build process completed successfully!")
     return 0
