@@ -49,8 +49,8 @@ def delete_fabric(fabric_name: str) -> bool:
     headers = get_api_key_header()
     r = requests.delete(url=url, headers=headers, verify=False)
     check_status_code(r)
-    print(f"Status Code: {r.status_code}")
-    print(f"Message: {r.text}")
+    # print(f"Status Code: {r.status_code}")
+    # print(f"Message: {r.text}")
     return r.status_code < 400
 
 def create_fabric(fabric_name: str, template_name: str, payload_data: Dict[str, Any]) -> bool:
@@ -123,8 +123,8 @@ def recalculate_config(fabric_name: str) -> bool:
     headers = get_api_key_header()
     r = requests.post(url, headers=headers, verify=False)
     check_status_code(r)
-    print(f"Status Code: {r.status_code}")
-    print(f"Message: {r.text}")
+    # print(f"Status Code: {r.status_code}")
+    # print(f"Message: {r.text}")
     return r.status_code < 400
 
 def deploy_fabric_config(fabric_name: str) -> bool:
@@ -133,8 +133,8 @@ def deploy_fabric_config(fabric_name: str) -> bool:
     headers = get_api_key_header()
     r = requests.post(url, headers=headers, verify=False)
     check_status_code(r)
-    print(f"Status Code: {r.status_code}")
-    print(f"Message: {r.text}")
+    # print(f"Status Code: {r.status_code}")
+    # print(f"Message: {r.text}")
     return r.status_code < 400
 
 def add_MSD(parent_fabric_name: str, child_fabric_name: str) -> bool:
@@ -147,8 +147,8 @@ def add_MSD(parent_fabric_name: str, child_fabric_name: str) -> bool:
     }
     r = requests.post(url, headers=headers, json=payload, verify=False)
     check_status_code(r)
-    print(f"Status Code: {r.status_code}")
-    print(f"Message: {r.text}")
+    # print(f"Status Code: {r.status_code}")
+    # print(f"Message: {r.text}")
     return r.status_code < 400
 
 def remove_MSD(parent_fabric_name: str, child_fabric_name: str) -> bool:
@@ -161,8 +161,8 @@ def remove_MSD(parent_fabric_name: str, child_fabric_name: str) -> bool:
     }
     r = requests.post(url, headers=headers, json=payload, verify=False)
     check_status_code(r)
-    print(f"Status Code: {r.status_code}")
-    print(f"Message: {r.text}")
+    # print(f"Status Code: {r.status_code}")
+    # print(f"Message: {r.text}")
     return r.status_code < 400
 
 if __name__ == "__main__":
