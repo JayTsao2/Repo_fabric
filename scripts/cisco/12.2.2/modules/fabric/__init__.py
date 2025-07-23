@@ -26,17 +26,16 @@ from config_utils import (
     read_freeform_config, apply_field_mapping, 
     get_nested_value, extract_child_fabrics_config,
     print_build_summary, validate_file_exists, 
-    validate_configuration_files, flatten_config,
-    get_template_name
+    validate_configuration_files, flatten_config
 )
 
 # --- Constants and Enums ---
 
 class FabricType(Enum):
     """Enumeration of supported fabric types."""
-    VXLAN_EVPN = "VXLAN_EVPN"
-    MULTI_SITE_DOMAIN = "MSD"
-    INTER_SITE_NETWORK = "ISN"
+    VXLAN_EVPN = "Easy_Fabric"
+    MULTI_SITE_DOMAIN = "MSD_Fabric"
+    INTER_SITE_NETWORK = "External_Fabric"
 
 @dataclass
 class FabricConfig:
@@ -44,7 +43,6 @@ class FabricConfig:
     config_path: str
     defaults_path: str
     field_mapping_path: str
-    template_map_path: str
 
 @dataclass
 class FreeformPaths:
@@ -83,20 +81,17 @@ class FabricBuilder:
             FabricType.VXLAN_EVPN: FabricConfig(
                 config_path=str(self.project_root / "network_configs" / "1_vxlan_evpn" / "fabric" / f"{name}.yaml"),
                 defaults_path=str(self.resources_dir / "corp_defaults" / "cisco_vxlan.yaml"),
-                field_mapping_path=str(self.resources_dir / "_field_mapping" / "cisco_vxlan.yaml"),
-                template_map_path=str(self.resources_dir / "fabric_template.yaml")
+                field_mapping_path=str(self.resources_dir / "_field_mapping" / "cisco_vxlan.yaml")
             ),
             FabricType.MULTI_SITE_DOMAIN: FabricConfig(
                 config_path=str(self.project_root / "network_configs" / "1_vxlan_evpn" / "multisite_deployment" / f"{name}.yaml"),
                 defaults_path=str(self.resources_dir / "corp_defaults" / "cisco_multi-site.yaml"),
-                field_mapping_path=str(self.resources_dir / "_field_mapping" / "cisco_multi-site.yaml"),
-                template_map_path=str(self.resources_dir / "fabric_template.yaml")
+                field_mapping_path=str(self.resources_dir / "_field_mapping" / "cisco_multi-site.yaml")
             ),
             FabricType.INTER_SITE_NETWORK: FabricConfig(
                 config_path=str(self.project_root / "network_configs" / "1_vxlan_evpn" / "inter-site_network" / f"{name}.yaml"),
                 defaults_path=str(self.resources_dir / "corp_defaults" / "cisco_inter-site.yaml"),
-                field_mapping_path=str(self.resources_dir / "_field_mapping" / "cisco_inter-site.yaml"),
-                template_map_path=str(self.resources_dir / "fabric_template.yaml")
+                field_mapping_path=str(self.resources_dir / "_field_mapping" / "cisco_inter-site.yaml")
             )
         }
         return base_configs[fabric_type]
@@ -127,16 +122,25 @@ class PayloadGenerator:
         flat_config = flatten_config(final_config)
         mapped_config = apply_field_mapping(flat_config, flatten_config(field_mapping))
 
-        # Get template name
-        fabric_type = get_nested_value(fabric_config, ('Fabric', 'type'))
-        if not fabric_type:
+        # Get template name based on fabric type (use FabricType value directly)
+        fabric_type_str = get_nested_value(fabric_config, ('Fabric', 'type'))
+        if not fabric_type_str:
             print(f"Fabric type not specified at 'Fabric.type' in the config.")
             return None, None, None
 
-        template_name = get_template_name(fabric_type, config.template_map_path)
-        if not template_name:
-            print(f"Could not find a template for fabric type '{fabric_type}'.")
+        # Map fabric type string to FabricType enum and get template name
+        fabric_type_to_enum = {
+            "Data Center VXLAN EVPN": FabricType.VXLAN_EVPN,
+            "VXLAN EVPN Multi-Site": FabricType.MULTI_SITE_DOMAIN,
+            "Multi-Site Interconnect Network": FabricType.INTER_SITE_NETWORK
+        }
+        
+        fabric_enum = fabric_type_to_enum.get(fabric_type_str)
+        if not fabric_enum:
+            print(f"Could not determine template for fabric type '{fabric_type_str}'.")
             return None, None, None
+            
+        template_name = fabric_enum.value  # Template name is now the enum value
 
         # Build API payload using filename as fabric name
         api_payload = PayloadGenerator._build_api_payload(mapped_config, final_config, fabric_name, template_name)
@@ -178,7 +182,7 @@ class PayloadGenerator:
     def add_freeform_content_to_payload(payload_data: Dict[str, Any], template_name: str, 
                                        freeform_paths: 'FreeformPaths') -> None:
         """Add freeform configuration content to the API payload."""
-        if template_name == "Easy_Fabric":
+        if template_name == FabricType.VXLAN_EVPN.value:
             if freeform_paths.leaf and validate_file_exists(freeform_paths.leaf):
                 payload_data["EXTRA_CONF_LEAF"] = read_freeform_config(freeform_paths.leaf)
             
@@ -191,7 +195,7 @@ class PayloadGenerator:
             if freeform_paths.banner and validate_file_exists(freeform_paths.banner):
                 payload_data["BANNER"] = read_freeform_config(freeform_paths.banner)
         
-        elif template_name == "External_Fabric":
+        elif template_name == FabricType.INTER_SITE_NETWORK.value:
             if freeform_paths.fabric and validate_file_exists(freeform_paths.fabric):
                 payload_data["FABRIC_FREEFORM"] = read_freeform_config(freeform_paths.fabric)
                 

@@ -47,7 +47,7 @@ class FabricUpdater(BaseFabricMethods):
             if fabric_type == FabricType.VXLAN_EVPN:
                 required_files = [
                     config.config_path, config.defaults_path, 
-                    config.field_mapping_path, config.template_map_path
+                    config.field_mapping_path
                 ]
                 files_exist, missing_files = validate_configuration_files(required_files)
                 if not files_exist:
