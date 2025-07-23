@@ -45,8 +45,6 @@ class FabricConfig:
     defaults_path: str
     field_mapping_path: str
     template_map_path: str
-    type_keys: Tuple[str, ...]
-    name_keys: Tuple[str, ...]
 
 @dataclass
 class FreeformPaths:
@@ -86,25 +84,19 @@ class FabricBuilder:
                 config_path=str(self.project_root / "network_configs" / "1_vxlan_evpn" / "fabric" / f"{name}.yaml"),
                 defaults_path=str(self.resources_dir / "corp_defaults" / "cisco_vxlan.yaml"),
                 field_mapping_path=str(self.resources_dir / "_field_mapping" / "cisco_vxlan.yaml"),
-                template_map_path=str(self.resources_dir / "fabric_template.yaml"),
-                type_keys=('Fabric', 'type'),
-                name_keys=('Fabric', 'name')
+                template_map_path=str(self.resources_dir / "fabric_template.yaml")
             ),
             FabricType.MULTI_SITE_DOMAIN: FabricConfig(
                 config_path=str(self.project_root / "network_configs" / "1_vxlan_evpn" / "multisite_deployment" / f"{name}.yaml"),
                 defaults_path=str(self.resources_dir / "corp_defaults" / "cisco_multi-site.yaml"),
                 field_mapping_path=str(self.resources_dir / "_field_mapping" / "cisco_multi-site.yaml"),
-                template_map_path=str(self.resources_dir / "fabric_template.yaml"),
-                type_keys=('Fabric', 'type'),
-                name_keys=('Fabric', 'name')
+                template_map_path=str(self.resources_dir / "fabric_template.yaml")
             ),
             FabricType.INTER_SITE_NETWORK: FabricConfig(
                 config_path=str(self.project_root / "network_configs" / "1_vxlan_evpn" / "inter-site_network" / f"{name}.yaml"),
                 defaults_path=str(self.resources_dir / "corp_defaults" / "cisco_inter-site.yaml"),
                 field_mapping_path=str(self.resources_dir / "_field_mapping" / "cisco_inter-site.yaml"),
-                template_map_path=str(self.resources_dir / "fabric_template.yaml"),
-                type_keys=('Fabric', 'type'),
-                name_keys=('Fabric', 'name')
+                template_map_path=str(self.resources_dir / "fabric_template.yaml")
             )
         }
         return base_configs[fabric_type]
@@ -136,9 +128,9 @@ class PayloadGenerator:
         mapped_config = apply_field_mapping(flat_config, flatten_config(field_mapping))
 
         # Get template name
-        fabric_type = get_nested_value(fabric_config, config.type_keys)
+        fabric_type = get_nested_value(fabric_config, ('Fabric', 'type'))
         if not fabric_type:
-            print(f"Fabric type not specified at '{'.'.join(config.type_keys)}' in the config.")
+            print(f"Fabric type not specified at 'Fabric.type' in the config.")
             return None, None, None
 
         template_name = get_template_name(fabric_type, config.template_map_path)
