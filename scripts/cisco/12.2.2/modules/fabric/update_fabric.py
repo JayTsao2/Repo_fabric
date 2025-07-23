@@ -14,7 +14,7 @@ from pathlib import Path
 # Add parent directory to path to access api and config_utils
 sys.path.append(str(Path(__file__).parent.parent.absolute()))
 import api.fabric as fabric_api
-from config_utils import print_build_summary, validate_configuration_files
+from modules.config_utils import print_build_summary, validate_configuration_files
 from . import FabricType, BaseFabricMethods
 
 class FabricUpdater(BaseFabricMethods):

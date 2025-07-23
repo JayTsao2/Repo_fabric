@@ -14,6 +14,11 @@ Usage:
 """
 
 import sys
+from pathlib import Path
+
+# Add current directory to path to access modules
+sys.path.append(str(Path(__file__).parent.absolute()))
+
 import argparse
 from modules.fabric.create_fabric import FabricCreator
 from modules.fabric.update_fabric import FabricUpdater

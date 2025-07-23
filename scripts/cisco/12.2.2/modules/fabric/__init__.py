@@ -18,10 +18,10 @@ from pathlib import Path
 from dataclasses import dataclass
 from enum import Enum
 
-# Update import path to go back to parent directory for api and config_utils
+# Update import path to go back to parent directory for api and modules
 sys.path.append(str(Path(__file__).parent.parent.absolute()))
 import api.fabric as fabric_api
-from config_utils import (
+from modules.config_utils import (
     load_yaml_file, load_json_file, merge_configs, 
     read_freeform_config, apply_field_mapping, 
     get_nested_value, extract_child_fabrics_config,

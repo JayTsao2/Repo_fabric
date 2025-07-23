@@ -12,10 +12,10 @@ This module handles fabric creation operations:
 import sys
 from pathlib import Path
 
-# Add parent directory to path to access api and config_utils
+# Add parent directory to path to access api and modules
 sys.path.append(str(Path(__file__).parent.parent.absolute()))
 import api.fabric as fabric_api
-from config_utils import print_build_summary, validate_configuration_files
+from modules.config_utils import print_build_summary, validate_configuration_files
 from . import (
     FabricType, 
     BaseFabricMethods, 
