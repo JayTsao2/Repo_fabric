@@ -66,9 +66,6 @@ class FabricCreator(BaseFabricMethods):
                 print(f"Failed to generate payload for {type_name} creation")
                 return False
             
-            # Apply fabric-specific parameters
-            payload_data = self._get_fabric_specific_params(fabric_type, payload_data)
-            
             # Get freeform paths and add content to payload (for VXLAN_EVPN and ISN)
             if fabric_type in [FabricType.VXLAN_EVPN, FabricType.INTER_SITE_NETWORK]:
                 freeform_paths = self.get_freeform_paths(fabric_name, fabric_type)

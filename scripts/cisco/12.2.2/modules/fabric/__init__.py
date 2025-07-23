@@ -143,7 +143,7 @@ class PayloadGenerator:
         template_name = fabric_enum.value  # Template name is now the enum value
 
         # Build API payload using filename as fabric name
-        api_payload = PayloadGenerator._build_api_payload(mapped_config, final_config, fabric_name, template_name)
+        api_payload = PayloadGenerator._build_api_payload(mapped_config, fabric_name, fabric_enum)
         
         return api_payload, template_name, fabric_name
 
@@ -159,13 +159,9 @@ class PayloadGenerator:
         return final_config
 
     @staticmethod
-    def _build_api_payload(mapped_config: Dict[str, Any], final_config: Dict[str, Any], 
-                          fabric_name: str, template_name: str) -> Dict[str, Any]:
-        """Build the final API payload."""
-        # Get template configurations
-        advanced_config = final_config.get('Advanced', {})
-        
-        # Clean up mapped config
+    def _build_api_payload(mapped_config: Dict[str, Any], fabric_name: str, fabric_type: FabricType) -> Dict[str, Any]:
+        """Build the final API payload with all necessary modifications."""
+        # Clean up mapped config - remove VRF/Network template settings
         template_keys = ['vrfTemplate', 'networkTemplate', 'vrfExtensionTemplate', 'networkExtensionTemplate']
         for key in template_keys:
             mapped_config.pop(key, None)
@@ -175,6 +171,15 @@ class PayloadGenerator:
 
         if "BGP_AS" in mapped_config:
             mapped_config["SITE_ID"] = mapped_config["BGP_AS"]
+
+        # Apply fabric-type specific modifications
+        if fabric_type == FabricType.MULTI_SITE_DOMAIN:
+            mapped_config["FABRIC_TYPE"] = "MFD"
+            mapped_config["FF"] = "MSD"
+        elif fabric_type == FabricType.INTER_SITE_NETWORK:
+            mapped_config.pop("SITE_ID", None)  # Remove SITE_ID if it exists
+            mapped_config["FABRIC_TYPE"] = "External"
+            mapped_config["EXT_FABRIC_TYPE"] = "Multi-Site External Network"
 
         return mapped_config
 
@@ -208,18 +213,6 @@ class BaseFabricMethods:
     def __init__(self):
         self.builder = FabricBuilder()
         self.payload_generator = PayloadGenerator()
-    
-    def _get_fabric_specific_params(self, fabric_type: FabricType, payload_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Get fabric-type specific parameters and modifications."""
-        if fabric_type == FabricType.MULTI_SITE_DOMAIN:
-            payload_data["FABRIC_TYPE"] = "MFD"
-            payload_data["FF"] = "MSD"
-        elif fabric_type == FabricType.INTER_SITE_NETWORK:
-            payload_data.pop("SITE_ID", None)  # Remove SITE_ID if it exists
-            payload_data["FABRIC_TYPE"] = "External"
-            payload_data["EXT_FABRIC_TYPE"] = "Multi-Site External Network"
-        
-        return payload_data
     
     def get_freeform_paths(self, fabric_name: str, fabric_type: FabricType) -> FreeformPaths:
         """Get freeform configuration file paths for a fabric."""
