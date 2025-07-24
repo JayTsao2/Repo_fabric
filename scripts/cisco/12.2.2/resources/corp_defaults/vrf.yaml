@@ -1,0 +1,50 @@
+---
+VRF Template: Default_VRF_Universal
+VRF Extension Template: Default_VRF_Extension_Universal
+General Parameters:
+  VRF VLAN Name: bluevrf
+  VRF Interface Description: bluevrf
+  VRF Description: bluevrf
+
+Advanced:
+  VRF Interface MTU: 9216
+  Loopback Routing Tag: 12345
+  Redistribute Direct Route Map: FABRIC-RMAP-REDIST-SUBNET
+  IPv6 Redistribute Direct Route Map: FABRIC-RMAP-REDIST-SUBNET
+  Max BGP Paths: 1
+  Max iBGP Paths: 2
+  Enable IPv6 link-local Option: 'true'
+  Enable L3VNI w/o VLAN: 'false'
+  Enable BGP Best-path As-path Multipath-relax: 'false'
+  Advertise Host Routes: 'false'
+  Advertise Default Route: 'true'
+  Config Static 0/0 Route: 'true'
+  BGP Neighbor Password: ''
+  BGP Password Key Encryption Type: ''
+  Enable Netflow: 'false'
+  NetFlow Monitor: ''
+
+TRM:
+  IPv4 TRM Enable: 'false'
+  No RP: 'false'
+  Is RP External: 'false'
+  RP Address: ''
+  RP Loopback ID: ''
+  Underlay Mcast Address: ''
+  Overlay Mcast Groups: ''
+  TRMv6 Enable: 'false'
+  TRMv6 No RP: 'false'
+  Is TRMv6 RP External: 'false'
+  TRMv6 RP Address: ''
+  Overlay IPv6 Mcast Groups: ''
+  Enable MVPN inter-as: 'false'
+  Enable IPv4/IPv6 TRM BGW MSite: 'false'
+
+Route Target:
+  Disable RT Auto-Generate: 'false'
+  Import: ''
+  Export: ''
+  Import EVPN: ''
+  Export EVPN: ''
+  Import MVPN: ''
+  Export MVPN: ''
