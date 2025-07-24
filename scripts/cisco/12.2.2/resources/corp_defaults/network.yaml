@@ -1,0 +1,29 @@
+---
+networkTemplate: Default_Network_Universal
+networkExtensionTemplate: Default_Network_Extension_Universal
+General Parameters:
+  IPv4 Gateway/NetMask: ''
+  IPv6 Gateway/Prefix List: ''
+  VLAN Name: ''
+  Interface Description: ''
+  MTU for L3 interface: ''
+  IPv4 Secondary GW1: ''
+  IPv4 Secondary GW2: ''
+  IPv4 Secondary GW3: ''
+  IPv4 Secondary GW4: ''
+
+Advanced:
+  ARP Suppression: ''
+  Ingress Replication: 'true'
+  Multicast Group Address: ''
+  Loopback ID for DHCP Relay interface: ''
+  Routing Tag: ''
+  IPv4 TRM Enable: ''
+  IGMP Version: ''
+  IPv6 TRM Enable: ''
+  L2 VNI Route-Target Both Enable: 'false'
+  Enable Netflow: 'false'
+  Interface Vlan Netflow Monitor: ''
+  Vlan Netflow Monitor: ''
+  Enable L3 Gateway on Border and Border Gateway: 'false'
+  Enable L3 Gateway on Border and vPC Border Gateway: 'false'
