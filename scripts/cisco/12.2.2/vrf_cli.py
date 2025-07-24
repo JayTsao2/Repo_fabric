@@ -24,6 +24,7 @@ sys.path.append(str(Path(__file__).parent.absolute()))
 
 import argparse
 from modules.vrf.create_vrf import VRFCreator
+from modules.vrf.attach_vrf import VRFAttachment
 from modules.vrf.update_vrf import VRFUpdater
 from modules.vrf.delete_vrf import VRFDeleter
 
@@ -87,12 +88,12 @@ def list_vrfs_command(fabric_name: str = None):
 
 def attach_vrf_by_vlan_command(vlan_id: int, fabric_name: str):
     """Handle VRF attachment by VLAN ID to matching switches."""
-    from modules.vrf.create_vrf import VRFCreator
+    from modules.vrf.attach_vrf import VRFAttachment
     
     try:
-        creator = VRFCreator()
+        attachment = VRFAttachment()
         print(f"🔗 Attaching VRF with VLAN {vlan_id} to switches in fabric {fabric_name}")
-        success = creator.attach_vrf_by_vlan(vlan_id, fabric_name)
+        success = attachment.attach_vrf_by_vlan(vlan_id, fabric_name)
         return 0 if success else 1
         
     except Exception as e:
@@ -101,12 +102,12 @@ def attach_vrf_by_vlan_command(vlan_id: int, fabric_name: str):
 
 def detach_vrf_by_vlan_command(vlan_id: int, fabric_name: str):
     """Handle VRF detachment by VLAN ID from matching switches."""
-    from modules.vrf.create_vrf import VRFCreator
+    from modules.vrf.attach_vrf import VRFAttachment
     
     try:
-        creator = VRFCreator()
+        attachment = VRFAttachment()
         print(f"🔌 Detaching VRF with VLAN {vlan_id} from switches in fabric {fabric_name}")
-        success = creator.detach_vrf_by_vlan(vlan_id, fabric_name)
+        success = attachment.detach_vrf_by_vlan(vlan_id, fabric_name)
         return 0 if success else 1
         
     except Exception as e:
