@@ -15,7 +15,7 @@ from pathlib import Path
 # Add parent directory to path to access api and modules
 sys.path.append(str(Path(__file__).parent.parent.absolute()))
 import api.fabric as fabric_api
-from modules.config_utils import print_build_summary, validate_configuration_files
+from modules.config_utils import validate_configuration_files
 from . import (
     FabricType, 
     BaseFabricMethods, 
@@ -81,15 +81,18 @@ class FabricCreator(BaseFabricMethods):
             )
             
             if success:
-                print_build_summary(type_name, fabric_name, True, "created")
+                print(f"✅ SUCCESS: {type_name} - {fabric_name}")
+                print(f"   Fabric '{fabric_name}' has been created successfully")
                 return True
             else:
-                print_build_summary(type_name, fabric_name, False, "created")
+                print(f"❌ FAILED: {type_name} - {fabric_name}")
+                print(f"   Failed to create fabric '{fabric_name}'")
                 return False
                 
         except Exception as e:
             print(f"❌ Error creating {type_name} {fabric_name}: {e}")
-            print_build_summary(type_name, fabric_name, False, "created")
+            print(f"❌ FAILED: {type_name} - {fabric_name}")
+            print(f"   Failed to create fabric '{fabric_name}'")
             return False
 
     def link_fabrics(self, parent_fabric: str, child_fabric: str) -> bool:

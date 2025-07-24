@@ -14,7 +14,7 @@ from typing import Dict, Any
 # Add parent directory to path to access api and modules
 sys.path.append(str(Path(__file__).parent.parent.absolute()))
 import api.vrf as vrf_api
-from modules.config_utils import print_build_summary, validate_configuration_files
+from modules.config_utils import validate_configuration_files
 from . import BaseVRFMethods
 
 class VRFUpdater(BaseVRFMethods):
@@ -63,15 +63,18 @@ class VRFUpdater(BaseVRFMethods):
             )
             
             if success:
-                print_build_summary("VRF Update", vrf_name, True, "updated")
+                print(f"✅ SUCCESS: VRF Update - {vrf_name}")
+                print(f"   VRF '{vrf_name}' has been updated successfully")
                 return True
             else:
-                print_build_summary("VRF Update", vrf_name, False, "updated")
+                print(f"❌ FAILED: VRF Update - {vrf_name}")
+                print(f"   Failed to update VRF '{vrf_name}'")
                 return False
                 
         except Exception as e:
             print(f"❌ Error updating VRF {vrf_name}: {e}")
-            print_build_summary("VRF Update", vrf_name, False, "updated")
+            print(f"❌ FAILED: VRF Update - {vrf_name}")
+            print(f"   Failed to update VRF '{vrf_name}'")
             return False
 
 def main():

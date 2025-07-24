@@ -14,7 +14,7 @@ from typing import Dict, Any, List, Optional
 # Add parent directory to path to access api and modules
 sys.path.append(str(Path(__file__).parent.parent.absolute()))
 import api.vrf as vrf_api
-from modules.config_utils import print_build_summary, validate_configuration_files, load_yaml_file
+from modules.config_utils import validate_configuration_files, load_yaml_file
 from . import (
     VRFTemplate, 
     BaseVRFMethods, 
@@ -65,15 +65,18 @@ class VRFCreator(BaseVRFMethods):
             )
             
             if success:
-                print_build_summary("VRF", vrf_name, True, "created")
+                print(f"✅ SUCCESS: VRF - {vrf_name}")
+                print(f"   VRF '{vrf_name}' has been created successfully")
                 return True
             else:
-                print_build_summary("VRF", vrf_name, False, "created")
+                print(f"❌ FAILED: VRF - {vrf_name}")
+                print(f"   Failed to create VRF '{vrf_name}'")
                 return False
                 
         except Exception as e:
             print(f"❌ Error creating VRF {vrf_name}: {e}")
-            print_build_summary("VRF", vrf_name, False, "created")
+            print(f"❌ FAILED: VRF - {vrf_name}")
+            print(f"   Failed to create VRF '{vrf_name}'")
             return False
 
 def main():

@@ -218,13 +218,3 @@ def extract_child_fabrics_config(config_dict: Dict[str, Any]) -> Dict[str, List[
         "regular_fabrics": regular_fabrics,
         "isn_fabrics": isn_fabrics
     }
-
-def print_build_summary(fabric_type: str, fabric_name: str, success: bool, operation: str = "created") -> None:
-    """Print a formatted build summary message."""
-    status = "✅ SUCCESS" if success else "❌ FAILED"
-    print(f"{status}: {fabric_type} - {fabric_name}")
-    if success:
-        print(f"   Fabric '{fabric_name}' has been {operation} successfully")
-    else:
-        operation_verb = "create" if operation == "created" else "update" if operation == "updated" else operation.replace("ed", "e")
-        print(f"   Failed to {operation_verb} fabric '{fabric_name}'")

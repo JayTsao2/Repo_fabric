@@ -15,7 +15,7 @@ from typing import Dict, Any, List, Optional
 # Add parent directory to path to access api and modules
 sys.path.append(str(Path(__file__).parent.parent.absolute()))
 import api.vrf as vrf_api
-from modules.config_utils import print_build_summary, load_yaml_file
+from modules.config_utils import load_yaml_file
 from . import BaseVRFMethods
 
 class VRFAttachment(BaseVRFMethods):
@@ -69,10 +69,13 @@ class VRFAttachment(BaseVRFMethods):
                 operation_desc = "detached from switches"
             
             if success:
-                print_build_summary(f"VRF VLAN {operation.title()}", f"{vrf_name} (VLAN {vlan_id})", True, operation_desc)
+                print(f"✅ SUCCESS: VRF VLAN {operation.title()} - {vrf_name} (VLAN {vlan_id})")
+                print(f"   VRF '{vrf_name}' has been {operation_desc} successfully")
                 return True
             else:
-                print_build_summary(f"VRF VLAN {operation.title()}", f"{vrf_name} (VLAN {vlan_id})", False, operation_desc)
+                print(f"❌ FAILED: VRF VLAN {operation.title()} - {vrf_name} (VLAN {vlan_id})")
+                operation_verb = "attach" if operation == "attach" else "detach"
+                print(f"   Failed to {operation_verb} VRF '{vrf_name}' to switches")
                 return False
                 
         except Exception as e:

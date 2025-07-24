@@ -24,7 +24,7 @@ import api.vrf as vrf_api
 from modules.config_utils import (
     load_yaml_file, merge_configs, 
     apply_field_mapping, get_nested_value,
-    print_build_summary, validate_file_exists, 
+    validate_file_exists, 
     validate_configuration_files, flatten_config
 )
 

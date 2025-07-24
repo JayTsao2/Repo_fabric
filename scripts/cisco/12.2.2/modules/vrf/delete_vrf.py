@@ -13,7 +13,7 @@ from pathlib import Path
 # Add parent directory to path to access api and modules
 sys.path.append(str(Path(__file__).parent.parent.absolute()))
 import api.vrf as vrf_api
-from modules.config_utils import print_build_summary
+from modules.config_utils import load_yaml_file
 from . import BaseVRFMethods
 
 class VRFDeleter(BaseVRFMethods):
@@ -50,15 +50,18 @@ class VRFDeleter(BaseVRFMethods):
             success = vrf_api.delete_vrf(fabric_name, vrf_name)
             
             if success:
-                print_build_summary("VRF Delete", vrf_name, True, "deleted")
+                print(f"✅ SUCCESS: VRF Delete - {vrf_name}")
+                print(f"   VRF '{vrf_name}' has been deleted successfully")
                 return True
             else:
-                print_build_summary("VRF Delete", vrf_name, False, "deleted")
+                print(f"❌ FAILED: VRF Delete - {vrf_name}")
+                print(f"   Failed to delete VRF '{vrf_name}'")
                 return False
                 
         except Exception as e:
             print(f"❌ Error deleting VRF {vrf_name}: {e}")
-            print_build_summary("VRF Delete", vrf_name, False, "deleted")
+            print(f"❌ FAILED: VRF Delete - {vrf_name}")
+            print(f"   Failed to delete VRF '{vrf_name}'")
             return False
 
 def main():

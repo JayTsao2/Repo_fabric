@@ -14,7 +14,7 @@ from pathlib import Path
 # Add parent directory to path to access api and config_utils
 sys.path.append(str(Path(__file__).parent.parent.absolute()))
 import api.fabric as fabric_api
-from modules.config_utils import print_build_summary, validate_configuration_files
+from modules.config_utils import validate_configuration_files
 from . import FabricType, BaseFabricMethods
 
 class FabricUpdater(BaseFabricMethods):
@@ -77,15 +77,18 @@ class FabricUpdater(BaseFabricMethods):
             )
             
             if success:
-                print_build_summary(f"{type_name} Update", fabric_name, True, "updated")
+                print(f"✅ SUCCESS: {type_name} Update - {fabric_name}")
+                print(f"   Fabric '{fabric_name}' has been updated successfully")
                 return True
             else:
-                print_build_summary(f"{type_name} Update", fabric_name, False, "updated")
+                print(f"❌ FAILED: {type_name} Update - {fabric_name}")
+                print(f"   Failed to update fabric '{fabric_name}'")
                 return False
                 
         except Exception as e:
             print(f"❌ Error updating {type_name} {fabric_name}: {e}")
-            print_build_summary(f"{type_name} Update", fabric_name, False, "updated")
+            print(f"❌ FAILED: {type_name} Update - {fabric_name}")
+            print(f"   Failed to update fabric '{fabric_name}'")
             return False
 
     def update_fabric(self, fabric_name: str) -> bool:

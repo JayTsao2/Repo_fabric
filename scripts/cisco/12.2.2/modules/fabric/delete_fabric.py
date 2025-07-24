@@ -14,7 +14,7 @@ from pathlib import Path
 # Add parent directory to path to access api and config_utils
 sys.path.append(str(Path(__file__).parent.parent.absolute()))
 import api.fabric as fabric_api
-from modules.config_utils import print_build_summary
+from modules.config_utils import load_yaml_file
 
 class FabricDeleter:
     """Handles fabric deletion operations."""
@@ -38,15 +38,18 @@ class FabricDeleter:
             success = fabric_api.delete_fabric(fabric_name=fabric_name)
             
             if success:
-                print_build_summary("Fabric Deletion", fabric_name, True, "deleted")
+                print(f"✅ SUCCESS: Fabric Deletion - {fabric_name}")
+                print(f"   Fabric '{fabric_name}' has been deleted successfully")
                 return True
             else:
-                print_build_summary("Fabric Deletion", fabric_name, False, "deleted")
+                print(f"❌ FAILED: Fabric Deletion - {fabric_name}")
+                print(f"   Failed to delete fabric '{fabric_name}'")
                 return False
                 
         except Exception as e:
             print(f"❌ Error deleting fabric {fabric_name}: {e}")
-            print_build_summary("Fabric Deletion", fabric_name, False, "deleted")
+            print(f"❌ FAILED: Fabric Deletion - {fabric_name}")
+            print(f"   Failed to delete fabric '{fabric_name}'")
             return False
 
 
