@@ -10,8 +10,8 @@ Usage:
     python vrf_cli.py create <vrf_name>
     python vrf_cli.py update <vrf_name>
     python vrf_cli.py delete <vrf_name>
-    python vrf_cli.py attach-vlan <vlan_id> <fabric_name>
-    python vrf_cli.py detach-vlan <vlan_id> <fabric_name>
+    python vrf_cli.py attach <vlan_id> <fabric_name>
+    python vrf_cli.py detach <vlan_id> <fabric_name>
     python vrf_cli.py list-fabrics
     python vrf_cli.py list-vrfs [--fabric <fabric_name>]
 """
@@ -31,21 +31,18 @@ from modules.vrf.delete_vrf import VRFDeleter
 def create_vrf_command(vrf_name: str):
     """Handle VRF creation command."""
     creator = VRFCreator()
-    print(f"🏗️  Creating VRF: {vrf_name}")
     success = creator.create_vrf(vrf_name)
     return 0 if success else 1
 
 def update_vrf_command(vrf_name: str):
     """Handle VRF update command."""
     updater = VRFUpdater()
-    print(f"🔧  Updating VRF: {vrf_name}")
     success = updater.update_vrf(vrf_name)
     return 0 if success else 1
 
 def delete_vrf_command(vrf_name: str):
     """Handle VRF deletion command."""
     deleter = VRFDeleter()
-    print(f"🗑️  Deleting VRF: {vrf_name}")
     success = deleter.delete_vrf(vrf_name)
     return 0 if success else 1
 
@@ -92,7 +89,6 @@ def attach_vrf_by_vlan_command(vlan_id: int, fabric_name: str):
     
     try:
         attachment = VRFAttachment()
-        print(f"🔗 Attaching VRF with VLAN {vlan_id} to switches in fabric {fabric_name}")
         success = attachment.attach_vrf_by_vlan(vlan_id, fabric_name)
         return 0 if success else 1
         
@@ -106,7 +102,6 @@ def detach_vrf_by_vlan_command(vlan_id: int, fabric_name: str):
     
     try:
         attachment = VRFAttachment()
-        print(f"🔌 Detaching VRF with VLAN {vlan_id} from switches in fabric {fabric_name}")
         success = attachment.detach_vrf_by_vlan(vlan_id, fabric_name)
         return 0 if success else 1
         
@@ -123,8 +118,8 @@ Examples:
   python vrf_cli.py create bluevrf                          # Create VRF (fabric extracted from config)
   python vrf_cli.py update bluevrf                          # Update VRF (fabric extracted from config)
   python vrf_cli.py delete bluevrf                          # Delete VRF (fabric extracted from config)
-  python vrf_cli.py attach-vlan 2300 Site1-Greenfield      # Attach VRF by VLAN ID to matching switches
-  python vrf_cli.py detach-vlan 2300 Site1-Greenfield      # Detach VRF by VLAN ID from matching switches
+  python vrf_cli.py attach 2300 Site1-Greenfield      # Attach VRF by VLAN ID to matching switches
+  python vrf_cli.py detach 2300 Site1-Greenfield      # Detach VRF by VLAN ID from matching switches
   python vrf_cli.py list-fabrics                            # List all available fabrics
   python vrf_cli.py list-vrfs                               # List all VRFs grouped by fabric
   python vrf_cli.py list-vrfs --fabric Site1-Greenfield    # List VRFs for specific fabric
@@ -154,12 +149,12 @@ Examples:
     list_vrfs_parser.add_argument('--fabric', help='Filter VRFs by fabric name')
     
     # Attach VRF by VLAN command (YAML-based)
-    attach_vlan_parser = subparsers.add_parser('attach-vlan', help='Attach VRF by VLAN ID to matching switches')
+    attach_vlan_parser = subparsers.add_parser('attach', help='Attach VRF by VLAN ID to matching switches')
     attach_vlan_parser.add_argument('vlan_id', type=int, help='VLAN ID to match in switch configurations')
     attach_vlan_parser.add_argument('fabric_name', help='Name of the fabric to search for switches')
     
     # Detach VRF by VLAN command (YAML-based)
-    detach_vlan_parser = subparsers.add_parser('detach-vlan', help='Detach VRF by VLAN ID from matching switches')
+    detach_vlan_parser = subparsers.add_parser('detach', help='Detach VRF by VLAN ID from matching switches')
     detach_vlan_parser.add_argument('vlan_id', type=int, help='VLAN ID to match in switch configurations')
     detach_vlan_parser.add_argument('fabric_name', help='Name of the fabric to search for switches')
     
@@ -181,10 +176,10 @@ Examples:
         elif args.command == 'list-vrfs':
             return list_vrfs_command(args.fabric)
             
-        elif args.command == 'attach-vlan':
+        elif args.command == 'attach':
             return attach_vrf_by_vlan_command(args.vlan_id, args.fabric_name)
             
-        elif args.command == 'detach-vlan':
+        elif args.command == 'detach':
             return detach_vrf_by_vlan_command(args.vlan_id, args.fabric_name)
             
         else:

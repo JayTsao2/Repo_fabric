@@ -9,11 +9,9 @@ This module handles fabric creation operations:
 - Adding child fabrics to MSDs
 """
 
-import sys
-from pathlib import Path
+from modules.common_utils import setup_module_path, OperationExecutor
+setup_module_path(__file__)
 
-# Add parent directory to path to access api and modules
-sys.path.append(str(Path(__file__).parent.parent.absolute()))
 import api.fabric as fabric_api
 from modules.config_utils import validate_configuration_files
 from . import (
@@ -74,25 +72,21 @@ class FabricCreator(BaseFabricMethods):
             print(f"Calling create_fabric API for {type_name}...")
             
             # Call fabric API for creation
-            success = fabric_api.create_fabric(
-                fabric_name=fabric_name_from_file,
-                template_name=template_name,
-                payload_data=payload_data
+            # Execute the fabric creation operation
+            return OperationExecutor.execute_operation(
+                operation_name="create",
+                resource_name=fabric_name,
+                resource_type=type_name,
+                operation_func=lambda: fabric_api.create_fabric(
+                    fabric_name=fabric_name_from_file,
+                    template_name=template_name,
+                    payload_data=payload_data
+                )
             )
-            
-            if success:
-                print(f"✅ SUCCESS: {type_name} - {fabric_name}")
-                print(f"   Fabric '{fabric_name}' has been created successfully")
-                return True
-            else:
-                print(f"❌ FAILED: {type_name} - {fabric_name}")
-                print(f"   Failed to create fabric '{fabric_name}'")
-                return False
                 
         except Exception as e:
-            print(f"❌ Error creating {type_name} {fabric_name}: {e}")
-            print(f"❌ FAILED: {type_name} - {fabric_name}")
-            print(f"   Failed to create fabric '{fabric_name}'")
+            from modules.common_utils import MessageFormatter
+            MessageFormatter.error("create", fabric_name, e, type_name)
             return False
 
     def link_fabrics(self, parent_fabric: str, child_fabric: str) -> bool:
@@ -187,12 +181,6 @@ def main():
 
 
 if __name__ == "__main__":
-    try:
-        exit_code = main()
-        sys.exit(exit_code)
-    except KeyboardInterrupt:
-        print("\n⚠️  Process interrupted by user")
-        sys.exit(1)
-    except Exception as e:
-        print(f"\n❌ Unexpected error: {e}")
-        sys.exit(1)
+    from modules.common_utils import create_main_function_wrapper
+    main_wrapper = create_main_function_wrapper("Fabric Creator", main)
+    main_wrapper()

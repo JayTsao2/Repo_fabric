@@ -7,12 +7,10 @@ This module handles VRF update operations:
 - Managing VRF attachment updates
 """
 
-import sys
-from pathlib import Path
 from typing import Dict, Any
+from modules.common_utils import setup_module_path, OperationExecutor, MessageFormatter, create_main_function_wrapper
+setup_module_path(__file__)
 
-# Add parent directory to path to access api and modules
-sys.path.append(str(Path(__file__).parent.parent.absolute()))
 import api.vrf as vrf_api
 from modules.config_utils import validate_configuration_files
 from . import BaseVRFMethods
@@ -54,27 +52,22 @@ class VRFUpdater(BaseVRFMethods):
                 print(f"Failed to generate payload for VRF update")
                 return False
             
-            # Call VRF API for update
-            success = vrf_api.update_vrf(
-                fabric_name=fabric_name,
-                vrf_name=vrf_name,
-                vrf_payload=main_payload,
-                template_payload=template_payload
+            # Execute the VRF update operation
+            return OperationExecutor.execute_operation(
+                operation_name="update",
+                resource_name=vrf_name,
+                resource_type="VRF",
+                pre_operation_message=f"Updating VRF: {vrf_name}",
+                operation_func=lambda: vrf_api.update_vrf(
+                    fabric_name=fabric_name,
+                    vrf_name=vrf_name,
+                    vrf_payload=main_payload,
+                    template_payload=template_payload
+                )
             )
-            
-            if success:
-                print(f"✅ SUCCESS: VRF Update - {vrf_name}")
-                print(f"   VRF '{vrf_name}' has been updated successfully")
-                return True
-            else:
-                print(f"❌ FAILED: VRF Update - {vrf_name}")
-                print(f"   Failed to update VRF '{vrf_name}'")
-                return False
                 
         except Exception as e:
-            print(f"❌ Error updating VRF {vrf_name}: {e}")
-            print(f"❌ FAILED: VRF Update - {vrf_name}")
-            print(f"   Failed to update VRF '{vrf_name}'")
+            MessageFormatter.error("update", vrf_name, e, "VRF")
             return False
 
 def main():
@@ -101,12 +94,5 @@ def main():
     return 0
 
 if __name__ == "__main__":
-    try:
-        exit_code = main()
-        sys.exit(exit_code)
-    except KeyboardInterrupt:
-        print("\n⚠️  Process interrupted by user")
-        sys.exit(1)
-    except Exception as e:
-        print(f"\n❌ Unexpected error: {e}")
-        sys.exit(1)
+    main_wrapper = create_main_function_wrapper("VRF Updater", main)
+    main_wrapper()

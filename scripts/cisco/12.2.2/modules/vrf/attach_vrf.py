@@ -1,19 +1,17 @@
 #!/usr/bin/env python3
 """
-VRF Builder - Attachment Operations
+VRF Builder - Attach/Detach Operations
 
-This module handles VRF attachment/detachment operations:
-- Attaching VRFs to switches based on VLAN ID
-- Detaching VRFs from switches based on VLAN ID
-- Managing switch discovery and payload generation
+This module handles VRF attachment and detachment operations:
+- Attaching VRFs to switches based on VLAN matching
+- Detaching VRFs from switches based on VLAN matching
+- Switch discovery and payload building
 """
 
-import sys
-from pathlib import Path
 from typing import Dict, Any, List, Optional
+from modules.common_utils import setup_module_path, MessageFormatter, create_main_function_wrapper
+setup_module_path(__file__)
 
-# Add parent directory to path to access api and modules
-sys.path.append(str(Path(__file__).parent.parent.absolute()))
 import api.vrf as vrf_api
 from modules.config_utils import load_yaml_file
 from . import BaseVRFMethods
@@ -63,23 +61,18 @@ class VRFAttachment(BaseVRFMethods):
             # Step 4: Execute operation
             if operation == "attach":
                 success = vrf_api.attach_vrf_to_switches(fabric_name, vrf_name, payload)
-                operation_desc = "attached to switches"
             else:
                 success = vrf_api.detach_vrf_from_switches(fabric_name, vrf_name, payload)
-                operation_desc = "detached from switches"
             
             if success:
-                print(f"✅ SUCCESS: VRF VLAN {operation.title()} - {vrf_name} (VLAN {vlan_id})")
-                print(f"   VRF '{vrf_name}' has been {operation_desc} successfully")
+                MessageFormatter.success(f"VRF VLAN {operation.title()}", f"{vrf_name} (VLAN {vlan_id})", "")
                 return True
             else:
-                print(f"❌ FAILED: VRF VLAN {operation.title()} - {vrf_name} (VLAN {vlan_id})")
-                operation_verb = "attach" if operation == "attach" else "detach"
-                print(f"   Failed to {operation_verb} VRF '{vrf_name}' to switches")
+                MessageFormatter.failure(f"VRF VLAN {operation.title()}", f"{vrf_name} (VLAN {vlan_id})", "")
                 return False
                 
         except Exception as e:
-            print(f"❌ Error {operation}ing VRF by VLAN {vlan_id}: {e}")
+            MessageFormatter.error(f"VRF VLAN {operation}", f"{vrf_name} (VLAN {vlan_id})", e, "")
             return False
 
     def attach_vrf_by_vlan(self, vlan_id: int, fabric_name: str) -> bool:
@@ -214,12 +207,5 @@ def main():
     return 0
 
 if __name__ == "__main__":
-    try:
-        exit_code = main()
-        sys.exit(exit_code)
-    except KeyboardInterrupt:
-        print("\n⚠️  Process interrupted by user")
-        sys.exit(1)
-    except Exception as e:
-        print(f"\n❌ Unexpected error: {e}")
-        sys.exit(1)
+    main_wrapper = create_main_function_wrapper("VRF Attachment", main)
+    main_wrapper()

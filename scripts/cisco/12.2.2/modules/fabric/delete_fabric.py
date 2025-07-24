@@ -8,11 +8,9 @@ This module handles fabric deletion operations:
 - Deleting Inter-Site Networks (ISN)
 """
 
-import sys
-from pathlib import Path
+from modules.common_utils import setup_module_path, OperationExecutor, get_confirmation
+setup_module_path(__file__)
 
-# Add parent directory to path to access api and config_utils
-sys.path.append(str(Path(__file__).parent.parent.absolute()))
 import api.fabric as fabric_api
 from modules.config_utils import load_yaml_file
 
@@ -32,24 +30,18 @@ class FabricDeleter:
         print(f"\n=== Deleting Fabric: {fabric_name} ===")
         
         try:
-            print(f"Calling delete_fabric API for {fabric_name}...")
-            
-            # Call fabric API for deletion
-            success = fabric_api.delete_fabric(fabric_name=fabric_name)
-            
-            if success:
-                print(f"✅ SUCCESS: Fabric Deletion - {fabric_name}")
-                print(f"   Fabric '{fabric_name}' has been deleted successfully")
-                return True
-            else:
-                print(f"❌ FAILED: Fabric Deletion - {fabric_name}")
-                print(f"   Failed to delete fabric '{fabric_name}'")
-                return False
+            # Execute the fabric deletion operation
+            return OperationExecutor.execute_operation(
+                operation_name="delete",
+                resource_name=fabric_name,
+                resource_type="Fabric",
+                pre_operation_message=f"Deleting Fabric: {fabric_name}",
+                operation_func=lambda: fabric_api.delete_fabric(fabric_name=fabric_name)
+            )
                 
         except Exception as e:
-            print(f"❌ Error deleting fabric {fabric_name}: {e}")
-            print(f"❌ FAILED: Fabric Deletion - {fabric_name}")
-            print(f"   Failed to delete fabric '{fabric_name}'")
+            from modules.common_utils import MessageFormatter
+            MessageFormatter.error("delete", fabric_name, e, "Fabric")
             return False
 
 
@@ -92,12 +84,6 @@ def main():
 
 
 if __name__ == "__main__":
-    try:
-        exit_code = main()
-        sys.exit(exit_code)
-    except KeyboardInterrupt:
-        print("\n⚠️  Process interrupted by user")
-        sys.exit(1)
-    except Exception as e:
-        print(f"\n❌ Unexpected error: {e}")
-        sys.exit(1)
+    from modules.common_utils import create_main_function_wrapper
+    main_wrapper = create_main_function_wrapper("Fabric Deleter", main)
+    main_wrapper()

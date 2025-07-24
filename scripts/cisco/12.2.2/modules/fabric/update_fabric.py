@@ -8,11 +8,9 @@ This module handles fabric update operations:
 - Updating Inter-Site Networks (ISN)
 """
 
-import sys
-from pathlib import Path
+from modules.common_utils import setup_module_path, OperationExecutor, MessageFormatter, create_main_function_wrapper
+setup_module_path(__file__)
 
-# Add parent directory to path to access api and config_utils
-sys.path.append(str(Path(__file__).parent.parent.absolute()))
 import api.fabric as fabric_api
 from modules.config_utils import validate_configuration_files
 from . import FabricType, BaseFabricMethods
@@ -69,26 +67,20 @@ class FabricUpdater(BaseFabricMethods):
             
             print(f"Calling update_fabric API for {type_name}...")
             
-            # Call fabric API for update
-            success = fabric_api.update_fabric(
-                fabric_name=fabric_name_from_file,
-                template_name=template_name,
-                payload_data=payload_data
+            # Execute the fabric update operation
+            return OperationExecutor.execute_operation(
+                operation_name="update",
+                resource_name=fabric_name,
+                resource_type=type_name,
+                operation_func=lambda: fabric_api.update_fabric(
+                    fabric_name=fabric_name_from_file,
+                    template_name=template_name,
+                    payload_data=payload_data
+                )
             )
-            
-            if success:
-                print(f"✅ SUCCESS: {type_name} Update - {fabric_name}")
-                print(f"   Fabric '{fabric_name}' has been updated successfully")
-                return True
-            else:
-                print(f"❌ FAILED: {type_name} Update - {fabric_name}")
-                print(f"   Failed to update fabric '{fabric_name}'")
-                return False
                 
         except Exception as e:
-            print(f"❌ Error updating {type_name} {fabric_name}: {e}")
-            print(f"❌ FAILED: {type_name} Update - {fabric_name}")
-            print(f"   Failed to update fabric '{fabric_name}'")
+            MessageFormatter.error("update", fabric_name, e, type_name)
             return False
 
     def update_fabric(self, fabric_name: str) -> bool:
@@ -152,12 +144,5 @@ def main():
 
 
 if __name__ == "__main__":
-    try:
-        exit_code = main()
-        sys.exit(exit_code)
-    except KeyboardInterrupt:
-        print("\n⚠️  Process interrupted by user")
-        sys.exit(1)
-    except Exception as e:
-        print(f"\n❌ Unexpected error: {e}")
-        sys.exit(1)
+    main_wrapper = create_main_function_wrapper("Fabric Updater", main)
+    main_wrapper()

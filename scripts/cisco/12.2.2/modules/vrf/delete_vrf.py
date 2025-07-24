@@ -7,11 +7,9 @@ This module handles VRF deletion operations:
 - Managing VRF detachment from switches
 """
 
-import sys
-from pathlib import Path
+from modules.common_utils import setup_module_path, OperationExecutor, get_confirmation, MessageFormatter
+setup_module_path(__file__)
 
-# Add parent directory to path to access api and modules
-sys.path.append(str(Path(__file__).parent.parent.absolute()))
 import api.vrf as vrf_api
 from modules.config_utils import load_yaml_file
 from . import BaseVRFMethods
@@ -41,27 +39,20 @@ class VRFDeleter(BaseVRFMethods):
             print(f"\n=== Deleting VRF: {vrf_name} from Fabric: {fabric_name} ===")
             
             # Confirm deletion
-            response = input(f"Are you sure you want to delete VRF '{vrf_name}' from fabric '{fabric_name}'? (y/N): ")
-            if response.lower() not in ['y', 'yes']:
+            if not get_confirmation(f"Are you sure you want to delete VRF '{vrf_name}' from fabric '{fabric_name}'?"):
                 print("Deletion cancelled.")
                 return False
             
-            # Call VRF API for deletion
-            success = vrf_api.delete_vrf(fabric_name, vrf_name)
-            
-            if success:
-                print(f"✅ SUCCESS: VRF Delete - {vrf_name}")
-                print(f"   VRF '{vrf_name}' has been deleted successfully")
-                return True
-            else:
-                print(f"❌ FAILED: VRF Delete - {vrf_name}")
-                print(f"   Failed to delete VRF '{vrf_name}'")
-                return False
+            # Execute the VRF deletion operation
+            return OperationExecutor.execute_operation(
+                operation_name="delete",
+                resource_name=vrf_name,
+                resource_type="VRF",
+                operation_func=lambda: vrf_api.delete_vrf(fabric_name, vrf_name)
+            )
                 
         except Exception as e:
-            print(f"❌ Error deleting VRF {vrf_name}: {e}")
-            print(f"❌ FAILED: VRF Delete - {vrf_name}")
-            print(f"   Failed to delete VRF '{vrf_name}'")
+            MessageFormatter.error("delete", vrf_name, e, "VRF")
             return False
 
 def main():
@@ -88,12 +79,6 @@ def main():
     return 0
 
 if __name__ == "__main__":
-    try:
-        exit_code = main()
-        sys.exit(exit_code)
-    except KeyboardInterrupt:
-        print("\n⚠️  Process interrupted by user")
-        sys.exit(1)
-    except Exception as e:
-        print(f"\n❌ Unexpected error: {e}")
-        sys.exit(1)
+    from modules.common_utils import create_main_function_wrapper
+    main_wrapper = create_main_function_wrapper("VRF Deleter", main)
+    main_wrapper()
