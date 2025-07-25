@@ -4,6 +4,7 @@ import urllib3
 urllib3.disable_warnings(InsecureRequestWarning)
 from .utils import *
 import json
+from typing import Dict, Any, List
 
 def get_networks(fabric, network_dir="networks", network_template_config_dir="networks/network_templates", network_filter="", range=0):
     # range = show the networks from 0 to {range}
@@ -62,7 +63,94 @@ def get_network(fabric, network_name, network_dir="networks", network_template_c
             json.dump(network_template_config, f, indent=4)
             print(f"Network config template for {network_name} (ID: {network_id}) is saved to {network_template_config_filename}")
 
-def create_network(filename, network_template_config_file=""):
+def create_network(fabric_name: str, network_payload: Dict[str, Any], template_payload: Dict[str, Any]) -> bool:
+    """
+    Create a network using direct payload data.
+    
+    Args:
+        fabric_name: Name of the fabric
+        network_payload: Main network configuration payload
+        template_payload: Network template configuration payload
+        
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    try:
+        headers = get_api_key_header()
+        headers['Content-Type'] = 'application/json'
+        
+        # Convert template payload to JSON string if provided
+        template_config_str = json.dumps(template_payload) if template_payload else ""
+        
+        # Create the final payload
+        payload = network_payload.copy()
+        payload["networkTemplateConfig"] = template_config_str
+        
+        url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric_name}/networks")
+        r = requests.post(url, headers=headers, json=payload, verify=False)
+        check_status_code(r)
+        return True
+        
+    except Exception as e:
+        print(f"Error creating network: {e}")
+        return False
+
+def update_network(fabric_name: str, network_payload: Dict[str, Any], template_payload: Dict[str, Any]) -> bool:
+    """
+    Update a network using direct payload data.
+    
+    Args:
+        fabric_name: Name of the fabric
+        network_payload: Main network configuration payload
+        template_payload: Network template configuration payload
+        
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    try:
+        headers = get_api_key_header()
+        headers['Content-Type'] = 'application/json'
+        
+        # Convert template payload to JSON string if provided
+        template_config_str = json.dumps(template_payload) if template_payload else ""
+        
+        # Create the final payload
+        payload = network_payload.copy()
+        payload["networkTemplateConfig"] = template_config_str
+        
+        network_name = network_payload.get('networkName')
+        url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric_name}/networks/{network_name}")
+        r = requests.put(url, headers=headers, json=payload, verify=False)
+        check_status_code(r)
+        return True
+        
+    except Exception as e:
+        print(f"Error updating network: {e}")
+        return False
+
+def delete_network(fabric_name: str, network_name: str) -> bool:
+    """
+    Delete a network.
+    
+    Args:
+        fabric_name: Name of the fabric
+        network_name: Name of the network to delete
+        
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    try:
+        headers = get_api_key_header()
+        url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric_name}/networks/{network_name}")
+        r = requests.delete(url, headers=headers, verify=False)
+        check_status_code(r)
+        return True
+        
+    except Exception as e:
+        print(f"Error deleting network: {e}")
+        return False
+
+def create_network_legacy(filename, network_template_config_file=""):
     headers = get_api_key_header()
     headers['Content-Type'] = 'application/json'
     
@@ -84,7 +172,7 @@ def create_network(filename, network_template_config_file=""):
     print(f"Status Code: {r.status_code}")
     print(f"Message: {r.text}")
 
-def update_network(filename, network_template_config_file=""):
+def update_network_legacy(filename, network_template_config_file=""):
     headers = get_api_key_header()
     headers['Content-Type'] = 'application/json'
     
@@ -106,7 +194,7 @@ def update_network(filename, network_template_config_file=""):
     print(f"Status Code: {r.status_code}")
     print(f"Message: {r.text}")
 
-def delete_network(fabric, network_name):
+def delete_network_legacy(fabric, network_name):
     headers = get_api_key_header()
     url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric}/networks/{network_name}")
     r = requests.delete(url, headers=headers, verify=False)
