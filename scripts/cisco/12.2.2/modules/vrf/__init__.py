@@ -185,6 +185,7 @@ class VRFPayloadGenerator:
             "vrfId": str(vrf_id),
             "vrfVlanId": str(vlan_id),
         }
+        print(payload)
         
         # Add description fields from General Parameters or use VRF name as default
         general_params = vrf_config.get("General Parameters", {})

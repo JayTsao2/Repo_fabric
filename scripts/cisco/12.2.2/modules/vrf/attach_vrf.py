@@ -19,12 +19,12 @@ from . import BaseVRFMethods
 class VRFAttachment(BaseVRFMethods):
     """Handles VRF attachment and detachment operations."""
     
-    def manage_vrf_by_vlan(self, vlan_id: int, fabric_name: str, operation: str = "attach") -> bool:
+    def manage_vrf_by_name(self, vrf_name: str, fabric_name: str, operation: str = "attach") -> bool:
         """
-        Attach or detach VRF to/from switches based on VLAN ID match in switch configurations.
+        Attach or detach VRF to/from switches based on VRF name match in switch interface configurations.
         
         Args:
-            vlan_id: VLAN ID to match in switch configurations
+            vrf_name: VRF name to match in switch interface configurations
             fabric_name: Name of the fabric to search for switches
             operation: "attach" or "detach"
             
@@ -34,23 +34,24 @@ class VRFAttachment(BaseVRFMethods):
         try:
             action = "Attaching" if operation == "attach" else "Detaching"
             preposition = "to" if operation == "attach" else "from"
-            print(f"\n=== {action} VRF with VLAN {vlan_id} {preposition} switches in Fabric: {fabric_name} ===")
+            print(f"\n=== {action} VRF '{vrf_name}' {preposition} switches in Fabric: {fabric_name} ===")
             
-            # Step 1: Find the VRF with this VLAN ID
-            vrf_name = self._find_vrf_by_vlan(vlan_id, fabric_name)
-            if not vrf_name:
-                print(f"❌ No VRF found with VLAN ID {vlan_id} in fabric {fabric_name}")
+            # Step 1: Get VRF details from configuration
+            vrf_details = self._find_vrf_by_name(vrf_name, fabric_name)
+            if not vrf_details:
+                print(f"❌ No VRF found with name '{vrf_name}' in fabric '{fabric_name}'")
                 return False
             
+            vlan_id = vrf_details.get("VLAN ID")
             print(f"📋 Found VRF: {vrf_name} with VLAN ID: {vlan_id}")
             
-            # Step 2: Find switches with matching VLAN configuration
-            matching_switches = self._find_switches_with_vlan(vlan_id, fabric_name)
+            # Step 2: Find switches with matching VRF interface configuration
+            matching_switches = self._find_switches_with_vrf_interface(vrf_name, fabric_name)
             if not matching_switches:
-                print(f"❌ No switches found with VLAN {vlan_id} in fabric {fabric_name}")
+                print(f"❌ No switches found with VRF '{vrf_name}' interface configuration in fabric '{fabric_name}'")
                 return False
             
-            print(f"📋 Found {len(matching_switches)} switches with VLAN {vlan_id}:")
+            print(f"📋 Found {len(matching_switches)} switches with VRF '{vrf_name}' interface:")
             for switch in matching_switches:
                 print(f"  - {switch['hostname']} ({switch['serial_number']}) - Role: {switch['role']}")
             
@@ -65,26 +66,94 @@ class VRFAttachment(BaseVRFMethods):
                 success = vrf_api.detach_vrf_from_switches(fabric_name, vrf_name, payload)
             
             if success:
-                MessageFormatter.success(f"VRF VLAN {operation.title()}", f"{vrf_name} (VLAN {vlan_id})", "")
+                MessageFormatter.success(f"VRF {operation.title()}", f"{vrf_name} (VLAN {vlan_id})", "")
                 return True
             else:
-                MessageFormatter.failure(f"VRF VLAN {operation.title()}", f"{vrf_name} (VLAN {vlan_id})", "")
+                MessageFormatter.failure(f"VRF {operation.title()}", f"{vrf_name} (VLAN {vlan_id})", "")
                 return False
                 
         except Exception as e:
-            MessageFormatter.error(f"VRF VLAN {operation}", f"{vrf_name} (VLAN {vlan_id})", e, "")
+            MessageFormatter.error(f"VRF {operation}", f"{vrf_name}", e, "")
             return False
 
-    def attach_vrf_by_vlan(self, vlan_id: int, fabric_name: str) -> bool:
-        """Attach VRF to switches based on VLAN ID match."""
-        return self.manage_vrf_by_vlan(vlan_id, fabric_name, "attach")
+    def attach_vrf_by_name(self, vrf_name: str, fabric_name: str) -> bool:
+        """Attach VRF to switches based on VRF name match in interface configurations."""
+        return self.manage_vrf_by_name(vrf_name, fabric_name, "attach")
 
-    def detach_vrf_by_vlan(self, vlan_id: int, fabric_name: str) -> bool:
-        """Detach VRF from switches based on VLAN ID match."""
-        return self.manage_vrf_by_vlan(vlan_id, fabric_name, "detach")
+    def detach_vrf_by_name(self, vrf_name: str, fabric_name: str) -> bool:
+        """Detach VRF from switches based on VRF name match in interface configurations."""
+        return self.manage_vrf_by_name(vrf_name, fabric_name, "detach")
 
-    def _find_vrf_by_vlan(self, vlan_id: int, fabric_name: str) -> Optional[str]:
-        """Find VRF name by VLAN ID and fabric name."""
+    def manage_vrf_by_switch(self, fabric_name: str, switch_role: str, switch_name: str, operation: str = "attach") -> bool:
+        """
+        Attach or detach VRF to/from a specific switch based on fabric, role, and switch name.
+        
+        Args:
+            fabric_name: Name of the fabric
+            switch_role: Role of the switch (leaf, spine, border_gateway)
+            switch_name: Name of the switch
+            operation: "attach" or "detach"
+            
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            action = "Attaching" if operation == "attach" else "Detaching"
+            preposition = "to" if operation == "attach" else "from"
+            print(f"\n=== {action} VRF {preposition} switch: {switch_name} ===")
+            
+            # Step 1: Load switch configuration
+            switch_config, serial_number = self._load_switch_config(fabric_name, switch_role, switch_name)
+            if not switch_config:
+                return False
+            
+            # Step 2: Find VRF in switch interface configuration
+            vrf_name = self._find_vrf_in_switch(switch_config, switch_name)
+            if not vrf_name:
+                return False
+            
+            print(f"Found VRF {vrf_name} in {switch_name} ({serial_number}) in {fabric_name}")
+            
+            # Step 3: Get VRF details from configuration
+            vrf_details = self._find_vrf_by_name(vrf_name, fabric_name)
+            if not vrf_details:
+                print(f"❌ No VRF found with name '{vrf_name}' in fabric '{fabric_name}'")
+                return False
+            
+            vlan_id = vrf_details.get("VLAN ID")
+            
+            # Step 4: Build switch info for payload
+            switch_info = [{
+                'hostname': switch_name,
+                'serial_number': serial_number,
+                'ip_address': switch_config.get('IP Address', ''),
+                'role': switch_role,
+                'vrf_name': vrf_name
+            }]
+            
+            # Step 5: Build payload
+            deployment = operation == "attach"
+            payload = self._build_vrf_payload(vrf_name, vlan_id, switch_info, fabric_name, deployment)
+            
+            # Step 6: Execute operation
+            if operation == "attach":
+                success = vrf_api.attach_vrf_to_switches(fabric_name, vrf_name, payload)
+            else:
+                success = vrf_api.detach_vrf_from_switches(fabric_name, vrf_name, payload)
+            
+            if success:
+                MessageFormatter.success(f"VRF {operation.title()}", f"{vrf_name} (VLAN {vlan_id}) {preposition} {switch_name}", "")
+                return True
+            else:
+                MessageFormatter.failure(f"VRF {operation.title()}", f"{vrf_name} (VLAN {vlan_id}) {preposition} {switch_name}", "")
+                return False
+                
+        except Exception as e:
+            MessageFormatter.error(f"VRF {operation}", f"{switch_name}", e, "")
+            return False
+
+    def _find_vrf_by_name(self, vrf_name: str, fabric_name: str) -> Optional[Dict[str, Any]]:
+        """Find VRF details by VRF name and fabric name."""
         config = self.builder.get_vrf_config()
         vrf_config_list = load_yaml_file(config.config_path)
         
@@ -92,12 +161,12 @@ class VRFAttachment(BaseVRFMethods):
             vrf_list = vrf_config_list["VRF"]
             for vrf in vrf_list:
                 if (vrf.get("Fabric") == fabric_name and 
-                    vrf.get("VLAN ID") == vlan_id):
-                    return vrf.get("VRF Name")
+                    vrf.get("VRF Name") == vrf_name):
+                    return vrf
         return None
 
-    def _find_switches_with_vlan(self, vlan_id: int, fabric_name: str) -> List[Dict[str, Any]]:
-        """Find all switches in the fabric that have the specified VLAN configured."""
+    def _find_switches_with_vrf_interface(self, vrf_name: str, fabric_name: str) -> List[Dict[str, Any]]:
+        """Find all switches in the fabric that have int_routed_host interfaces with the specified VRF."""
         matching_switches = []
         fabric_path = self.builder.project_root / "network_configs" / "3_node" / fabric_name
         
@@ -114,32 +183,27 @@ class VRFAttachment(BaseVRFMethods):
                 for switch_file in role_dir.iterdir():
                     if switch_file.is_file() and switch_file.suffix == '.yaml':
                         switch_config = load_yaml_file(str(switch_file))
-                        if switch_config and self._switch_has_vlan(switch_config, vlan_id):
+                        if switch_config and self._switch_has_vrf_interface(switch_config, vrf_name):
                             matching_switches.append({
                                 'hostname': switch_file.stem,
                                 'serial_number': switch_config.get('Serial Number', ''),
                                 'ip_address': switch_config.get('IP Address', ''),
                                 'role': role_name,
-                                'vlan_id': vlan_id
+                                'vrf_name': vrf_name
                             })
         
         return matching_switches
 
-    def _switch_has_vlan(self, switch_config: Dict[str, Any], target_vlan: int) -> bool:
-        """Check if a switch configuration contains the target VLAN."""
-        # Check top-level vlan field
-        if switch_config.get('vlan') == target_vlan:
-            return True
-        
-        # Check Interface configurations for VLAN
+    def _switch_has_vrf_interface(self, switch_config: Dict[str, Any], target_vrf: str) -> bool:
+        """Check if a switch configuration has int_routed_host interfaces with the target VRF."""
+        # Check Interface configurations for VRF
         interfaces = switch_config.get('Interface', [])
         if interfaces:
             for interface in interfaces:
                 for int_name, int_config in interface.items():
-                    # Check for VLAN in various possible fields
-                    if (int_config.get('vlan') == target_vlan or
-                        int_config.get('VLAN') == target_vlan or
-                        int_config.get('VLAN ID') == target_vlan):
+                    # Check for int_routed_host policy AND matching VRF
+                    if (int_config.get('policy') == 'int_routed_host' and
+                        int_config.get('Interface VRF') == target_vrf):
                         return True
         
         return False
@@ -182,6 +246,58 @@ class VRFAttachment(BaseVRFMethods):
         attachment_list.append(vrf_attachment)
         return attachment_list
 
+    def _load_switch_config(self, fabric_name: str, switch_role: str, switch_name: str) -> tuple:
+        """Load switch configuration and return config and serial number."""
+        switch_path = self.builder.project_root / "network_configs" / "3_node" / fabric_name / switch_role / f"{switch_name}.yaml"
+        
+        if not switch_path.exists():
+            print(f"❌ Switch configuration not found: {switch_path}")
+            return None, None
+        
+        switch_config = load_yaml_file(str(switch_path))
+        if not switch_config:
+            print(f"❌ Failed to load switch configuration: {switch_path}")
+            return None, None
+        
+        serial_number = switch_config.get('Serial Number', '')
+        if not serial_number:
+            print(f"❌ No serial number found in switch configuration: {switch_name}")
+            return None, None
+        
+        return switch_config, serial_number
+
+    def _find_vrf_in_switch(self, switch_config: Dict[str, Any], switch_name: str) -> Optional[str]:
+        """Find VRF name from switch interface configuration with int_routed_host policy."""
+        interfaces = switch_config.get("Interface", [])
+        
+        # Handle list format where each interface is a single-key dict
+        if isinstance(interfaces, list):
+            for interface_item in interfaces:
+                if isinstance(interface_item, dict):
+                    # Each item in the list is a dict with one key (interface name)
+                    for interface_name, interface_config in interface_item.items():
+                        if isinstance(interface_config, dict):
+                            policy = interface_config.get("policy")
+                            if policy == "int_routed_host":
+                                vrf_name = interface_config.get("Interface VRF")
+                                if vrf_name:
+                                    print(f"📋 Found interface {interface_name} with policy 'int_routed_host' and VRF '{vrf_name}'")
+                                    return vrf_name
+        
+        # Also handle dict format for backward compatibility
+        elif isinstance(interfaces, dict):
+            for interface_name, interface_config in interfaces.items():
+                if isinstance(interface_config, dict):
+                    policy = interface_config.get("policy")
+                    if policy == "int_routed_host":
+                        vrf_name = interface_config.get("Interface VRF")
+                        if vrf_name:
+                            print(f"📋 Found interface {interface_name} with policy 'int_routed_host' and VRF '{vrf_name}'")
+                            return vrf_name
+        
+        print(f"❌ No interface with 'int_routed_host' policy and VRF found in switch '{switch_name}'")
+        return None
+
 def main():
     """
     Main function for VRF attachment operations.
@@ -192,15 +308,15 @@ def main():
     print("=" * 60)
     
     # Configuration - Update these values as needed
-    vlan_to_attach = 2000
-    fabric_to_use = "Site3-Test"
+    vrf_to_attach = "bluevrf"
+    fabric_to_use = "Site1-Greenfield"
     
-    # --- Attach VRF by VLAN ---
+    # --- Attach VRF by Name ---
     
-    # Attach VRF by VLAN ID (automatically finds VRF and matching switches)
-    success = vrf_attachment.attach_vrf_by_vlan(vlan_to_attach, fabric_to_use)
+    # Attach VRF by name (automatically finds switches with matching VRF interface configurations)
+    success = vrf_attachment.attach_vrf_by_name(vrf_to_attach, fabric_to_use)
     if not success:
-        print(f"Failed to attach VRF with VLAN {vlan_to_attach}")
+        print(f"Failed to attach VRF '{vrf_to_attach}'")
         return 1
     
     print("\n🎉 VRF attachment process completed successfully!")
