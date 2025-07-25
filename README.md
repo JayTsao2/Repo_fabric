@@ -10,13 +10,21 @@
 │   │   ├── 12.2.2/
 │   │   │   ├── api/
 │   │   │   ├── modules/
-│   │   │   │   └── fabric/
-│   │   │   │       ├── __init__.py
-│   │   │   │       ├── create_fabric.py
-│   │   │   │       ├── update_fabric.py
-│   │   │   │       └── delete_fabric.py
+│   │   │   │   ├── fabric/
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── create_fabric.py
+│   │   │   │   │   ├── update_fabric.py
+│   │   │   │   │   └── delete_fabric.py
+│   │   │   │   ├── vrf/
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── create_vrf.py
+│   │   │   │   │   ├── update_vrf.py
+│   │   │   │   │   ├── delete_vrf.py
+│   │   │   │   │   └── attach_vrf.py
+│   │   │   │   └── common_utils.py
 │   │   │   ├── resources/
-│   │   │   └── fabric_cli.py
+│   │   │   ├── fabric_cli.py
+│   │   │   └── vrf_cli.py
 │   │   └── 12.3/
 │   ├── inventory/
 │   └── logs/
@@ -47,12 +55,21 @@
             
             * 📂 **`/scripts/cisco/12.2.2/modules/fabric`**
                 * 用途: Fabric 管理模組，包含建立、更新、刪除功能。
+                
+            * 📂 **`/scripts/cisco/12.2.2/modules/vrf`**
+                * 用途: VRF 管理模組，包含建立、更新、刪除、附加、分離功能。
+                
+            * 📄 **`/scripts/cisco/12.2.2/modules/common_utils.py`**
+                * 用途: 共用工具函數模組，提供跨模組的共同功能。
             
         * 📂 **`/scripts/cisco/12.2.2/resources`**
             * 用途: 配置檔案、模板、欄位映射等資源檔案。
             
         * 📄 **`/scripts/cisco/12.2.2/fabric_cli.py`**
             * 用途: Fabric 管理命令列介面工具。
+            
+        * 📄 **`/scripts/cisco/12.2.2/vrf_cli.py`**
+            * 用途: VRF 管理命令列介面工具。
         
     * 📂 **`/scripts/inventory`**
         * 用途: 透過 Nornir、NAPALM 等工具進行設備資訊的獲取與管理。
@@ -181,6 +198,122 @@ python fabric_cli.py --help
 - VRF create / read / update / delete
 - VRF attachment read / update
 
+#### [VRF CLI](scripts/cisco/12.2.2/vrf_cli.py)
+**VRF 管理命令列介面工具 (VRF Management CLI Tool)**
+
+**功能說明 (Features):**
+- 🏗️ **建立 VRF**: 從 YAML 配置檔案建立 VRF
+- 🔧 **更新 VRF**: 更新現有 VRF 配置
+- 🗑️ **刪除 VRF**: 安全刪除 VRF
+- 🔗 **附加 VRF**: 將 VRF 附加到指定交換器
+- 🔌 **分離 VRF**: 從指定交換器分離 VRF
+- 📋 **自動偵測**: 自動從交換器介面配置中偵測 VRF
+
+**使用方式 (Usage):**
+```bash
+# 在 scripts/cisco/12.2.2/ 目錄下執行
+python vrf_cli.py create <vrf_name> <fabric_name>     # 建立特定 VRF
+python vrf_cli.py update <vrf_name> <fabric_name>     # 更新特定 VRF
+python vrf_cli.py delete <vrf_name>                   # 刪除特定 VRF
+python vrf_cli.py attach <fabric_name> <switch_role> <switch_name>   # 附加 VRF 到交換器
+python vrf_cli.py detach <fabric_name> <switch_role> <switch_name>   # 從交換器分離 VRF
+
+# 範例
+python vrf_cli.py attach Site3-Test leaf Site1-L3    # 附加 VRF 到指定 leaf 交換器
+python vrf_cli.py detach Site3-Test leaf Site1-L3    # 從指定 leaf 交換器分離 VRF
+
+# 顯示幫助資訊
+python vrf_cli.py --help
+```
+
+#### [VRF Builder Modules](scripts/cisco/12.2.2/modules/vrf/)
+**模組化 VRF 管理系統 (Modular VRF Management System)**
+
+**模組結構 (Module Structure):**
+
+##### 1. 核心模組 (`__init__.py`)
+- `VRFTemplate` - VRF 模板枚舉
+- `VRFConfig` - 配置路徑資料類別
+- `VRFBuilder` - 主要建置類別
+- `VRFPayloadGenerator` - API 資料產生器
+- `BaseVRFMethods` - 基礎方法類別
+
+##### 2. 建立模組 (`create_vrf.py`)
+- `VRFCreator` - VRF 建立操作類別
+  - `create_vrf(vrf_name)` - VRF 建立方法
+
+**高層邏輯流程 (High-Level Logic Flow):**
+1. 從 `5_segment/vrf.yaml` 載入 VRF 配置
+2. 載入預設配置和欄位映射
+3. 合併配置並生成 API payload
+4. 透過 NDFC API 建立 VRF
+5. 驗證建立結果
+
+##### 3. 更新模組 (`update_vrf.py`)
+- `VRFUpdater` - VRF 更新操作類別
+  - `update_vrf(vrf_name)` - VRF 更新方法
+
+**高層邏輯流程 (High-Level Logic Flow):**
+1. 從 `5_segment/vrf.yaml` 載入更新後的 VRF 配置
+2. 載入預設配置和欄位映射
+3. 合併配置並生成 API payload
+4. 透過 NDFC API 更新現有 VRF
+5. 驗證更新結果
+
+##### 4. 刪除模組 (`delete_vrf.py`)
+- `VRFDeleter` - VRF 刪除操作類別
+  - `delete_vrf(vrf_name)` - VRF 刪除方法
+
+**高層邏輯流程 (High-Level Logic Flow):**
+1. 從配置中查找指定的 VRF
+2. 驗證 VRF 存在性
+3. 透過 NDFC API 刪除 VRF
+4. 驗證刪除結果
+
+##### 5. 附加/分離模組 (`attach_vrf.py`)
+- `VRFAttachment` - VRF 附加/分離操作類別
+  - `manage_vrf_by_switch(fabric_name, switch_role, switch_name, operation)` - 主要附加/分離方法
+
+**高層邏輯流程 (High-Level Logic Flow):**
+1. **載入交換器配置**: 從 `3_node/{fabric}/{role}/{switch}.yaml` 載入交換器配置
+2. **VRF 自動偵測**: 掃描交換器介面，尋找具有 `int_routed_host` policy 的介面
+3. **提取 VRF 資訊**: 從匹配介面的 `Interface VRF` 欄位提取 VRF 名稱
+4. **驗證 VRF 存在性**: 在 `5_segment/vrf.yaml` 中驗證 VRF 配置
+5. **生成 API Payload**: 建立包含交換器序號、VLAN ID 等資訊的 payload
+6. **執行操作**: 透過 NDFC API 執行附加 (deployment=true) 或分離 (deployment=false) 操作
+7. **驗證結果**: 確認操作成功完成
+
+**Console 輸出範例:**
+```
+=== Attaching VRF to switch: Site1-L3 ===
+📋 Found interface Ethernet1/4 with policy 'int_routed_host' and VRF 'bluevrf'
+Found VRF bluevrf in Site1-L3 (9J9UDVX8MMA) in Site3-Test
+✅ SUCCESS: Vrf Attach - bluevrf (VLAN 2000) to Site1-L3
+```
+
+#### VRF 配置檔案結構 (VRF Configuration File Structure)
+**VRF 主配置**: `network_configs/5_segment/vrf.yaml`
+```yaml
+VRF:
+  - VRF Name: bluevrf
+    Fabric: Site3-Test
+    VRF ID: 50001
+    VLAN ID: 2000
+    General Parameters:
+      VRF Description: "Blue VRF for testing"
+```
+
+**交換器配置**: `network_configs/3_node/{fabric}/{role}/{switch}.yaml`
+```yaml
+Serial Number: 9J9UDVX8MMA
+Interface:
+  - Ethernet1/4:
+      policy: int_routed_host
+      Interface VRF: bluevrf
+      Interface IP: 10.192.1.1
+      IP Netmask Length: 24
+```
+
 #### 腳本執行環境 (Script Execution Environment)
 - **Python 3.x** 環境
 - **工作目錄**: `scripts/cisco/12.2.2/`
@@ -202,9 +335,21 @@ python fabric_cli.py update Site1-Greenfield
 python fabric_cli.py delete ISN-Test  # 需要確認
 ```
 
+**VRF CLI 使用方式 (VRF CLI Usage):**
+```bash
+# 在 scripts/cisco/12.2.2/ 目錄下執行
+python vrf_cli.py create bluevrf Site3-Test
+python vrf_cli.py update bluevrf Site3-Test
+python vrf_cli.py delete bluevrf
+python vrf_cli.py attach Site3-Test leaf Site1-L3
+python vrf_cli.py detach Site3-Test leaf Site1-L3
+```
+
 **程式化使用模組 (Programmatic Module Usage):**
 ```python
 # 在 scripts/cisco/12.2.2/ 目錄下執行
+
+# Fabric 模組
 from modules.fabric.create_fabric import FabricCreator
 from modules.fabric.update_fabric import FabricUpdater
 from modules.fabric.delete_fabric import FabricDeleter
@@ -220,14 +365,29 @@ updater.update_fabric("Site1-Greenfield")
 # 刪除 fabric
 deleter = FabricDeleter()
 deleter.delete_fabric("Site1-Greenfield")
-```
 
-**Legacy 使用方式 (Legacy Usage):**
-```python
-# 使用原始 build_fabric.py (不推薦)
-from build_fabric import FabricBuilderMethods
-fabric_methods = FabricBuilderMethods()
-fabric_methods.build_vxlan_evpn_fabric("Site1-Greenfield")
+# VRF 模組
+from modules.vrf.create_vrf import VRFCreator
+from modules.vrf.update_vrf import VRFUpdater
+from modules.vrf.delete_vrf import VRFDeleter
+from modules.vrf.attach_vrf import VRFAttachment
+
+# 建立 VRF
+vrf_creator = VRFCreator()
+vrf_creator.create_vrf("bluevrf")
+
+# 更新 VRF
+vrf_updater = VRFUpdater()
+vrf_updater.update_vrf("bluevrf")
+
+# 刪除 VRF
+vrf_deleter = VRFDeleter()
+vrf_deleter.delete_vrf("bluevrf")
+
+# 附加/分離 VRF
+vrf_attachment = VRFAttachment()
+vrf_attachment.manage_vrf_by_switch("Site3-Test", "leaf", "Site1-L3", "attach")
+vrf_attachment.manage_vrf_by_switch("Site3-Test", "leaf", "Site1-L3", "detach")
 ```
 
 ## Gitlab Flow
@@ -258,10 +418,18 @@ fabric_methods.build_vxlan_evpn_fabric("Site1-Greenfield")
   - 簡化 delete 功能，移除不必要的類型複雜性
   - 移除 bulk 操作，專注於單一 fabric 操作
 
+- ✅ **VRF 模組化系統**: 完整的 VRF 管理系統
+  - 建立 `modules/vrf/` 目錄結構
+  - 分離 create、update、delete、attach、detach 功能到獨立模組
+  - 建立 `vrf_cli.py` 命令列介面
+  - YAML 配置驅動的 VRF 管理
+  - 自動化 VRF 偵測和交換器附加/分離功能
+  - 支援基於介面配置的智能 VRF 發現
+
 ### 進行中項目 (Work in Progress)
-- 根據 5_segment 內部的檔案打造出讀取 yaml 檔案以及 resources/ 檔案建立 network / VRF 配置
+- 根據 5_segment 內部的檔案打造出讀取 yaml 檔案以及 resources/ 檔案建立 network 配置
 - 根據 3_node 內部的檔案打造出讀取 yaml 檔案以及 resources 檔案建立 Switch 配置
-- 根據 5_segment 內部的檔案打造出能夠自動化建造、調整 network / VRF 的 CI/CD 流程
+- 根據 5_segment 內部的檔案打造出能夠自動化建造、調整 network 的 CI/CD 流程
 - 根據 1_vxlan_evpn 內部的檔案打造出能夠自動化建造、調整 fabric 的 CI/CD 流程
 - 根據 3_node 內部的檔案打造出能夠自動化建造、調整 fabric 的 CI/CD 流程
 - 透過 Nornir / NAPALM 等套件打造出能夠獲取 inventory/ 內部檔案的 Switch 資訊
