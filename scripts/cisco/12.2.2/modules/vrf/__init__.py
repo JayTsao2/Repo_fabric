@@ -69,41 +69,6 @@ class VRFBuilder:
             defaults_path=str(self.resources_dir / "corp_defaults" / "vrf.yaml"),
             field_mapping_path=str(self.resources_dir / "_field_mapping" / "vrf.yaml")
         )
-    
-    def get_fabric_vrfs(self, fabric_name: str) -> List[Dict[str, Any]]:
-        """Get all VRFs for a specific fabric."""
-        config = self.get_vrf_config()
-        vrf_config_list = load_yaml_file(config.config_path)
-        
-        if not vrf_config_list:
-            return []
-        
-        fabric_vrfs = []
-        if isinstance(vrf_config_list, dict) and "VRF" in vrf_config_list:
-            vrf_list = vrf_config_list["VRF"]
-            for vrf in vrf_list:
-                if vrf.get("Fabric") == fabric_name:
-                    fabric_vrfs.append(vrf)
-        
-        return fabric_vrfs
-    
-    def get_all_fabrics(self) -> List[str]:
-        """Get a list of all unique fabric names from VRF configurations."""
-        config = self.get_vrf_config()
-        vrf_config_list = load_yaml_file(config.config_path)
-        
-        if not vrf_config_list:
-            return []
-        
-        fabrics = set()
-        if isinstance(vrf_config_list, dict) and "VRF" in vrf_config_list:
-            vrf_list = vrf_config_list["VRF"]
-            for vrf in vrf_list:
-                fabric = vrf.get("Fabric")
-                if fabric:
-                    fabrics.add(fabric)
-        
-        return sorted(list(fabrics))
 
 class VRFPayloadGenerator:
     """Handles the generation of API payloads for VRF operations."""
@@ -126,16 +91,8 @@ class VRFPayloadGenerator:
             return None, None, None
 
         # Find the specific VRF in the list
-        vrf_config = None
-        if isinstance(vrf_config_list, dict) and "VRF" in vrf_config_list:
-            vrf_list = vrf_config_list["VRF"]
-            for vrf in vrf_list:
-                if vrf.get("VRF Name") == vrf_name:
-                    vrf_config = vrf
-                    break
-        
+        vrf_config = VRFPayloadGenerator._find_vrf_config(vrf_config_list, vrf_name)
         if not vrf_config:
-            print(f"VRF '{vrf_name}' not found in configuration file.")
             return None, None, None
 
         # Extract fabric name from the VRF configuration
@@ -158,6 +115,21 @@ class VRFPayloadGenerator:
         template_payload = VRFPayloadGenerator._build_template_payload(mapped_config, vrf_config)
         
         return main_payload, template_payload, fabric_name
+
+    @staticmethod
+    def _find_vrf_config(vrf_config_list: Dict[str, Any], vrf_name: str) -> Optional[Dict[str, Any]]:
+        """Find specific VRF configuration by name."""
+        if not isinstance(vrf_config_list, dict) or "VRF" not in vrf_config_list:
+            print("Invalid VRF configuration format.")
+            return None
+            
+        vrf_list = vrf_config_list["VRF"]
+        for vrf in vrf_list:
+            if vrf.get("VRF Name") == vrf_name:
+                return vrf
+        
+        print(f"VRF '{vrf_name}' not found in configuration file.")
+        return None
 
     @staticmethod
     def _merge_all_configs(defaults_config: Dict[str, Any], vrf_config: Dict[str, Any]) -> Dict[str, Any]:
@@ -185,7 +157,6 @@ class VRFPayloadGenerator:
             "vrfId": str(vrf_id),
             "vrfVlanId": str(vlan_id),
         }
-        print(payload)
         
         # Add description fields from General Parameters or use VRF name as default
         general_params = vrf_config.get("General Parameters", {})
