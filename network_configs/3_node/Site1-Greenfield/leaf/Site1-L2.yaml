@@ -3,11 +3,6 @@ IP Address: 10.192.195.72
 Role: Leaf
 Serial Number: 9XPIFKSI4N7
 
-vlan: 20,2300,2301
-
-vPC Pairing: False
-vPC Peer: Site1-L2
-
 Interface:
 
   - Ethernet1/1:

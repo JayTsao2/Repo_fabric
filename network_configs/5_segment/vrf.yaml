@@ -13,6 +13,7 @@ VRF:
   Route Target:
     Import: 
     Export: 
+    
 - Fabric: "Site3-Test"
   VRF Name: bluevrf2
   VRF ID: 50001

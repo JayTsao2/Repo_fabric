@@ -3,11 +3,6 @@ IP Address: 10.192.195.81
 Role: Leaf
 Serial Number: 9EOFIIDUOAY
 
-vlan: 2300
-
-vPC Pairing: False
-vPC Peer: 
-
 Interface:
   - Ethernet1/5:
       policy: int_access_host

@@ -1,6 +1,7 @@
 ---
 Network:
-- Network Name: bluenet1
+- Fabric: "Site3-Test"
+  Network Name: bluenet1
   Layer 2 Only: False
   VRF Name: bluevrf
   Network ID: 30000
@@ -9,7 +10,8 @@ Network:
   VLAN Name: bluenet1
   Interface Description: bluenet1
 
-- Network Name: bluenet2
+- Fabric: "Site3-Test"
+  Network Name: bluenet2
   Layer 2 Only: False
   VRF Name: bluevrf
   Network ID: 30001
@@ -18,7 +20,8 @@ Network:
   VLAN Name: bluenet2
   Interface Description: bluenet2
 
-- Network Name: ExternalNetwork
+- Fabric: "Site3-Test"
+  Network Name: ExternalNetwork
   Layer 2 Only: True
   VRF Name: 
   Network ID: 30002
