@@ -2,7 +2,8 @@
 """
 Network CLI - Command Line Interface for Network Operations
 
-This script provides command-line access to network management functionality.
+This script provides command-line access to network management functionality
+using the unified NetworkManager class.
 """
 
 import argparse
@@ -12,10 +13,7 @@ from pathlib import Path
 # Setup module path
 sys.path.append(str(Path(__file__).parent.absolute()))
 
-from modules.network.create_network import NetworkCreator
-from modules.network.update_network import NetworkUpdater
-from modules.network.delete_network import NetworkDeleter
-from modules.network.attach_network import NetworkAttachment
+from modules.network import NetworkManager
 
 def main():
     """Main CLI entry point."""
@@ -56,29 +54,27 @@ def main():
         return
     
     try:
+        # Create a single NetworkManager instance for all operations
+        network_manager = NetworkManager()
+        
         if args.command == 'create':
-            creator = NetworkCreator()
-            success = creator.create_network(args.fabric_name, args.network_name)
+            success = network_manager.create_network(args.fabric_name, args.network_name)
             sys.exit(0 if success else 1)
             
         elif args.command == 'update':
-            updater = NetworkUpdater()
-            success = updater.update_network(args.fabric_name, args.network_name)
+            success = network_manager.update_network(args.fabric_name, args.network_name)
             sys.exit(0 if success else 1)
             
         elif args.command == 'delete':
-            deleter = NetworkDeleter()
-            success = deleter.delete_network(args.fabric_name, args.network_name)
+            success = network_manager.delete_network(args.fabric_name, args.network_name)
             sys.exit(0 if success else 1)
             
         elif args.command == 'attach':
-            attachment = NetworkAttachment()
-            success = attachment.attach_networks_to_switch(args.fabric_name, args.role, args.switch_name)
+            success = network_manager.attach_networks(args.fabric_name, args.role, args.switch_name)
             sys.exit(0 if success else 1)
             
         elif args.command == 'detach':
-            attachment = NetworkAttachment()
-            success = attachment.detach_networks_from_switch(args.fabric_name, args.role, args.switch_name)
+            success = network_manager.detach_networks(args.fabric_name, args.role, args.switch_name)
             sys.exit(0 if success else 1)
             
     except Exception as e:
