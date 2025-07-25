@@ -197,6 +197,9 @@ class NetworkPayloadGenerator:
         Returns:
             Dict containing the network payload
         """
+        # Set VRF name to "NA" if Layer 2 Only is true
+        vrf_name = "NA" if network_entry.layer2_only else network_entry.vrf_name
+        
         return {
             "fabric": network_entry.fabric,
             "networkName": network_entry.network_name,
@@ -204,10 +207,8 @@ class NetworkPayloadGenerator:
             "networkId": network_entry.network_id,
             "networkTemplate": self.defaults.get("networkTemplate", "Default_Network_Universal"),
             "networkExtensionTemplate": self.defaults.get("networkExtensionTemplate", "Default_Network_Extension_Universal"),
-            "vrf": network_entry.vrf_name,
-            "vlanId": network_entry.vlan_id,
+            "vrf": vrf_name,
             "vlanName": network_entry.vlan_name,
-            "isLayer2Only": network_entry.layer2_only,
             "type": "Normal"
         }
     
@@ -238,19 +239,38 @@ class NetworkPayloadGenerator:
         # Override with specific network values
         template_payload["networkName"] = network_entry.network_name
         template_payload["vlanName"] = network_entry.vlan_name
+        template_payload["vlanId"] = str(network_entry.vlan_id)
         template_payload["intfDescription"] = network_entry.interface_description
-        template_payload["vrfName"] = network_entry.vrf_name
         template_payload["segmentId"] = str(network_entry.network_id)
         template_payload["type"] = "Normal"
         
-        # Set gateway if provided
-        if network_entry.gateway_netmask:
+        # Set VRF name - "NA" if Layer 2 Only is true
+        if network_entry.layer2_only:
+            template_payload["vrfName"] = "NA"
+            template_payload["isLayer2Only"] = "true"
+        else:
+            template_payload["vrfName"] = network_entry.vrf_name
+            template_payload["isLayer2Only"] = "false"
+        
+        # Set gateway if provided and not Layer 2 Only
+        if network_entry.gateway_netmask and not network_entry.layer2_only:
             template_payload["gatewayIpAddress"] = network_entry.gateway_netmask
         
-        # Set default values for required fields
+        # Set default values for required fields that might not be in defaults
         template_payload.setdefault("nveId", "1")
         template_payload.setdefault("tag", "12345")
-        template_payload.setdefault("mcastGroup", "239.1.1.1")
+        template_payload.setdefault("mcastGroup", "")
+        template_payload.setdefault("switchRole", "")
+        template_payload.setdefault("gen_address", "")
+        template_payload.setdefault("isIpDhcpRelay", "")
+        template_payload.setdefault("flagSet", "")
+        template_payload.setdefault("dhcpServerAddr1", "")
+        template_payload.setdefault("dhcpServerAddr2", "")
+        template_payload.setdefault("dhcpServerAddr3", "")
+        template_payload.setdefault("vrfDhcp", "")
+        template_payload.setdefault("gen_mask", "")
+        template_payload.setdefault("isIp6DhcpRelay", "")
+        template_payload.setdefault("dhcpServers", "")
         
         return template_payload
 
@@ -272,7 +292,7 @@ def create_network(fabric_name: str, network_name: str) -> bool:
         
         # Build configuration
         network_payload, template_payload = builder.build_network_config(fabric_name, network_name)
-        
+
         # Execute creation
         success = network_api.create_network(fabric_name, network_payload, template_payload)
         
