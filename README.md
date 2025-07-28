@@ -2,13 +2,9 @@
 
 ## 專案資料夾結構 (Project Directory Structure)
 
-```            * 📂 **`/scripts/cisco/12.2.2/modules/network`**
-                * 用途: Network 管理模組，提供統一的網路 CRUD 操作與交換器附加功能。
-                
-            * 📂 **`/scripts/cisco/12.2.2/modules/interface`**
-                * 用途: Interface 管理模組，提供 YAML 驅動的介面配置更新與 freeform 配置整合。
-            
-            * 📄 **`/scripts/cisco/12.2.2/modules/config_utils.py`**├── scripts/
+```
+.
+├── scripts/
 │   ├── cisco/
 │   │   ├── 12.1.2e/
 │   │   ├── 12.2.2/
@@ -29,13 +25,16 @@
 │   │   │   │   │   └── __init__.py
 │   │   │   │   ├── interface/
 │   │   │   │   │   └── __init__.py
+│   │   │   │   ├── switch/
+│   │   │   │   │   └── __init__.py
 │   │   │   │   ├── config_utils.py
 │   │   │   │   └── common_utils.py
 │   │   │   ├── resources/
 │   │   │   ├── fabric_cli.py
 │   │   │   ├── vrf_cli.py
 │   │   │   ├── network_cli.py
-│   │   │   └── interface_cli.py
+│   │   │   ├── interface_cli.py
+│   │   │   └── switch_cli.py
 │   │   └── 12.3/
 │   ├── inventory/
 │   └── logs/
@@ -51,69 +50,75 @@
 
 ### 資料夾用途說明
 
-* 📂 **`/scripts`**
+* **`/scripts`**
 
     * 用途: 放置提供給 GitLab CI/CD 等工具執行流程的腳本 (Scripts)，以及所有 API 請求相關的邏輯與模組。
     
-    * 📂 **`/scripts/cisco`**
+    * **`/scripts/cisco`**
         * 用途: 放置 Cisco 相關的 API 請求邏輯與模組，按版本分類。
         
-        * 📂 **`/scripts/cisco/12.2.2/api`**
+        * **`/scripts/cisco/12.2.2/api`**
             * 用途: Cisco NDFC 12.2.2 版本的 API 操作模組。
             
-        * 📂 **`/scripts/cisco/12.2.2/modules`**
-            * 用途: 模組化功能組織，包含 fabric、VRF、network、policy、switch 等模組。
+        * **`/scripts/cisco/12.2.2/modules`**
+            * 用途: 模組化功能組織，包含 fabric、VRF、network、interface、switch 等模組。
             
-            * 📂 **`/scripts/cisco/12.2.2/modules/fabric`**
+            * **`/scripts/cisco/12.2.2/modules/fabric`**
                 * 用途: Fabric 管理模組，包含建立、更新、刪除功能。
                 
-            * 📂 **`/scripts/cisco/12.2.2/modules/vrf`**
+            * **`/scripts/cisco/12.2.2/modules/vrf`**
                 * 用途: VRF 管理模組，包含建立、更新、刪除、附加、分離功能。
                 
-            * � **`/scripts/cisco/12.2.2/modules/network`**
+            * **`/scripts/cisco/12.2.2/modules/network`**
                 * 用途: Network 管理模組，提供統一的網路 CRUD 操作與交換器附加功能。
+                
+            * **`/scripts/cisco/12.2.2/modules/interface`**
+                * 用途: Interface 管理模組，提供 YAML 驅動的介面配置更新功能。
+                
+            * **`/scripts/cisco/12.2.2/modules/switch`**
+                * 用途: Switch 管理模組，提供交換器發現、刪除、角色設定、IP 變更等功能。
             
-            * 📄 **`/scripts/cisco/12.2.2/modules/config_utils.py`**
+            * **`/scripts/cisco/12.2.2/modules/config_utils.py`**
                 * 用途: 配置工具函數模組，提供 YAML 載入與驗證功能。
                 
-            * �📄 **`/scripts/cisco/12.2.2/modules/common_utils.py`**
+            * **`/scripts/cisco/12.2.2/modules/common_utils.py`**
                 * 用途: 共用工具函數模組，提供跨模組的共同功能。
             
-        * 📂 **`/scripts/cisco/12.2.2/resources`**
+        * **`/scripts/cisco/12.2.2/resources`**
             * 用途: 配置檔案、模板、欄位映射等資源檔案。
             
-        * 📄 **`/scripts/cisco/12.2.2/fabric_cli.py`**
+        * **`/scripts/cisco/12.2.2/fabric_cli.py`**
             * 用途: Fabric 管理命令列介面工具。
             
-        * 📄 **`/scripts/cisco/12.2.2/vrf_cli.py`**
+        * **`/scripts/cisco/12.2.2/vrf_cli.py`**
             * 用途: VRF 管理命令列介面工具。
             
-        * 📄 **`/scripts/cisco/12.2.2/network_cli.py`**
+        * **`/scripts/cisco/12.2.2/network_cli.py`**
             * 用途: Network 管理命令列介面工具。
             
-        * 📄 **`/scripts/cisco/12.2.2/interface_cli.py`**
+        * **`/scripts/cisco/12.2.2/interface_cli.py`**
             * 用途: Interface 管理命令列介面工具。
         
-    * 📂 **`/scripts/inventory`**
+        * **`/scripts/cisco/12.2.2/switch_cli.py`**
+            * 用途: Switch 管理命令列介面工具。
+        
+    * **`/scripts/inventory`**
         * 用途: 透過 Nornir、NAPALM 等工具進行設備資訊的獲取與管理。
 
-    * 📂 **`/scripts/logs`**
+    * **`/scripts/logs`**
         * 用途: 放置 API 執行的回傳值
 
-* 📂 **`/network_configs`**
+* **`/network_configs`**
 
     * 用途: 放置讓網路工程師能夠自主修改、用以簡易配置網路的 YAML 定義檔案。
     
-    * 📂 **`/network_configs/1_vxlan_evpn`**
+    * **`/network_configs/1_vxlan_evpn`**
         * 用途: VXLAN EVPN 架構相關的網路配置
         
-    * 📂 **`/network_configs/2_bgp_fabric`**
-        * 用途: BGP Fabric 架構相關的網路配置
-        
-    * 📂 **`/network_configs/3_node`**
+    * **`/network_configs/3_node`**
         * 用途: 單節點設備相關的配置
         
-    * 📂 **`/network_configs/5_segment`**
+    * **`/network_configs/5_segment`**
         * 用途: 網段相關的配置
 
 ## Network Config
@@ -480,6 +485,216 @@ Processing Ethernet1/10 (int_trunk_host)
 ✅ Successfully updated 12 interfaces for Site1-L3
 ```
 
+#### [Switch CLI](scripts/cisco/12.2.2/switch_cli.py)
+**Switch 管理命令列介面工具 (Switch Management CLI Tool)**
+
+**功能說明 (Features):**
+- 🔍 **交換器發現**: 從 YAML 配置檔案發現交換器並加入 fabric
+- 🗑️ **交換器刪除**: 從 fabric 中安全移除交換器
+- 🏷️ **角色設定**: 設定交換器角色 (leaf、spine、border gateway 等)
+- 🌐 **IP 地址變更**: 透過 SSH 變更交換器管理 IP 並更新 NDFC
+- ⚙️ **Freeform 配置**: 執行自訂 CLI 命令配置
+- 📋 **YAML 驅動**: 完全基於 YAML 配置檔案的交換器管理
+
+**使用方式 (Usage):**
+```bash
+# 在 scripts/cisco/12.2.2/ 目錄下執行
+python switch_cli.py discover <fabric_name> <role> <switch_name> [--preserve]   # 發現交換器
+python switch_cli.py delete <fabric_name> <role> <switch_name>                  # 刪除交換器
+python switch_cli.py set-role <switch_name>                                     # 設定交換器角色
+python switch_cli.py change-ip <fabric_name> <role> <switch_name> <original-ip>/<mask> <new-ip>/<mask>  # 變更管理 IP
+python switch_cli.py set-freeform <fabric_name> <role> <switch_name>           # 執行 freeform 配置
+
+# 範例
+python switch_cli.py discover Site3-Test leaf Site1-L3 --preserve             # 發現交換器並保留配置
+python switch_cli.py delete Site3-Test leaf Site1-L3                          # 從 fabric 移除交換器
+python switch_cli.py set-role Site1-L3                                        # 設定 Site1-L3 的角色
+python switch_cli.py change-ip Site3-Test leaf Site1-L3 10.192.195.73/24 10.192.195.74/24  # 變更管理 IP
+python switch_cli.py set-freeform Site1-Greenfield border_gateway Site1-BGW2  # 執行 freeform 配置
+
+# 顯示幫助資訊
+python switch_cli.py --help
+python switch_cli.py <command> --help
+```
+
+#### [Switch Manager Module](scripts/cisco/12.2.2/modules/switch/)
+**YAML 驅動的 Switch 管理系統 (YAML-Driven Switch Management System)**
+
+**模組結構 (Module Structure):**
+
+##### 1. 核心模組 (`__init__.py`)
+- `SwitchConfig` - Switch 配置資料類別
+- `SwitchManager` - 統一 Switch 管理類別
+- `VALID_SWITCH_ROLES` - 有效交換器角色枚舉
+
+**核心類別說明 (Core Classes):**
+
+##### SwitchConfig (資料類別)
+- **用途**: 結構化的 Switch 配置，包含序號、IP 地址、平台等資訊
+- **功能**: 
+  - `to_dict()` - 轉換為字典供 API 呼叫使用
+  - 包含所有 NDFC API 所需的交換器配置欄位
+
+##### SwitchManager (主要管理類別)
+**發現方法:**
+- `discover_switch(fabric_name, role, switch_name, preserve_config)` - 交換器發現方法
+
+**刪除方法:**
+- `delete_switch(fabric_name, role, switch_name)` - 交換器刪除方法
+
+**角色設定方法:**
+- `set_switch_role(fabric_name, role, switch_name)` - 交換器角色設定方法
+- `set_switch_role_by_name(switch_name)` - 按名稱搜尋並設定角色
+
+**IP 變更方法:**
+- `change_switch_ip(fabric_name, role, switch_name, original_ip, new_ip)` - 交換器 IP 變更方法
+
+**Freeform 配置方法:**
+- `set_switch_freeform(fabric_name, role, switch_name)` - 執行 freeform 配置方法
+
+**高層邏輯流程 (High-Level Logic Flow):**
+
+**交換器發現操作:**
+1. **載入交換器配置**: 從 `3_node/{fabric}/{role}/{switch}.yaml` 載入交換器配置
+2. **配置解析**: 提取 IP 地址、序號、平台等基本資訊
+3. **Payload 生成**: 建立符合 NDFC API 格式的發現 payload
+4. **API 呼叫**: 透過 NDFC API 執行交換器發現操作
+5. **驗證結果**: 確認發現操作成功完成
+
+**交換器角色設定操作:**
+1. **角色驗證**: 驗證角色是否為有效值 (leaf、spine、border gateway 等)
+2. **序號提取**: 從 YAML 配置中提取交換器序號
+3. **角色轉換**: 將角色轉換為小寫格式供 API 使用
+4. **API 呼叫**: 透過 `/switches/roles` API 設定交換器角色
+5. **驗證結果**: 確認角色設定成功
+
+**交換器 IP 變更操作 (重要流程):**
+1. **配置載入**: 從 YAML 檔案載入交換器基本資訊 (序號、當前 IP)
+2. **IP 解析**: 解析原始 IP 和新 IP 地址與子網掩碼
+3. **Step 1 - SSH 連線**: 使用 `.env` 檔案中的憑證透過 SSH 連線到交換器
+   ```
+   連線到 10.192.195.73
+   執行: configure terminal ; interface mgmt0 ; ip address 10.192.195.74/24 ; exit ; exit
+   ```
+4. **Step 2 - 更新 NDFC**: 透過 `/inventory/discoveryIP` API 更新 NDFC 中的發現 IP
+5. **Step 3 - 重新發現**: 透過 `/rediscover/{serial_number}` API 重新發現設備
+6. **驗證結果**: 確認所有步驟成功完成
+
+**Freeform 配置操作:**
+1. **配置路徑解析**: 從 YAML 中的 `Switch Freeform Config` 欄位獲取配置檔案路徑
+2. **配置檔案讀取**: 載入 freeform 配置檔案內容 (通常為 `.sh` 檔案)
+3. **命令解析**: 計算配置檔案中的命令行數
+4. **API 執行**: 透過 `/exec_freeform/exec` API 執行 CLI 命令
+5. **驗證結果**: 確認配置執行成功
+
+**有效交換器角色 (Valid Switch Roles):**
+- `leaf` - 葉子交換器
+- `spine` - 脊椎交換器  
+- `super spine` - 超級脊椎交換器
+- `border gateway` - 邊界閘道器
+- `border gateway spine` - 邊界閘道脊椎交換器
+- `border gateway super spine` - 邊界閘道超級脊椎交換器
+- `core router` - 核心路由器
+- `edge router` - 邊緣路由器
+- `tor` - 機架頂端交換器
+
+**Console 輸出範例:**
+
+**交換器發現:**
+```
+Loading config: Site1-L3.yaml
+Discovering switch: Site1-L3 (9J9UDVX8MMA)
+✅ API operation successful
+Successfully discovered switch Site1-L3
+```
+
+**角色設定:**
+```
+Found switch: Site1-L3 in fabric Site3-Test/leaf
+Setting role for switch: Site1-L3 (9J9UDVX8MMA) to 'leaf'
+✅ API operation successful
+Status Code: 200
+Message: {"successList":"9J9UDVX8MMA"}
+Successfully set role for switch Site1-L3
+```
+
+**IP 變更:**
+```
+Loading config: Site1-L3.yaml
+Changing IP for switch: Site1-L3 (9J9UDVX8MMA)
+From: 10.192.195.73/24 To: 10.192.195.74/24
+Step 1: Connecting to switch via SSH
+Connecting to 10.192.195.73
+Executing: ip address 10.192.195.74/24
+IP address changed successfully
+Step 2: Updating discovery IP in NDFC
+Step 3: Rediscovering device
+Successfully changed IP for switch Site1-L3
+```
+
+**Freeform 配置:**
+```
+Loading config: Site1-BGW2.yaml
+Applying freeform config for switch: Site1-BGW2 (9WI7FS9YW2Y)
+Freeform config file: Site1-BGW2_FreeForm\Site1-BGW2.sh
+Reading freeform config: Site1-BGW2.sh
+Parsed 24 command lines
+Executing freeform configuration via NDFC API
+✅ API operation successful
+Successfully applied freeform config for switch Site1-BGW2
+```
+
+#### Switch 配置檔案結構 (Switch Configuration File Structure)
+**交換器配置**: `network_configs/3_node/{fabric}/{role}/{switch}.yaml`
+```yaml
+---
+IP Address: 10.192.195.73
+Role: Leaf
+Serial Number: 9J9UDVX8MMA
+Platform: N9K-C9300v
+Version: 9.3(15)
+
+Switch Freeform Config: Site1-BGW2_FreeForm\Site1-BGW2.sh
+
+Interface:
+  - Ethernet1/1:
+      Interface Description: Site1-S1
+      Enable Interface: True
+  - Ethernet1/4:
+      policy: int_routed_host
+      Interface VRF: bluevrf
+      Interface IP: 10.192.1.1
+      IP Netmask Length: 24
+      Interface Description: "Routed interface"
+      MTU: 9100
+      SPEED: Auto
+      Enable Interface: True
+```
+
+**Freeform 配置檔案**: `network_configs/3_node/{fabric}/{role}/{switch}_FreeForm/{config_file}.sh`
+```bash
+route-map bdl_core permit 10
+  match ip address prefix-list ms
+
+router bgp 4240650100
+  rd dual id 1
+  template peer EBGP-PEER-TEMPLATE-CORE
+    bfd
+    log-neighbor-changes
+    address-family ipv4 unicast
+      route-map bdl_core out
+```
+
+#### Interface 配置檔案結構 (Interface Configuration File Structure)
+```
+Processing Ethernet1/7 (int_access_host)
+Processing Ethernet1/10 (int_trunk_host)
+✅ Updated 3 interface(s) with policy int_access_host
+✅ Updated 3 interface(s) with policy int_trunk_host
+✅ Updated 6 interface(s) with policy int_routed_host
+✅ Successfully updated 12 interfaces for Site1-L3
+```
+
 #### Interface 配置檔案結構 (Interface Configuration File Structure)
 **交換器配置**: `network_configs/3_node/{fabric}/{role}/{switch}.yaml`
 ```yaml
@@ -640,6 +855,16 @@ python interface_cli.py Site1-Greenfield spine Site1-S1   # 更新 spine 交換�
 python interface_cli.py Site2-Brownfield border Site2-BGW1 # 更新 border gateway 介面配置
 ```
 
+**Switch CLI 使用方式 (Switch CLI Usage):**
+```bash
+# 在 scripts/cisco/12.2.2/ 目錄下執行
+python switch_cli.py discover Site3-Test leaf Site1-L3 --preserve    # 發現交換器並保留配置
+python switch_cli.py delete Site3-Test leaf Site1-L3                 # 從 fabric 刪除交換器
+python switch_cli.py set-role Site1-L3                               # 設定交換器角色
+python switch_cli.py change-ip Site3-Test leaf Site1-L3 10.192.195.73/24 10.192.195.74/24  # 變更管理 IP
+python switch_cli.py set-freeform Site1-Greenfield border_gateway Site1-BGW2  # 執行 freeform 配置
+```
+
 **程式化使用模組 (Programmatic Module Usage):**
 ```python
 # 在 scripts/cisco/12.2.2/ 目錄下執行
@@ -713,6 +938,29 @@ interface_manager = InterfaceManager()
 interface_manager.update_switch_interfaces("Site3-Test", "leaf", "Site1-L3")
 interface_manager.update_switch_interfaces("Site1-Greenfield", "spine", "Site1-S1")
 interface_manager.update_switch_interfaces("Site2-Brownfield", "border", "Site2-BGW1")
+
+# Switch 模組
+from modules.switch import SwitchManager
+
+# 建立統一 Switch 管理器
+switch_manager = SwitchManager()
+
+# 發現交換器
+switch_manager.discover_switch("Site3-Test", "leaf", "Site1-L3", preserve_config=True)
+
+# 刪除交換器
+switch_manager.delete_switch("Site3-Test", "leaf", "Site1-L3")
+
+# 設定交換器角色
+switch_manager.set_switch_role_by_name("Site1-L3")
+switch_manager.set_switch_role("Site3-Test", "leaf", "Site1-L3")
+
+# 變更交換器管理 IP
+switch_manager.change_switch_ip("Site3-Test", "leaf", "Site1-L3", 
+                               "10.192.195.73/24", "10.192.195.74/24")
+
+# 執行 freeform 配置
+switch_manager.set_switch_freeform("Site1-Greenfield", "border_gateway", "Site1-BGW2")
 ```
 
 ## Gitlab Flow
@@ -770,6 +1018,17 @@ interface_manager.update_switch_interfaces("Site2-Brownfield", "border", "Site2-
   - Freeform 配置整合，支援自訂配置檔案
   - 批次 API 呼叫，按政策類型分組提升效率
   - 完整的 YAML 欄位映射與驗證
+
+- ✅ **Switch YAML 驅動管理系統**: 完整的 Switch 管理系統
+  - 建立 `modules/switch/` 統一模組架構
+  - 單一 `SwitchManager` 類別提供 YAML 驅動的交換器管理
+  - 建立 `switch_cli.py` 多功能命令列介面
+  - 交換器發現與刪除功能，支援 preserve 配置選項
+  - 角色設定功能，支援全部有效交換器角色並自動驗證
+  - IP 變更功能，整合 SSH 直接配置與 NDFC API 更新的三步驟流程
+  - Freeform 配置執行，支援自訂 CLI 命令批次執行
+  - 智能配置搜尋，可跨 fabric 和角色目錄自動定位交換器
+  - 完整的錯誤處理與環境變數整合 (.env 檔案支援)
 
 ### 進行中項目 (Work in Progress)
 - 根據 3_node 內部的檔案打造出讀取 yaml 檔案以及 resources 檔案建立 Switch 配置
