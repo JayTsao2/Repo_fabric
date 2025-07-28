@@ -34,6 +34,24 @@ def delete_switch(fabric, serial_number):
     print(f"Status Code: {r.status_code}")
     print(f"Message: {r.text}")
 
+def discover_switch_from_payload(fabric, payload):
+    """Discover switch using provided payload data."""
+    load_dotenv()
+    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/inventory/discover")
+    headers = get_api_key_header()
+    headers['Content-Type'] = 'application/json'
+    
+    # Set password from environment
+    payload["password"] = os.getenv("SWITCH_PASSWORD") 
+    
+    try:
+        r = requests.post(url, headers=headers, json=payload, verify=False)
+        check_status_code(r)
+        return True
+    except Exception as e:
+        print(f"Error discovering switch: {e}")
+        return False
+
 def discover_switch(fabric, filename):
     load_dotenv()
     url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/inventory/discover")
@@ -156,6 +174,24 @@ def deploy_switch_config(fabric, serial_number):
     url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/config-deploy/{serial_number}")
     headers = get_api_key_header()
     r = requests.post(url, headers=headers, verify=False)
+    check_status_code(r)
+    print(f"Status Code: {r.status_code}")
+    print(f"Message: {r.text}")
+
+def set_switch_role(serial_number, role):
+    """Set switch role using the switches/roles API endpoint."""
+    url = get_url("/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/switches/roles")
+    headers = get_api_key_header()
+    headers['Content-Type'] = 'application/json'
+    
+    payload = [
+        {
+            "serialNumber": serial_number,
+            "role": role
+        }
+    ]
+    
+    r = requests.post(url, headers=headers, json=payload, verify=False)
     check_status_code(r)
     print(f"Status Code: {r.status_code}")
     print(f"Message: {r.text}")
