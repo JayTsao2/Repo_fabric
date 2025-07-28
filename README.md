@@ -2,9 +2,13 @@
 
 ## 專案資料夾結構 (Project Directory Structure)
 
-```
-.
-├── scripts/
+```            * 📂 **`/scripts/cisco/12.2.2/modules/network`**
+                * 用途: Network 管理模組，提供統一的網路 CRUD 操作與交換器附加功能。
+                
+            * 📂 **`/scripts/cisco/12.2.2/modules/interface`**
+                * 用途: Interface 管理模組，提供 YAML 驅動的介面配置更新與 freeform 配置整合。
+            
+            * 📄 **`/scripts/cisco/12.2.2/modules/config_utils.py`**├── scripts/
 │   ├── cisco/
 │   │   ├── 12.1.2e/
 │   │   ├── 12.2.2/
@@ -23,12 +27,15 @@
 │   │   │   │   │   └── attach_vrf.py
 │   │   │   │   ├── network/
 │   │   │   │   │   └── __init__.py
+│   │   │   │   ├── interface/
+│   │   │   │   │   └── __init__.py
 │   │   │   │   ├── config_utils.py
 │   │   │   │   └── common_utils.py
 │   │   │   ├── resources/
 │   │   │   ├── fabric_cli.py
 │   │   │   ├── vrf_cli.py
-│   │   │   └── network_cli.py
+│   │   │   ├── network_cli.py
+│   │   │   └── interface_cli.py
 │   │   └── 12.3/
 │   ├── inventory/
 │   └── logs/
@@ -83,6 +90,9 @@
             
         * 📄 **`/scripts/cisco/12.2.2/network_cli.py`**
             * 用途: Network 管理命令列介面工具。
+            
+        * 📄 **`/scripts/cisco/12.2.2/interface_cli.py`**
+            * 用途: Interface 管理命令列介面工具。
         
     * 📂 **`/scripts/inventory`**
         * 用途: 透過 Nornir、NAPALM 等工具進行設備資訊的獲取與管理。
@@ -194,8 +204,9 @@ python fabric_cli.py --help
 - Read switch pending config
 - Read switch diff config 
 - Change discovery IP / rediscover IP 尚未測試
-##### Interface
-- 尚未測試
+##### [Interface](scripts/cisco/12.2.2/api/interface.py)
+- `update_interface(fabric_name, policy, interfaces_payload)` - 使用直接傳遞的 payload 資料更新介面配置
+- `get_interfaces(serial_number, if_name, template_name, interface_dir, save_by_policy)` - 讀取介面配置，支援按政策分組儲存
 ##### [Policy](scripts/cisco/12.2.2/api/policy.py)
 - Policy read / update / delete
 ##### [Network](scripts/cisco/12.2.2/api/network.py)
@@ -400,6 +411,134 @@ Attaching networks to Site1-L1 (leaf) in Site1-Greenfield...
 ✅ Success: Attached 3 network interfaces for Site1-L1
 ```
 
+#### [Interface CLI](scripts/cisco/12.2.2/interface_cli.py)
+**Interface 管理命令列介面工具 (Interface Management CLI Tool)**
+
+**功能說明 (Features):**
+- 🔧 **更新 Interface**: 從 YAML 配置檔案更新交換器介面配置
+- 📋 **政策導向**: 支援 access、trunk、routed 三種介面政策
+- 🔗 **Freeform 整合**: 支援自訂配置檔案整合
+- 📊 **批次處理**: 按政策類型批次更新介面，提升效率
+- 🎯 **YAML 驅動**: 完全基於 YAML 配置檔案的介面管理
+
+**使用方式 (Usage):**
+```bash
+# 在 scripts/cisco/12.2.2/ 目錄下執行
+python interface_cli.py <fabric_name> <role> <switch_name>   # 更新指定交換器的所有介面
+
+# 範例
+python interface_cli.py Site3-Test leaf Site1-L3            # 更新 Site1-L3 交換器的所有介面配置
+
+# 顯示幫助資訊
+python interface_cli.py --help
+```
+
+#### [Interface Manager Module](scripts/cisco/12.2.2/modules/interface/)
+**YAML 驅動的 Interface 管理系統 (YAML-Driven Interface Management System)**
+
+**模組結構 (Module Structure):**
+
+##### 1. 核心模組 (`__init__.py`)
+- `InterfaceConfig` - Interface 配置資料類別
+- `InterfaceManager` - 統一 Interface 管理類別
+
+**核心類別說明 (Core Classes):**
+
+##### InterfaceConfig (資料類別)
+- **用途**: 結構化的 Interface 配置，包含序號、介面名稱、政策和 nvPairs
+- **功能**: 
+  - `to_dict()` - 轉換為字典供 API 呼叫使用
+  - 包含所有 NDFC API 所需的介面配置欄位
+
+##### InterfaceManager (主要管理類別)
+**更新方法:**
+- `update_switch_interfaces(fabric_name, role, switch_name)` - 交換器介面更新方法
+
+**高層邏輯流程 (High-Level Logic Flow):**
+
+**Interface 更新操作:**
+1. **載入交換器配置**: 從 `3_node/{fabric}/{role}/{switch}.yaml` 載入交換器配置
+2. **介面解析**: 掃描交換器介面，按政策類型分組 (`int_access_host`, `int_trunk_host`, `int_routed_host`)
+3. **nvPairs 生成**: 根據政策類型生成對應的 nvPairs 配置
+   - **Access 介面**: 使用 `ACCESS_VLAN`, `BPDUGUARD_ENABLED=true`, `CDP_ENABLE=true`
+   - **Trunk 介面**: 使用 `ALLOWED_VLANS`, `BPDUGUARD_ENABLED=no`, `PRIORITY=450`
+   - **Routed 介面**: 使用 `IP`, `PREFIX`, `INTF_VRF`, `ENABLE_PIM_SPARSE`, `PRIORITY=500`
+4. **Freeform 配置整合**: 載入自訂配置檔案並整合到 `CONF` 欄位
+5. **批次 API 呼叫**: 按政策類型批次更新介面，提升效率
+6. **驗證結果**: 確認所有介面更新成功完成
+
+**Console 輸出範例:**
+```
+Loading config: Site1-L3.yaml
+Processing Ethernet1/4 (int_routed_host)
+Processing Ethernet1/5 (int_routed_host)
+Processing Ethernet1/7 (int_access_host)
+Processing Ethernet1/10 (int_trunk_host)
+✅ Updated 3 interface(s) with policy int_access_host
+✅ Updated 3 interface(s) with policy int_trunk_host
+✅ Updated 6 interface(s) with policy int_routed_host
+✅ Successfully updated 12 interfaces for Site1-L3
+```
+
+#### Interface 配置檔案結構 (Interface Configuration File Structure)
+**交換器配置**: `network_configs/3_node/{fabric}/{role}/{switch}.yaml`
+```yaml
+Serial Number: 9J9UDVX8MMA
+Interface:
+  - Ethernet1/7:
+      policy: int_access_host
+      Access Vlan: 20
+      Interface Description: "Access port for VLAN 20"
+      MTU: jumbo
+      SPEED: Auto
+      Enable Interface: True
+      
+  - Ethernet1/10:
+      policy: int_trunk_host
+      Trunk Allowed Vlans: "20,2300,2301"
+      Interface Description: "Trunk port for multiple VLANs"
+      MTU: jumbo
+      SPEED: Auto
+      Enable Interface: True
+      
+  - Ethernet1/4:
+      policy: int_routed_host
+      Interface VRF: bluevrf
+      Interface IP: 10.192.1.1
+      IP Netmask Length: 24
+      Interface Description: "Routed interface to external network"
+      MTU: 9100
+      SPEED: Auto
+      Enable Interface: True
+      
+  - Ethernet1/13:
+      policy: int_routed_host
+      Interface VRF: Z02
+      Interface IP: 
+      IP Netmask Length: 
+      Interface Description: "Interface with freeform config"
+      MTU: 9100
+      SPEED: Auto
+      Enable Interface: True
+      Freeform Config: Site1-L3_FreeForm\Site1-L3_Eth_1_13.sh
+```
+
+**Freeform 配置檔案**: `network_configs/3_node/{fabric}/{role}/{switch}_FreeForm/{config_file}.sh`
+```bash
+bfd interval 500 min_rx 500 multiplier 6
+no bfd echo
+no bfd ipv6 echo
+no ip redirects
+ip forward
+ipv6 address use-link-local-only
+ipv6 nd ra-interval 4 min 3
+ipv6 nd ra-lifetime 10
+no ipv6 redirects
+```
+
+#### 腳本執行環境 (Script Execution Environment)
+```
+
 #### Network 配置檔案結構 (Network Configuration File Structure)
 **Network 主配置**: `network_configs/5_segment/network.yaml`
 ```yaml
@@ -493,6 +632,14 @@ python network_cli.py attach Site1-Greenfield leaf Site1-L1
 python network_cli.py detach Site1-Greenfield leaf Site1-L1
 ```
 
+**Interface CLI 使用方式 (Interface CLI Usage):**
+```bash
+# 在 scripts/cisco/12.2.2/ 目錄下執行
+python interface_cli.py Site3-Test leaf Site1-L3          # 更新指定交換器的所有介面配置
+python interface_cli.py Site1-Greenfield spine Site1-S1   # 更新 spine 交換器介面配置
+python interface_cli.py Site2-Brownfield border Site2-BGW1 # 更新 border gateway 介面配置
+```
+
 **程式化使用模組 (Programmatic Module Usage):**
 ```python
 # 在 scripts/cisco/12.2.2/ 目錄下執行
@@ -555,6 +702,17 @@ network_manager.delete_network("Site1-Greenfield", "VLAN_101")
 # 附加/分離 Network
 network_manager.attach_networks("Site1-Greenfield", "leaf", "Site1-L1")
 network_manager.detach_networks("Site1-Greenfield", "leaf", "Site1-L1")
+
+# Interface 模組
+from modules.interface import InterfaceManager
+
+# 建立統一 Interface 管理器
+interface_manager = InterfaceManager()
+
+# 更新交換器介面配置
+interface_manager.update_switch_interfaces("Site3-Test", "leaf", "Site1-L3")
+interface_manager.update_switch_interfaces("Site1-Greenfield", "spine", "Site1-S1")
+interface_manager.update_switch_interfaces("Site2-Brownfield", "border", "Site2-BGW1")
 ```
 
 ## Gitlab Flow
@@ -602,6 +760,16 @@ network_manager.detach_networks("Site1-Greenfield", "leaf", "Site1-L1")
   - 支援 Access 和 Trunk 介面的智能 VLAN 對應
   - 資料類別架構 (`NetworkTemplateConfig`, `NetworkPayload`) 提供型別安全
   - 簡化的函數傳播鏈，提升效能和維護性
+
+- ✅ **Interface YAML 驅動管理系統**: 完整的 Interface 管理系統
+  - 建立 `modules/interface/` 統一模組架構
+  - 單一 `InterfaceManager` 類別提供 YAML 驅動的介面配置更新
+  - 建立 `interface_cli.py` 簡化命令列介面
+  - 政策導向的介面管理 (access、trunk、routed)
+  - 智能 nvPairs 生成，根據政策類型自動配置正確欄位
+  - Freeform 配置整合，支援自訂配置檔案
+  - 批次 API 呼叫，按政策類型分組提升效率
+  - 完整的 YAML 欄位映射與驗證
 
 ### 進行中項目 (Work in Progress)
 - 根據 3_node 內部的檔案打造出讀取 yaml 檔案以及 resources 檔案建立 Switch 配置
