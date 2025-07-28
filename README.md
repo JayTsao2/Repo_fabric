@@ -21,10 +21,14 @@
 │   │   │   │   │   ├── update_vrf.py
 │   │   │   │   │   ├── delete_vrf.py
 │   │   │   │   │   └── attach_vrf.py
+│   │   │   │   ├── network/
+│   │   │   │   │   └── __init__.py
+│   │   │   │   ├── config_utils.py
 │   │   │   │   └── common_utils.py
 │   │   │   ├── resources/
 │   │   │   ├── fabric_cli.py
-│   │   │   └── vrf_cli.py
+│   │   │   ├── vrf_cli.py
+│   │   │   └── network_cli.py
 │   │   └── 12.3/
 │   ├── inventory/
 │   └── logs/
@@ -59,7 +63,13 @@
             * 📂 **`/scripts/cisco/12.2.2/modules/vrf`**
                 * 用途: VRF 管理模組，包含建立、更新、刪除、附加、分離功能。
                 
-            * 📄 **`/scripts/cisco/12.2.2/modules/common_utils.py`**
+            * � **`/scripts/cisco/12.2.2/modules/network`**
+                * 用途: Network 管理模組，提供統一的網路 CRUD 操作與交換器附加功能。
+            
+            * 📄 **`/scripts/cisco/12.2.2/modules/config_utils.py`**
+                * 用途: 配置工具函數模組，提供 YAML 載入與驗證功能。
+                
+            * �📄 **`/scripts/cisco/12.2.2/modules/common_utils.py`**
                 * 用途: 共用工具函數模組，提供跨模組的共同功能。
             
         * 📂 **`/scripts/cisco/12.2.2/resources`**
@@ -70,6 +80,9 @@
             
         * 📄 **`/scripts/cisco/12.2.2/vrf_cli.py`**
             * 用途: VRF 管理命令列介面工具。
+            
+        * 📄 **`/scripts/cisco/12.2.2/network_cli.py`**
+            * 用途: Network 管理命令列介面工具。
         
     * 📂 **`/scripts/inventory`**
         * 用途: 透過 Nornir、NAPALM 等工具進行設備資訊的獲取與管理。
@@ -291,6 +304,131 @@ Found VRF bluevrf in Site1-L3 (9J9UDVX8MMA) in Site3-Test
 ✅ SUCCESS: Vrf Attach - bluevrf (VLAN 2000) to Site1-L3
 ```
 
+#### [Network CLI](scripts/cisco/12.2.2/network_cli.py)
+**Network 管理命令列介面工具 (Network Management CLI Tool)**
+
+**功能說明 (Features):**
+- 🏗️ **建立 Network**: 從 YAML 配置檔案建立 Network
+- 🔧 **更新 Network**: 更新現有 Network 配置
+- 🗑️ **刪除 Network**: 安全刪除 Network
+- 🔗 **附加 Network**: 將 Network 附加到指定交換器介面
+- 🔌 **分離 Network**: 從指定交換器介面分離 Network
+- 📋 **自動偵測**: 自動從交換器介面配置中偵測 Network 與 VLAN 對應
+
+**使用方式 (Usage):**
+```bash
+# 在 scripts/cisco/12.2.2/ 目錄下執行
+python network_cli.py create <fabric_name> <network_name>     # 建立特定 Network
+python network_cli.py update <fabric_name> <network_name>     # 更新特定 Network
+python network_cli.py delete <fabric_name> <network_name>     # 刪除特定 Network
+python network_cli.py attach <fabric_name> <switch_role> <switch_name>   # 附加 Network 到交換器
+python network_cli.py detach <fabric_name> <switch_role> <switch_name>   # 從交換器分離 Network
+
+# 範例
+python network_cli.py create Site1-Greenfield VLAN_101        # 建立 VLAN_101 Network
+python network_cli.py attach Site1-Greenfield leaf Site1-L1   # 附加 Network 到指定 leaf 交換器
+python network_cli.py detach Site1-Greenfield leaf Site1-L1   # 從指定 leaf 交換器分離 Network
+
+# 顯示幫助資訊
+python network_cli.py --help
+```
+
+#### [Network Manager Module](scripts/cisco/12.2.2/modules/network/)
+**統一 Network 管理系統 (Unified Network Management System)**
+
+**模組結構 (Module Structure):**
+
+##### 1. 核心模組 (`__init__.py`)
+- `NetworkTemplateConfig` - Network 模板配置資料類別
+- `NetworkPayload` - API 請求資料結構類別
+- `NetworkManager` - 統一 Network 管理類別
+
+**核心類別說明 (Core Classes):**
+
+##### NetworkTemplateConfig (資料類別)
+- **用途**: 結構化的 Network 模板配置，包含所有必要欄位
+- **功能**: 
+  - `to_json()` - 轉換為 JSON 字串供 API 使用
+  - `apply_defaults()` - 應用企業預設值與欄位映射
+
+##### NetworkPayload (資料類別)
+- **用途**: API 請求的完整資料結構
+- **功能**:
+  - `to_dict()` - 轉換為字典供 API 呼叫使用
+  - 包含所有 NDFC API 所需的欄位
+
+##### NetworkManager (主要管理類別)
+**建立方法:**
+- `create_network(fabric_name, network_name)` - Network 建立方法
+
+**更新方法:**
+- `update_network(fabric_name, network_name)` - Network 更新方法
+
+**刪除方法:**
+- `delete_network(fabric_name, network_name)` - Network 刪除方法
+
+**附加/分離方法:**
+- `attach_networks(fabric_name, role, switch_name)` - Network 附加方法
+- `detach_networks(fabric_name, role, switch_name)` - Network 分離方法
+
+**高層邏輯流程 (High-Level Logic Flow):**
+
+**Network CRUD 操作:**
+1. 從 `5_segment/network.yaml` 載入 Network 配置
+2. 載入企業預設配置和欄位映射 (`resources/corp_defaults/`, `resources/_field_mapping/`)
+3. 建立 `NetworkTemplateConfig` 和 `NetworkPayload` 資料結構
+4. 合併配置並生成完整的 API payload
+5. 透過 NDFC API 執行 Network 操作
+6. 驗證操作結果
+
+**Network 附加/分離操作:**
+1. **載入交換器配置**: 從 `3_node/{fabric}/{role}/{switch}.yaml` 載入交換器配置
+2. **介面自動偵測**: 掃描交換器介面，尋找具有 `int_access_host` 或 `int_trunk_host` policy 的介面
+3. **Network 對應**: 
+   - **Access 介面**: 從 `Access Vlan` 欄位提取 VLAN ID，對應到 Network
+   - **Trunk 介面**: 從 `Trunk Allowed Vlans` 欄位提取多個 VLAN ID，對應到多個 Network
+4. **驗證 Network 存在性**: 在 `5_segment/network.yaml` 中驗證 Network 配置
+5. **執行操作**: 透過 NDFC API 執行附加或分離操作
+6. **驗證結果**: 確認所有操作成功完成
+
+**Console 輸出範例:**
+```
+Attaching networks to Site1-L1 (leaf) in Site1-Greenfield...
+✅ Attached VLAN_101 to Ethernet1/1 (ACCESS)
+✅ Attached VLAN_200 to Ethernet1/2 (TRUNK)
+✅ Attached VLAN_300 to Ethernet1/2 (TRUNK)
+✅ Success: Attached 3 network interfaces for Site1-L1
+```
+
+#### Network 配置檔案結構 (Network Configuration File Structure)
+**Network 主配置**: `network_configs/5_segment/network.yaml`
+```yaml
+Network:
+  - Fabric: Site1-Greenfield
+    Network Name: VLAN_101
+    Layer 2 Only: false
+    VRF Name: VRF_101
+    Network ID: 30101
+    VLAN ID: 101
+    IPv4 Gateway/NetMask: 10.1.1.1/24
+    VLAN Name: VLAN_101
+    Interface Description: "User Network 101"
+```
+
+**交換器配置**: `network_configs/3_node/{fabric}/{role}/{switch}.yaml`
+```yaml
+Serial Number: 9ABCDEFGHIJ
+Interface:
+  - Ethernet1/1:
+      policy: int_access_host
+      Access Vlan: 101
+      Interface Description: "Access port for VLAN 101"
+  - Ethernet1/2:
+      policy: int_trunk_host
+      Trunk Allowed Vlans: "200,300,400"
+      Interface Description: "Trunk port for multiple VLANs"
+```
+
 #### VRF 配置檔案結構 (VRF Configuration File Structure)
 **VRF 主配置**: `network_configs/5_segment/vrf.yaml`
 ```yaml
@@ -345,6 +483,16 @@ python vrf_cli.py attach Site3-Test leaf Site1-L3
 python vrf_cli.py detach Site3-Test leaf Site1-L3
 ```
 
+**Network CLI 使用方式 (Network CLI Usage):**
+```bash
+# 在 scripts/cisco/12.2.2/ 目錄下執行
+python network_cli.py create Site1-Greenfield VLAN_101
+python network_cli.py update Site1-Greenfield VLAN_101
+python network_cli.py delete Site1-Greenfield VLAN_101
+python network_cli.py attach Site1-Greenfield leaf Site1-L1
+python network_cli.py detach Site1-Greenfield leaf Site1-L1
+```
+
 **程式化使用模組 (Programmatic Module Usage):**
 ```python
 # 在 scripts/cisco/12.2.2/ 目錄下執行
@@ -388,6 +536,25 @@ vrf_deleter.delete_vrf("bluevrf")
 vrf_attachment = VRFAttachment()
 vrf_attachment.manage_vrf_by_switch("Site3-Test", "leaf", "Site1-L3", "attach")
 vrf_attachment.manage_vrf_by_switch("Site3-Test", "leaf", "Site1-L3", "detach")
+
+# Network 模組
+from modules.network import NetworkManager
+
+# 建立統一 Network 管理器
+network_manager = NetworkManager()
+
+# 建立 Network
+network_manager.create_network("Site1-Greenfield", "VLAN_101")
+
+# 更新 Network
+network_manager.update_network("Site1-Greenfield", "VLAN_101")
+
+# 刪除 Network
+network_manager.delete_network("Site1-Greenfield", "VLAN_101")
+
+# 附加/分離 Network
+network_manager.attach_networks("Site1-Greenfield", "leaf", "Site1-L1")
+network_manager.detach_networks("Site1-Greenfield", "leaf", "Site1-L1")
 ```
 
 ## Gitlab Flow
@@ -426,12 +593,21 @@ vrf_attachment.manage_vrf_by_switch("Site3-Test", "leaf", "Site1-L3", "detach")
   - 自動化 VRF 偵測和交換器附加/分離功能
   - 支援基於介面配置的智能 VRF 發現
 
+- ✅ **Network 統一管理系統**: 完整的 Network 管理系統
+  - 建立 `modules/network/` 統一模組架構
+  - 單一 `NetworkManager` 類別提供所有 CRUD 操作
+  - 建立 `network_cli.py` 命令列介面
+  - YAML 配置驅動的 Network 管理
+  - 自動化 Network 偵測和交換器介面附加/分離功能
+  - 支援 Access 和 Trunk 介面的智能 VLAN 對應
+  - 資料類別架構 (`NetworkTemplateConfig`, `NetworkPayload`) 提供型別安全
+  - 簡化的函數傳播鏈，提升效能和維護性
+
 ### 進行中項目 (Work in Progress)
-- 根據 5_segment 內部的檔案打造出讀取 yaml 檔案以及 resources/ 檔案建立 network 配置
 - 根據 3_node 內部的檔案打造出讀取 yaml 檔案以及 resources 檔案建立 Switch 配置
-- 根據 5_segment 內部的檔案打造出能夠自動化建造、調整 network 的 CI/CD 流程
 - 根據 1_vxlan_evpn 內部的檔案打造出能夠自動化建造、調整 fabric 的 CI/CD 流程
 - 根據 3_node 內部的檔案打造出能夠自動化建造、調整 fabric 的 CI/CD 流程
+- 根據 5_segment 內部的檔案打造出能夠自動化建造、調整 network 的 CI/CD 流程
 - 透過 Nornir / NAPALM 等套件打造出能夠獲取 inventory/ 內部檔案的 Switch 資訊
 
 ## Future works
