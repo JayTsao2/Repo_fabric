@@ -78,10 +78,12 @@ def change_discovery_ip(fabric, serial_number, new_ip):
     headers = get_api_key_header()
     headers['Content-Type'] = 'application/json'
     url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/inventory/discoveryIP")
-    payload = {
-        "serialNumber": serial_number,
-        "ipAddress": new_ip
-    }
+    payload = [
+        {
+            "serialNumber": serial_number,
+            "ipAddress": new_ip
+        }
+    ]
     r = requests.put(url, headers=headers, json=payload, verify=False)
     check_status_code(r)
     print(f"Status Code: {r.status_code}")
@@ -190,6 +192,24 @@ def set_switch_role(serial_number, role):
             "role": role
         }
     ]
+    
+    r = requests.post(url, headers=headers, json=payload, verify=False)
+    check_status_code(r)
+    print(f"Status Code: {r.status_code}")
+    print(f"Message: {r.text}")
+
+def exec_freeform_config(serial_number, cli_commands):
+    """Execute freeform configuration on switch using NDFC API."""
+    url = get_url("/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/config/delivery/exec_freeform/exec")
+    headers = get_api_key_header()
+    headers['Content-Type'] = 'application/json'
+    
+    payload = {
+        "deviceList": [serial_number],
+        "paramValueMap": {
+            "CLI": cli_commands
+        }
+    }
     
     r = requests.post(url, headers=headers, json=payload, verify=False)
     check_status_code(r)

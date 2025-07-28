@@ -13,6 +13,8 @@ import sys
 from typing import Dict, Any, Optional
 from pathlib import Path
 from dataclasses import dataclass
+import paramiko
+import time
 
 # Setup import paths
 sys.path.append(str(Path(__file__).parent.parent.absolute()))
@@ -276,6 +278,154 @@ class SwitchManager:
         except Exception as e:
             print(f"Error setting switch role: {e}")
             return False
+    
+    def change_switch_ip(self, fabric_name: str, role: str, switch_name: str, 
+                        original_ip: str, new_ip: str) -> bool:
+        """Change switch management IP through SSH and update NDFC."""
+        try:
+            # Load switch configuration
+            switch_data = self._load_switch_config(fabric_name, role, switch_name)
+            if not switch_data:
+                return False
+            
+            serial_number = switch_data.get("Serial Number")
+            if not serial_number:
+                print(f"Error: Serial Number not found in {switch_name} configuration")
+                return False
+            
+            # Parse IP addresses
+            original_ip_only = original_ip.split('/')[0]
+            new_ip_with_mask = new_ip
+            new_ip_only = new_ip.split('/')[0]
+            
+            print(f"Changing IP for switch: {switch_name} ({serial_number})")
+            print(f"From: {original_ip} To: {new_ip}")
+            
+            # Step 1: SSH to switch and change management IP
+            print("Step 1: Connecting to switch via SSH")
+            if not self._ssh_change_management_ip(original_ip_only, new_ip_with_mask):
+                return False
+            
+            # Step 2: Update discovery IP in NDFC
+            print("Step 2: Updating discovery IP in NDFC")
+            switch_api.change_discovery_ip(fabric_name, serial_number, new_ip_only)
+            
+            # Step 3: Rediscover device
+            print("Step 3: Rediscovering device")
+            switch_api.rediscover_device(fabric_name, serial_number)
+            
+            print(f"Successfully changed IP for switch {switch_name}")
+            return True
+            
+        except Exception as e:
+            print(f"Error changing switch IP: {e}")
+            return False
+    
+    def _ssh_change_management_ip(self, original_ip: str, new_ip_with_mask: str) -> bool:
+        """SSH to switch and change management IP address."""
+        try:
+            # Load environment for password from the correct path
+            from dotenv import load_dotenv
+            # Go to the script directory and then to api/.env
+            script_dir = Path(__file__).resolve().parents[2]  # Go up to scripts/cisco/12.2.2/
+            env_path = script_dir / "api" / ".env"
+            load_dotenv(env_path)
+            password = os.getenv("SWITCH_PASSWORD")
+            
+            if not password:
+                print("Error: SWITCH_PASSWORD not found in environment")
+                print(f"Please check .env file at: {env_path}")
+                return False
+            
+            # SSH connection
+            ssh = paramiko.SSHClient()
+            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            
+            print(f"Connecting to {original_ip}")
+            ssh.connect(original_ip, username="admin", password=password, timeout=30)
+            
+            # Execute IP change command
+            command = f"configure terminal ; interface mgmt0 ; ip address {new_ip_with_mask} ; exit ; exit"
+            print(f"Executing: ip address {new_ip_with_mask}")
+            
+            stdin, stdout, stderr = ssh.exec_command(command)
+            
+            # Wait for command execution
+            time.sleep(2)
+            
+            ssh.close()
+            print("IP address changed successfully")
+            return True
+            
+        except Exception as e:
+            print(f"SSH Error: {e}")
+            return False
+    
+    def set_switch_freeform(self, fabric_name: str, role: str, switch_name: str) -> bool:
+        """Apply freeform configuration to switch based on YAML configuration."""
+        try:
+            # Load switch configuration
+            switch_data = self._load_switch_config(fabric_name, role, switch_name)
+            if not switch_data:
+                return False
+            
+            serial_number = switch_data.get("Serial Number")
+            if not serial_number:
+                print(f"Error: Serial Number not found in {switch_name} configuration")
+                return False
+            
+            freeform_config_path = switch_data.get("Switch Freeform Config")
+            if not freeform_config_path:
+                print(f"Error: Switch Freeform Config not found in {switch_name} configuration")
+                return False
+            
+            print(f"Applying freeform config for switch: {switch_name} ({serial_number})")
+            print(f"Freeform config file: {freeform_config_path}")
+            
+            # Parse freeform configuration file
+            cli_commands = self._parse_freeform_config(fabric_name, role, freeform_config_path)
+            if not cli_commands:
+                return False
+            
+            print(f"Parsed {len(cli_commands.splitlines())} command lines")
+            print("Executing freeform configuration via NDFC API")
+            
+            # Call API to execute freeform configuration
+            switch_api.exec_freeform_config(serial_number, cli_commands)
+            print(f"Successfully applied freeform config for switch {switch_name}")
+            return True
+            
+        except Exception as e:
+            print(f"Error applying freeform config: {e}")
+            return False
+    
+    def _parse_freeform_config(self, fabric_name: str, role: str, freeform_config_path: str) -> Optional[str]:
+        """Parse freeform configuration file and return CLI commands."""
+        try:
+            # Build the full path to the freeform config file
+            # The path is relative to the switch YAML file location
+            switch_dir = self.config_base_path / fabric_name / role
+            config_file_path = switch_dir / freeform_config_path
+            
+            if not config_file_path.exists():
+                print(f"Freeform config file not found: {config_file_path}")
+                return None
+            
+            print(f"Reading freeform config: {config_file_path.name}")
+            
+            # Read the configuration file
+            with open(config_file_path, 'r', encoding='utf-8') as f:
+                cli_commands = f.read().strip()
+            
+            if not cli_commands:
+                print("Warning: Freeform config file is empty")
+                return None
+            
+            return cli_commands
+            
+        except Exception as e:
+            print(f"Error parsing freeform config: {e}")
+            return None
 
 # --- Expose the SwitchManager class ---
 __all__ = ['SwitchManager', 'SwitchConfig']

@@ -1,7 +1,10 @@
 ---
 IP Address: 10.192.195.71
+IP Netmask Length: 24 # For management interface
 Role: Leaf
-Serial Number: 9H3NIVJ0I8O
+Serial Number: 9W4GBLXU5CR
+Platform: N9K-C9300v # For switch discovery
+Version: 9.3(15) # For switch discovery
 
 Interface:
 

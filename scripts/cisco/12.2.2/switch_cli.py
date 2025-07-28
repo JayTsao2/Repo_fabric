@@ -9,6 +9,8 @@ Usage:
     python switch_cli.py discover {fabric} {role} {switch} [--preserve]
     python switch_cli.py delete {fabric} {role} {switch}
     python switch_cli.py set-role {switch}
+    python switch_cli.py change-ip {fabric} {role} {switch} {original-ip}/{mask} {new-ip}/{mask}
+    python switch_cli.py set-freeform {fabric} {role} {switch}
 """
 
 import argparse
@@ -43,6 +45,20 @@ def main():
     setrole_parser = subparsers.add_parser('set-role', help='Set switch role')
     setrole_parser.add_argument('switch_name', help='Name of the switch')
     
+    # Change-ip command
+    changeip_parser = subparsers.add_parser('change-ip', help='Change switch management IP')
+    changeip_parser.add_argument('fabric_name', help='Name of the fabric')
+    changeip_parser.add_argument('role', help='Role of the switch (leaf, spine, border, etc.)')
+    changeip_parser.add_argument('switch_name', help='Name of the switch')
+    changeip_parser.add_argument('original_ip', help='Original IP address with mask (e.g., 192.168.1.1/24)')
+    changeip_parser.add_argument('new_ip', help='New IP address with mask (e.g., 192.168.1.2/24)')
+    
+    # Set-freeform command
+    setfreeform_parser = subparsers.add_parser('set-freeform', help='Apply freeform configuration to switch')
+    setfreeform_parser.add_argument('fabric_name', help='Name of the fabric')
+    setfreeform_parser.add_argument('role', help='Role of the switch (leaf, spine, border, etc.)')
+    setfreeform_parser.add_argument('switch_name', help='Name of the switch')
+    
     args = parser.parse_args()
     
     if not args.command:
@@ -71,6 +87,22 @@ def main():
         elif args.command == 'set-role':
             # Set switch role
             success = switch_manager.set_switch_role_by_name(args.switch_name)
+        elif args.command == 'change-ip':
+            # Change switch IP
+            success = switch_manager.change_switch_ip(
+                args.fabric_name,
+                args.role,
+                args.switch_name,
+                args.original_ip,
+                args.new_ip
+            )
+        elif args.command == 'set-freeform':
+            # Apply freeform configuration
+            success = switch_manager.set_switch_freeform(
+                args.fabric_name,
+                args.role,
+                args.switch_name
+            )
         else:
             print(f"Unknown command: {args.command}")
             sys.exit(1)
