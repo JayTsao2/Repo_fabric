@@ -14,19 +14,24 @@
 │   │   │   │   │   ├── __init__.py
 │   │   │   │   │   ├── create_fabric.py
 │   │   │   │   │   ├── update_fabric.py
-│   │   │   │   │   └── delete_fabric.py
+│   │   │   │   │   ├── delete_fabric.py
+│   │   │   │   │   └── fabric_manager.py
 │   │   │   │   ├── vrf/
 │   │   │   │   │   ├── __init__.py
 │   │   │   │   │   ├── create_vrf.py
 │   │   │   │   │   ├── update_vrf.py
 │   │   │   │   │   ├── delete_vrf.py
-│   │   │   │   │   └── attach_vrf.py
+│   │   │   │   │   ├── attach_vrf.py
+│   │   │   │   │   └── vrf_manager.py
 │   │   │   │   ├── network/
 │   │   │   │   │   └── __init__.py
 │   │   │   │   ├── interface/
 │   │   │   │   │   └── __init__.py
 │   │   │   │   ├── switch/
 │   │   │   │   │   └── __init__.py
+│   │   │   │   ├── vpc/
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   └── vpc.py
 │   │   │   │   ├── config_utils.py
 │   │   │   │   └── common_utils.py
 │   │   │   ├── resources/
@@ -64,10 +69,10 @@
             * 用途: 模組化功能組織，包含 fabric、VRF、network、interface、switch 等模組。
             
             * **`/scripts/cisco/12.2.2/modules/fabric`**
-                * 用途: Fabric 管理模組，包含建立、更新、刪除功能。
+                * 用途: Fabric 管理模組，包含建立、更新、刪除功能以及統一管理介面 (FabricManager)。
                 
             * **`/scripts/cisco/12.2.2/modules/vrf`**
-                * 用途: VRF 管理模組，包含建立、更新、刪除、附加、分離功能。
+                * 用途: VRF 管理模組，包含建立、更新、刪除、附加、分離功能以及統一管理介面 (VRFManager)。
                 
             * **`/scripts/cisco/12.2.2/modules/network`**
                 * 用途: Network 管理模組，提供統一的網路 CRUD 操作與交換器附加功能。
@@ -91,10 +96,10 @@
             * 用途: 配置檔案、模板、欄位映射等資源檔案。
             
         * **`/scripts/cisco/12.2.2/fabric_cli.py`**
-            * 用途: Fabric 管理命令列介面工具。
+            * 用途: Fabric 管理命令列介面工具，使用 FabricManager 提供統一的操作介面。
             
         * **`/scripts/cisco/12.2.2/vrf_cli.py`**
-            * 用途: VRF 管理命令列介面工具。
+            * 用途: VRF 管理命令列介面工具，使用 VRFManager 提供統一的操作介面。
             
         * **`/scripts/cisco/12.2.2/network_cli.py`**
             * 用途: Network 管理命令列介面工具。
@@ -134,13 +139,13 @@
 **Fabric 管理命令列介面工具 (Fabric Management CLI Tool)**
 
 **功能說明 (Features):**
-- 🏗️ **建立 Fabric**: 支援各種類型的 fabric 建立
-- 🔧 **更新 Fabric**: 更新現有 fabric 配置
-- 🗑️ **刪除 Fabric**: 安全刪除 fabric (含確認提示)
-- � **重新計算配置**: 重新計算 fabric 配置
-- 🚀 **部署配置**: 部署 fabric 配置到設備
-- 🔗 **MSD 管理**: 多站點網域連結與分離功能
-- �📋 **自動類型偵測**: 自動從 YAML 配置檔案偵測 fabric 類型
+- **建立 Fabric**: 支援各種類型的 fabric 建立
+- **更新 Fabric**: 更新現有 fabric 配置
+- **刪除 Fabric**: 安全刪除 fabric (含確認提示)
+- **重新計算配置**: 重新計算 fabric 配置
+- **部署配置**: 部署 fabric 配置到設備
+- **MSD 管理**: 多站點網域連結與分離功能
+- **自動類型偵測**: 自動從 YAML 配置檔案偵測 fabric 類型
 
 **使用方式 (Usage):**
 ```bash
@@ -197,6 +202,19 @@ python fabric_cli.py --help
 ##### 4. 刪除模組 (`delete_fabric.py`)
 - `FabricDeleter` - Fabric 刪除操作類別
   - `delete_fabric(fabric_name)` - 通用 fabric 刪除方法
+
+##### 5. 統一管理模組 (`fabric_manager.py`)
+- `FabricManager` - 統一 Fabric 管理介面
+  - `create_fabric(fabric_name)` - 建立 fabric
+  - `update_fabric(fabric_name)` - 更新 fabric
+  - `delete_fabric(fabric_name)` - 刪除 fabric
+  - `recalculate_config(fabric_name)` - 重新計算配置
+  - `get_pending_config(fabric_name)` - 獲取待部署配置
+  - `deploy_fabric(fabric_name)` - 部署 fabric
+  - `add_to_msd(parent_fabric, child_fabric)` - 添加到 MSD
+  - `remove_from_msd(parent_fabric, child_fabric)` - 從 MSD 移除
+  - 提供統一錯誤處理和狀態回報
+  - 使用懶載入模式初始化組件
 
 ##### Note
 - AAA Freeform config = AAA_SERVER_CONF
@@ -261,8 +279,8 @@ python vrf_cli.py attach <fabric_name> <switch_role> <switch_name>   # 附加 VR
 python vrf_cli.py detach <fabric_name> <switch_role> <switch_name>   # 從交換器分離 VRF
 
 # 範例
-python vrf_cli.py attach Site3-Test leaf Site1-L3    # 附加 VRF 到指定 leaf 交換器
-python vrf_cli.py detach Site3-Test leaf Site1-L3    # 從指定 leaf 交換器分離 VRF
+python vrf_cli.py attach Site1 leaf Site1-L1    # 附加 VRF 到指定 leaf 交換器
+python vrf_cli.py detach Site1 leaf Site1-L1    # 從指定 leaf 交換器分離 VRF
 
 # 顯示幫助資訊
 python vrf_cli.py --help
@@ -327,11 +345,24 @@ python vrf_cli.py --help
 
 **Console 輸出範例:**
 ```
-=== Attaching VRF to switch: Site1-L3 ===
+=== Attaching VRF to switch: Site1-L1 ===
 📋 Found interface Ethernet1/4 with policy 'int_routed_host' and VRF 'bluevrf'
-Found VRF bluevrf in Site1-L3 (9J9UDVX8MMA) in Site3-Test
-✅ SUCCESS: Vrf Attach - bluevrf (VLAN 2000) to Site1-L3
+Found VRF bluevrf in Site1-L1 (9J9UDVX8MMA) in Site1
+✅ SUCCESS: Vrf Attach - bluevrf (VLAN 2000) to Site1-L1
 ```
+
+##### 6. 統一管理模組 (`vrf_manager.py`)
+- `VRFManager` - 統一 VRF 管理介面
+  - `create_vrf(vrf_name, fabric_name)` - 建立 VRF
+  - `update_vrf(vrf_name, fabric_name)` - 更新 VRF
+  - `delete_vrf(vrf_name)` - 刪除 VRF
+  - `attach_vrf(fabric_name, role, switch_name)` - 附加 VRF 到交換器
+  - `detach_vrf(fabric_name, role, switch_name)` - 從交換器分離 VRF
+  - `create_multiple_vrfs(vrf_names, fabric_name)` - 批次建立 VRF
+  - `get_vrf_status(vrf_name, fabric_name)` - 獲取 VRF 狀態
+  - `list_vrfs(fabric_name)` - 列出 fabric 中的所有 VRF
+  - 提供統一錯誤處理和狀態回報
+  - 使用懶載入模式初始化組件
 
 #### [Network CLI](scripts/cisco/12.2.2/network_cli.py)
 **Network 管理命令列介面工具 (Network Management CLI Tool)**
@@ -354,9 +385,9 @@ python network_cli.py attach <fabric_name> <switch_role> <switch_name>   # 附�
 python network_cli.py detach <fabric_name> <switch_role> <switch_name>   # 從交換器分離 Network
 
 # 範例
-python network_cli.py create Site1-Greenfield VLAN_101        # 建立 VLAN_101 Network
-python network_cli.py attach Site1-Greenfield leaf Site1-L1   # 附加 Network 到指定 leaf 交換器
-python network_cli.py detach Site1-Greenfield leaf Site1-L1   # 從指定 leaf 交換器分離 Network
+python network_cli.py create Site1 bluenet1        # 建立 bluenet1 Network
+python network_cli.py attach Site1 leaf Site1-L1   # 附加 Network 到指定 leaf 交換器
+python network_cli.py detach Site1 leaf Site1-L1   # 從指定 leaf 交換器分離 Network
 
 # 顯示幫助資訊
 python network_cli.py --help
@@ -422,8 +453,8 @@ python network_cli.py --help
 
 **Console 輸出範例:**
 ```
-Attaching networks to Site1-L1 (leaf) in Site1-Greenfield...
-✅ Attached VLAN_101 to Ethernet1/1 (ACCESS)
+Attaching networks to Site1-L1 (leaf) in Site1...
+✅ Attached bluenet1 to Ethernet1/1 (ACCESS)
 ✅ Attached VLAN_200 to Ethernet1/2 (TRUNK)
 ✅ Attached VLAN_300 to Ethernet1/2 (TRUNK)
 ✅ Success: Attached 3 network interfaces for Site1-L1
@@ -445,7 +476,7 @@ Attaching networks to Site1-L1 (leaf) in Site1-Greenfield...
 python interface_cli.py <fabric_name> <role> <switch_name>   # 更新指定交換器的所有介面
 
 # 範例
-python interface_cli.py Site3-Test leaf Site1-L3            # 更新 Site1-L3 交換器的所有介面配置
+python interface_cli.py Site1 leaf Site1-L1            # 更新 Site1-L1 交換器的所有介面配置
 
 # 顯示幫助資訊
 python interface_cli.py --help
@@ -487,7 +518,7 @@ python interface_cli.py --help
 
 **Console 輸出範例:**
 ```
-Loading config: Site1-L3.yaml
+Loading config: Site1-L1.yaml
 Processing Ethernet1/4 (int_routed_host)
 Processing Ethernet1/5 (int_routed_host)
 Processing Ethernet1/7 (int_access_host)
@@ -495,7 +526,7 @@ Processing Ethernet1/10 (int_trunk_host)
 ✅ Updated 3 interface(s) with policy int_access_host
 ✅ Updated 3 interface(s) with policy int_trunk_host
 ✅ Updated 6 interface(s) with policy int_routed_host
-✅ Successfully updated 12 interfaces for Site1-L3
+✅ Successfully updated 12 interfaces for Site1-L1
 ```
 
 #### [Switch CLI](scripts/cisco/12.2.2/switch_cli.py)
@@ -522,11 +553,11 @@ python switch_cli.py create-vpc <fabric_name>                                  #
 python switch_cli.py delete-vpc <fabric_name> <switch_name>                    # 刪除指定交換器的 VPC 配對
 
 # 範例
-python switch_cli.py discover Site3-Test leaf Site1-L3 --preserve             # 發現交換器並保留配置
-python switch_cli.py delete Site3-Test leaf Site1-L3                          # 從 fabric 移除交換器
-python switch_cli.py set-role Site1-L3                                        # 設定 Site1-L3 的角色
-python switch_cli.py change-ip Site3-Test leaf Site1-L3 10.192.195.73/24 10.192.195.74/24  # 變更管理 IP
-python switch_cli.py set-freeform Site1-Greenfield border_gateway Site1-BGW2  # 執行 freeform 配置
+python switch_cli.py discover Site1 leaf Site1-L1 --preserve             # 發現交換器並保留配置
+python switch_cli.py delete Site1 leaf Site1-L1                          # 從 fabric 移除交換器
+python switch_cli.py set-role Site1-L1                                        # 設定 Site1-L1 的角色
+python switch_cli.py change-ip Site1 leaf Site1-L1 10.192.195.73/24 10.192.195.74/24  # 變更管理 IP
+python switch_cli.py set-freeform Site1 border_gateway Site1-BGW2  # 執行 freeform 配置
 python switch_cli.py create-vpc Site1                                         # 建立 Site1 fabric 所有 VPC 配對
 python switch_cli.py delete-vpc Site1 Site1-L1                               # 刪除 Site1-L1 交換器的 VPC 配對
 
@@ -642,26 +673,26 @@ python switch_cli.py <command> --help
 
 **交換器發現:**
 ```
-Loading config: Site1-L3.yaml
-Discovering switch: Site1-L3 (9J9UDVX8MMA)
+Loading config: Site1-L1.yaml
+Discovering switch: Site1-L1 (9J9UDVX8MMA)
 ✅ API operation successful
-Successfully discovered switch Site1-L3
+Successfully discovered switch Site1-L1
 ```
 
 **角色設定:**
 ```
-Found switch: Site1-L3 in fabric Site3-Test/leaf
-Setting role for switch: Site1-L3 (9J9UDVX8MMA) to 'leaf'
+Found switch: Site1-L1 in fabric Site1/leaf
+Setting role for switch: Site1-L1 (9J9UDVX8MMA) to 'leaf'
 ✅ API operation successful
 Status Code: 200
 Message: {"successList":"9J9UDVX8MMA"}
-Successfully set role for switch Site1-L3
+Successfully set role for switch Site1-L1
 ```
 
 **IP 變更:**
 ```
-Loading config: Site1-L3.yaml
-Changing IP for switch: Site1-L3 (9J9UDVX8MMA)
+Loading config: Site1-L1.yaml
+Changing IP for switch: Site1-L1 (9J9UDVX8MMA)
 From: 10.192.195.73/24 To: 10.192.195.74/24
 Step 1: Connecting to switch via SSH
 Connecting to 10.192.195.73
@@ -669,7 +700,7 @@ Executing: ip address 10.192.195.74/24
 IP address changed successfully
 Step 2: Updating discovery IP in NDFC
 Step 3: Rediscovering device
-Successfully changed IP for switch Site1-L3
+Successfully changed IP for switch Site1-L1
 ```
 
 **Freeform 配置:**
@@ -851,7 +882,7 @@ Processing Ethernet1/10 (int_trunk_host)
 ✅ Updated 3 interface(s) with policy int_access_host
 ✅ Updated 3 interface(s) with policy int_trunk_host
 ✅ Updated 6 interface(s) with policy int_routed_host
-✅ Successfully updated 12 interfaces for Site1-L3
+✅ Successfully updated 12 interfaces for Site1-L1
 ```
 
 #### Interface 配置檔案結構 (Interface Configuration File Structure)
@@ -894,7 +925,7 @@ Interface:
       MTU: 9100
       SPEED: Auto
       Enable Interface: True
-      Freeform Config: Site1-L3_FreeForm\Site1-L3_Eth_1_13.sh
+      Freeform Config: Site1-L1_FreeForm\Site1-L1_Eth_1_13.sh
 ```
 
 **Freeform 配置檔案**: `network_configs/3_node/{fabric}/{role}/{switch}_FreeForm/{config_file}.sh`
@@ -917,14 +948,14 @@ no ipv6 redirects
 **Network 主配置**: `network_configs/5_segment/network.yaml`
 ```yaml
 Network:
-  - Fabric: Site1-Greenfield
-    Network Name: VLAN_101
+  - Fabric: Site1
+    Network Name: bluenet1
     Layer 2 Only: false
     VRF Name: VRF_101
     Network ID: 30101
     VLAN ID: 101
     IPv4 Gateway/NetMask: 10.1.1.1/24
-    VLAN Name: VLAN_101
+    VLAN Name: bluenet1
     Interface Description: "User Network 101"
 ```
 
@@ -947,7 +978,7 @@ Interface:
 ```yaml
 VRF:
   - VRF Name: bluevrf
-    Fabric: Site3-Test
+    Fabric: Site1
     VRF ID: 50001
     VLAN ID: 2000
     General Parameters:
@@ -979,39 +1010,14 @@ Interface:
 **推薦使用 CLI 工具 (Recommended CLI Usage):**
 ```bash
 # 在 scripts/cisco/12.2.2/ 目錄下執行
-python fabric_cli.py create Site1-Greenfield
-python fabric_cli.py create MSD-Test
-python fabric_cli.py create ISN-Test
-python fabric_cli.py update Site1-Greenfield
-python fabric_cli.py recalculate Site1-Greenfield  # 重新計算配置
-python fabric_cli.py get-pending Site1-Greenfield  # 查看待部署配置
-python fabric_cli.py deploy Site1-Greenfield       # 部署配置
-# 或者使用完整工作流程命令 (推薦)
-python fabric_cli.py workflow Site1-Greenfield     # 執行完整部署工作流程
-python fabric_cli.py delete ISN-Test  # 需要確認
-```
-
-**Console 輸出範例 (Console Output Examples):**
-
-**完整工作流程 (Full Workflow):**
-```
-Starting full deployment workflow for fabric: Site1-Greenfield
-Recalculating configuration for fabric: Site1-Greenfield
-✅ Successfully recalculated configuration for fabric Site1-Greenfield
-Getting pending configuration for fabric: Site1-Greenfield
-Formatted pending configuration for fabric Site1-Greenfield saved to pending.txt
-✅ Successfully retrieved pending configuration for fabric Site1-Greenfield
-Review the pending.txt file. Continue with deployment? (y/N): y
-Deploying configuration for fabric: Site1-Greenfield
-✅ Successfully deployed configuration for fabric Site1-Greenfield
-✅ Full deployment workflow completed successfully for fabric Site1-Greenfield
-```
-
-**獲取待部署配置:**
-```
-Getting pending configuration for fabric: Site1-Greenfield
-Formatted pending configuration for fabric Site1-Greenfield saved to pending.txt
-✅ Successfully retrieved pending configuration for fabric Site1-Greenfield
+python fabric_cli.py create Site1
+python fabric_cli.py create MSD
+python fabric_cli.py create ISN
+python fabric_cli.py update Site1
+python fabric_cli.py recalculate Site1  # 重新計算配置
+python fabric_cli.py get-pending Site1  # 查看待部署配置
+python fabric_cli.py deploy Site1       # 部署配置
+python fabric_cli.py delete ISN
 ```
 
 **pending.txt 格式範例:**
@@ -1034,39 +1040,39 @@ interface Vlan3900
 **VRF CLI 使用方式 (VRF CLI Usage):**
 ```bash
 # 在 scripts/cisco/12.2.2/ 目錄下執行
-python vrf_cli.py create Site3-Test bluevrf
-python vrf_cli.py update Site3-Test bluevrf
+python vrf_cli.py create Site1 bluevrf
+python vrf_cli.py update Site1 bluevrf
 python vrf_cli.py delete bluevrf
-python vrf_cli.py attach Site3-Test leaf Site1-L3
-python vrf_cli.py detach Site3-Test leaf Site1-L3
+python vrf_cli.py attach Site1 leaf Site1-L1
+python vrf_cli.py detach Site1 leaf Site1-L1
 ```
 
 **Network CLI 使用方式 (Network CLI Usage):**
 ```bash
 # 在 scripts/cisco/12.2.2/ 目錄下執行
-python network_cli.py create Site1-Greenfield VLAN_101
-python network_cli.py update Site1-Greenfield VLAN_101
-python network_cli.py delete Site1-Greenfield VLAN_101
-python network_cli.py attach Site1-Greenfield leaf Site1-L1
-python network_cli.py detach Site1-Greenfield leaf Site1-L1
+python network_cli.py create Site1 bluenet1
+python network_cli.py update Site1 bluenet1
+python network_cli.py delete Site1 bluenet1
+python network_cli.py attach Site1 leaf Site1-L1
+python network_cli.py detach Site1 leaf Site1-L1
 ```
 
 **Interface CLI 使用方式 (Interface CLI Usage):**
 ```bash
 # 在 scripts/cisco/12.2.2/ 目錄下執行
-python interface_cli.py Site3-Test leaf Site1-L3          # 更新指定交換器的所有介面配置
-python interface_cli.py Site1-Greenfield spine Site1-S1   # 更新 spine 交換器介面配置
-python interface_cli.py Site2-Brownfield border Site2-BGW1 # 更新 border gateway 介面配置
+python interface_cli.py Site1 leaf Site1-L1          # 更新指定交換器的所有介面配置
+python interface_cli.py Site1 spine Site1-S1   # 更新 spine 交換器介面配置
+python interface_cli.py Site2 border Site2-BGW1 # 更新 border gateway 介面配置
 ```
 
 **Switch CLI 使用方式 (Switch CLI Usage):**
 ```bash
 # 在 scripts/cisco/12.2.2/ 目錄下執行
-python switch_cli.py discover Site3-Test leaf Site1-L3 --preserve    # 發現交換器並保留配置
-python switch_cli.py delete Site3-Test leaf Site1-L3                 # 從 fabric 刪除交換器
-python switch_cli.py set-role Site1-L3                               # 設定交換器角色
-python switch_cli.py change-ip Site3-Test leaf Site1-L3 10.192.195.73/24 10.192.195.74/24  # 變更管理 IP
-python switch_cli.py set-freeform Site1-Greenfield border_gateway Site1-BGW2  # 執行 freeform 配置
+python switch_cli.py discover Site1 leaf Site1-L1 --preserve    # 發現交換器並保留配置
+python switch_cli.py delete Site1 leaf Site1-L1                 # 從 fabric 刪除交換器
+python switch_cli.py set-role Site1-L1                               # 設定交換器角色
+python switch_cli.py change-ip Site1 leaf Site1-L1 10.192.195.73/24 10.192.195.74/24  # 變更管理 IP
+python switch_cli.py set-freeform Site1 border_gateway Site1-BGW2  # 執行 freeform 配置
 ```
 
 **程式化使用模組 (Programmatic Module Usage):**
@@ -1080,15 +1086,15 @@ from modules.fabric.delete_fabric import FabricDeleter
 
 # 建立 fabric
 creator = FabricCreator()
-creator.build_fabric("Site1-Greenfield")
+creator.build_fabric("Site1")
 
 # 更新 fabric
 updater = FabricUpdater() 
-updater.update_fabric("Site1-Greenfield")
+updater.update_fabric("Site1")
 
 # 刪除 fabric
 deleter = FabricDeleter()
-deleter.delete_fabric("Site1-Greenfield")
+deleter.delete_fabric("Site1")
 
 # VRF 模組
 from modules.vrf.create_vrf import VRFCreator
@@ -1110,8 +1116,8 @@ vrf_deleter.delete_vrf("bluevrf")
 
 # 附加/分離 VRF
 vrf_attachment = VRFAttachment()
-vrf_attachment.manage_vrf_by_switch("Site3-Test", "leaf", "Site1-L3", "attach")
-vrf_attachment.manage_vrf_by_switch("Site3-Test", "leaf", "Site1-L3", "detach")
+vrf_attachment.manage_vrf_by_switch("Site1", "leaf", "Site1-L1", "attach")
+vrf_attachment.manage_vrf_by_switch("Site1", "leaf", "Site1-L1", "detach")
 
 # Network 模組
 from modules.network import NetworkManager
@@ -1120,17 +1126,17 @@ from modules.network import NetworkManager
 network_manager = NetworkManager()
 
 # 建立 Network
-network_manager.create_network("Site1-Greenfield", "VLAN_101")
+network_manager.create_network("Site1", "bluenet1")
 
 # 更新 Network
-network_manager.update_network("Site1-Greenfield", "VLAN_101")
+network_manager.update_network("Site1", "bluenet1")
 
 # 刪除 Network
-network_manager.delete_network("Site1-Greenfield", "VLAN_101")
+network_manager.delete_network("Site1", "bluenet1")
 
 # 附加/分離 Network
-network_manager.attach_networks("Site1-Greenfield", "leaf", "Site1-L1")
-network_manager.detach_networks("Site1-Greenfield", "leaf", "Site1-L1")
+network_manager.attach_networks("Site1", "leaf", "Site1-L1")
+network_manager.detach_networks("Site1", "leaf", "Site1-L1")
 
 # Interface 模組
 from modules.interface import InterfaceManager
@@ -1139,9 +1145,9 @@ from modules.interface import InterfaceManager
 interface_manager = InterfaceManager()
 
 # 更新交換器介面配置
-interface_manager.update_switch_interfaces("Site3-Test", "leaf", "Site1-L3")
-interface_manager.update_switch_interfaces("Site1-Greenfield", "spine", "Site1-S1")
-interface_manager.update_switch_interfaces("Site2-Brownfield", "border", "Site2-BGW1")
+interface_manager.update_switch_interfaces("Site1", "leaf", "Site1-L1")
+interface_manager.update_switch_interfaces("Site1", "spine", "Site1-S1")
+interface_manager.update_switch_interfaces("Site2", "border", "Site2-BGW1")
 
 # Switch 模組
 from modules.switch import SwitchManager
@@ -1150,21 +1156,21 @@ from modules.switch import SwitchManager
 switch_manager = SwitchManager()
 
 # 發現交換器
-switch_manager.discover_switch("Site3-Test", "leaf", "Site1-L3", preserve_config=True)
+switch_manager.discover_switch("Site1", "leaf", "Site1-L1", preserve_config=True)
 
 # 刪除交換器
-switch_manager.delete_switch("Site3-Test", "leaf", "Site1-L3")
+switch_manager.delete_switch("Site1", "leaf", "Site1-L1")
 
 # 設定交換器角色
-switch_manager.set_switch_role_by_name("Site1-L3")
-switch_manager.set_switch_role("Site3-Test", "leaf", "Site1-L3")
+switch_manager.set_switch_role_by_name("Site1-L1")
+switch_manager.set_switch_role("Site1", "leaf", "Site1-L1")
 
 # 變更交換器管理 IP
-switch_manager.change_switch_ip("Site3-Test", "leaf", "Site1-L3", 
+switch_manager.change_switch_ip("Site1", "leaf", "Site1-L1", 
                                "10.192.195.73/24", "10.192.195.74/24")
 
 # 執行 freeform 配置
-switch_manager.set_switch_freeform("Site1-Greenfield", "border_gateway", "Site1-BGW2")
+switch_manager.set_switch_freeform("Site1", "border_gateway", "Site1-BGW2")
 ```
 
 ## Gitlab Flow
