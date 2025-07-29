@@ -254,8 +254,8 @@ python fabric_cli.py --help
 **使用方式 (Usage):**
 ```bash
 # 在 scripts/cisco/12.2.2/ 目錄下執行
-python vrf_cli.py create <vrf_name> <fabric_name>     # 建立特定 VRF
-python vrf_cli.py update <vrf_name> <fabric_name>     # 更新特定 VRF
+python vrf_cli.py create <fabric_name> <vrf_name>     # 建立特定 VRF
+python vrf_cli.py update <fabric_name> <vrf_name>     # 更新特定 VRF
 python vrf_cli.py delete <vrf_name>                   # 刪除特定 VRF
 python vrf_cli.py attach <fabric_name> <switch_role> <switch_name>   # 附加 VRF 到交換器
 python vrf_cli.py detach <fabric_name> <switch_role> <switch_name>   # 從交換器分離 VRF
@@ -1034,8 +1034,8 @@ interface Vlan3900
 **VRF CLI 使用方式 (VRF CLI Usage):**
 ```bash
 # 在 scripts/cisco/12.2.2/ 目錄下執行
-python vrf_cli.py create bluevrf Site3-Test
-python vrf_cli.py update bluevrf Site3-Test
+python vrf_cli.py create Site3-Test bluevrf
+python vrf_cli.py update Site3-Test bluevrf
 python vrf_cli.py delete bluevrf
 python vrf_cli.py attach Site3-Test leaf Site1-L3
 python vrf_cli.py detach Site3-Test leaf Site1-L3
