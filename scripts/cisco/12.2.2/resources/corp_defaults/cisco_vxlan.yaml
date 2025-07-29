@@ -1,0 +1,247 @@
+---
+General Parameter:
+  BGP ASN: # Fabric
+  Enable IPv6 Underlay: False
+  Enable IPv6 Link-Local Address: False # unused
+  Fabric Interface Numbering: p2p # Numbered(Point-to-Point) or Unnumbered
+  Underlay Subnet IP Mask: 31 # Mask for Underlay Subnet IP Range
+  Underlay Subnet IPv6 Mask: 126 # unused
+  Underlay Routing Protocol: ospf
+  Route-Reflectors: 4 # Number of spines acting as Route-Reflectors
+  Anycast Gateway MAC: 0204.0204.0204 # Shared MAC address for all leafs (xxxx.xxxx.xxxx)
+  Enable Performance Monitoring: False
+
+Replication:
+  Replication Mode: "Ingress" # Replication Mode for BUM Traffic ("Ingress" or "Multicast")
+  Multicast Group Subnet: 239.1.1.0/25 # unused
+  IPv6 Multicast Group Subnet: "" # unused
+  Enable IPv4 Tenant Routed Multicast (TRM): False # unused
+  Enable IPv6 Tenant Routed Multicast (TRMv6): False # unused
+  Default MDT IPv4 Address for TRM VRFs: # unused
+  Default MDT IPv6 Address for TRM VRFs: # unused
+  Rendezvous-Points: 2 # unused
+  RP Mode: asm # unused
+  Underlay RP Loopback Id: "254" # unused
+  Underlay Primary RP Loopback Id: "" # unused
+  Underlay Backup RP Loopback Id: "" # unused
+  Underlay Second Backup RP Loopback Id: "" # unused
+  Underlay Third Backup RP Loopback Id: "" # unused
+  MVPN VRI ID Range: "" # unused
+  Enable MVPN VRI ID Re-allocation: False # unused
+
+vPC:
+  vPC Peer Link VLAN Range: 3899 # VLAN range for vPC Peer Link SVI (Min:2, Max:4094)
+  Make vPC Peer Link VLAN as Native VLAN: False
+  vPC Peer Keep Alive option: loopback # Use vPC Peer Keep Alive with Loopback or Management
+  vPC Auto Recovery Time (In Seconds): 360 # (Min:240, Max:3600)
+  vPC Delay Restore Time (In Seconds): 150 # (Min:1, Max:3600)
+  vPC Peer Link Port Channel ID: 500 # (Min:1, Max:4096)
+  vPC IPv6 ND Synchronize: True # Enable IPv6 ND synchronization between vPC peers
+  vPC advertise-pip: True # For Primary VTEP IP Advertisement As Next-Hop Of Prefix Routes
+  vPC advertise-pip on Border only: False # Enable advertise-pip on vPC borders and border gateways only. Applicable only when vPC advertise-pip is not enabled
+  Enable the same vPC Domain Id for all vPC Pairs: False # (Not Recommended)
+  vPC Domain Id: "" # unused
+  vPC Domain Id Range: 1-1000 # vPC Domain id range to use for new pairings
+  Enable Qos for Fabric vPC-Peering: False # Qos on spines for guaranteed delivery of vPC Fabric Peering communication
+  Qos Policy Name: spine_qos_for_fabric_vpc_peering # unused
+  Use Specific vPC/Port-Channel ID Range: False
+  vPC/Port-Channel ID Range: "" # unused
+
+Protocols:
+  Underlay Routing Loopback Id: 1 # (Min:0, Max:1023)
+  Underlay VTEP Loopback Id: 0 # (Min:0, Max:1023)
+  Underlay Anycast Loopback Id: "" # unused
+  Underlay Routing Protocol Tag: 100 # Underlay Routing Process Tag
+  OSPF Area Id: 192.168.0.0 # OSPF Area Id in IP address format
+  Enable OSPF Authentication: False
+  OSPF Authentication Key ID: "" # unused
+  OSPF Authentication Key: "" # unused
+  IS-IS Level: level-2 # unused
+  IS-IS NET Area Number: "0001" # unused
+  Previous IS-IS NET Area Number: "" # unused
+  Enable IS-IS Network Point-to-Point: False # unused
+  Enable IS-IS Authentication: False # unused
+  IS-IS Authentication Keychain Name: "" # unused
+  IS-IS Authentication Key ID: "" # unused
+  IS-IS Authentication Key: "" # unused
+  Set IS-IS Overload Bit: False # unused
+  IS-IS Overload Bit Elapsed Time: "" # unused
+  Enable BGP Authentication: False
+  BGP Authentication Key Encryption Type: 3 # unused
+  BGP Authentication Key: "" # unused
+  Enable PIM Hello Authentication: False # unused
+  PIM Hello Authentication Key: "" # unused
+  Enable BFD: True
+  Enable BFD For iBGP: False
+  Enable BFD For OSPF: True
+  Enable BFD For ISIS: False # unused
+  Enable BFD For PIM: False # unused
+  Enable BFD Authentication: False
+  BFD Authentication Key ID: "" # unused
+  BFD Authentication Key: "" # unused
+  iBGP Peer-Template Config: # Speficies the iBGP Peer-Template config used for RR and spines with border role.
+    Template: "" # iBGP Peer-Template Config
+  Leaf/Border/Border Gateway iBGP Peer-Template Config: # Specifies the config used for leaf, border or border gateway. If this field is empty, the peer template defined in iBGP Peer-Template Config is used on all BGP enabled devices (RRs,leafs, border or border gateway roles.
+    Template: "" # Leaf_Border_Border Gateway iBGP Peer-Template Config
+
+Security:
+  Enable Security Groups: False
+  Security Group Name Prefix: "" # unused
+  Security Group Tag (SGT) ID Range: "" # unused
+  Security Groups Pre-provision: False # unused
+  Enable MACsec: False
+  MACsec Cipher Suite: "" # unused
+  MACsec Primary Key String: "" # unused
+  MACsec Primary Cryptographic Algorithm: "" # unused
+  MACsec Fallback Key String: "" # unused
+  MACsec Fallback Cryptographic Algorithm: "" # unused
+  Enable DCI MACsec: False
+  Enable QKD: False # unused
+  DCI MACsec Cipher Suite: "" # unused
+  DCI MACsec Primary Key String: "" # unused
+  DCI MACsec Primary Cryptographic Algorithm: "" # unused
+  DCI MACsec Fallback Key String: "" # unused
+  DCI MACsec Fallback Cryptographic Algorithm: "" # unused
+  QKD Profile Name: "" # unused
+  KME Server IP: "" # unused
+  KME Server Port Number: "" # unused
+  Trustpoint Label: "" # unused
+  Ignore Certificate: False # unused
+  MACsec Status Report Timer: "" # unused
+  
+Advanced:
+  VRF Template: Default_VRF_Universal # Default Overlay VRF Template For Leafs
+  Network Template: Default_Network_Universal # Default Overlay Network Template For Leafs
+  VRF Extension Template: Default_VRF_Extension_Universal # Default Overlay VRF Template For Borders
+  Network Extension Template: Default_Network_Extension_Universal # Default Overlay Network Template For Borders
+  Overlay Mode: cli # VRF/Network configuration using config-profile or CLI
+  Allow L3VNI w/o VLAN: True
+  Enable L3VNI w/o VLAN: False
+  Enable Private VLAN (PVLAN): False
+  PVLAN Secondary Network Template: "" # unused
+  Site id: # Corp_Specific # For EVPN Multi-Site Support (Min:1, Max: 281474976710655). Defaults to Fabric ASN
+  Intra Fabric Interface MTU: 9100 # (Min:576, Max:9216). Must be an even number
+  Layer 2 Host Interface MTU: 9216 # (Min:1500, Max:9216). Must be an even number
+  Unshut Host Interfaces by Default: True
+  Power Supply Mode: ps-redundant # Default Power Supply Mode For The Fabric
+  CoPP Profile: strict # Fabric Wide CoPP Policy. Customized CoPP policy should be provided when 'manual' is selected
+  VTEP HoldDown Time: 180 # NVE Source Inteface HoldDown Time (Min:1, Max:1500) in seconds
+  Brownfield Overlay Network Name Format: Auto_Net_VNI$$VNI$$_VLAN$$VLAN_ID$$ # Generated network name should be < 64 characters
+  Skip Overlay Network Interface Attachments: False # Enable to skip overlay network interface attachments for Brownfield and Host Port Resync cases
+  Enable CDP for Bootstrapped Switch: False # Enable CDP on management interface
+  Enable VXLAN OAM: True # Enable the Next Generation (NG) OAM feature for all switches in the fabric to aid in trouble-shooting VXLAN EVPN fabrics
+  Enable Tenant DHCP: False
+  Enable NX-API: True # Enable HTTPS NX-API
+  NX-API HTTPS Port Number: 443
+  Enable HTTP NX-API: True
+  NX-API HTTP Port Number: 80
+  Enable L4-L7 Services Re-direction: False # No direct mapping found
+  Enable Strict Config Compliance: False
+  Enable AAA IP Authorization: False
+  Enable NDFC as Trap Host: True
+  Anycast Border Gateway advertise-pip: False
+  Greenfield Cleanup Option: Disable
+  Enable Precision Time Protocol (PTP): False
+  PTP Source Loopback Id: "" # unused
+  PTP Domain Id: "" # unused
+  PTP Source VLAN Id: "" # unused
+  Enable MPLS Handoff: False
+  Underlay MPLS Loopback Id: "" # unused
+  IS-IS NET Area Number for MPLS Handoff: "0001" # unused
+  Enable TCAM Allocation: True
+  Enable Default Queuing Policies: False
+  N9K Cloud Scale Platform Queuing Policy: queuing_policy_default_8q_cloudscale # unused
+  N9K R-Series Platform Queuing Policy: queuing_policy_default_r_series # unused
+  Other N9K Platform Queuing Policy: queuing_policy_default_other # unused
+  Enable AI/ML QoS and Queuing Policies: False
+  AI/ML QoS & Queuing Policy: AI_Fabric_QOS_400G # unused
+  Priority flow control watch-dog interval: "" # unused
+  Enable Real Time Interface Statistics Collection: False
+  Interface Statistics Load Interval: "" # unused
+  Spanning Tree Root Bridge Protocol: unmanaged
+  Spanning Tree VLAN Range: "" # unused
+  MST Instance Range: "" # unused
+  Spanning Tree Bridge Priority: "" # unused
+  Leaf Freeform Config: # Additional CLIs, added before interface configurations, for all Leafs as captured from Show Running Configuration
+    Freeform: Leaf Freeform Config
+  Spine Freeform Config: 
+    Freeform: Spine Freeform Config
+  ToR Freeform Config: 
+    Freeform: "" # unused
+  Intra-fabric Links Additional Config: 
+    Freeform: "" # unused
+
+Resources:
+  Manual Underlay IP Address Allocation: False # Checking this will disable Dynamic Underlay IP Address Allocations
+  Underlay Routing Loopback IP Range: # Fabric
+  Underlay VTEP Loopback IP Range: # Fabric
+  Underlay RP Loopback IP Range: 10.254.254.0/24 # unused
+  Underlay Subnet IP Range: # Fabric
+  Underlay MPLS Loopback IP Range: "" # unused
+  Underlay Routing Loopback IPv6 Range: "" # unused
+  Underlay VTEP Loopback IPv6 Range: "" # unused
+  Underlay Subnet IPv6 Range: "" # unused
+  BGP Router ID Range for IPv6 Underlay: "" # unused
+  Layer 2 VXLAN VNI Range: 30000-49000 # Overlay Network Identifier Range (Min:1, Max:16777214)
+  Layer 3 VXLAN VNI Range: 50000-59000 # Overlay VRF Identifier Range (Min:1, Max:16777214)
+  Network VLAN Range: 2300-2999 # Per Switch Overlay Network VLAN Range (Min:2, Max:4094)
+  VRF VLAN Range: 2000-2299 # Per Switch Overlay VRF VLAN Range (Min:2, Max:4094)
+  Subinterface Dot1q Range: 2-511 # Per Border Dot1q Range For VRF Lite Connectivity (Min:2, Max:4093)
+  VRF Lite Deployment: "Manual" # VRF Lite Inter-Fabric Connection Deployment Options. If 'Back2Back&ToExternal' is selected, VRF Lite IFCs are auto created between border devices of two Easy Fabrics, and between border devices in Easy Fabric and edge routers in External Fabric. The IP address is taken from the 'VRF Lite Subnet IP Range' pool.
+  Auto Deploy for Peer: False # Whether to auto generate VRF LITE sub-interface and BGP peering configuration on managed neighbor devices. If set, auto created VRF Lite IFC links will have 'Auto Deploy for Peer' enabled.
+  Auto Deploy Default VRF: False
+  Auto Deploy Default VRF for Peer: False # unused
+  Redistribute BGP Route-map Name: "" # unused
+  VRF Lite Subnet IP Range: 10.33.0.0/16 # Address range to assign P2P Interfabric Connections
+  VRF Lite Subnet Mask: 30
+  Auto Allocation of Unique IP on VRF Extension over VRF Lite IFC: False
+  Per VRF Per VTEP Loopback IPv4 Auto-Provisioning: False
+  Per VRF Per VTEP IPv4 Pool for Loopbacks: "" # unused
+  Per VRF Per VTEP Loopback IPv6 Auto-Provisioning: False # unused
+  Per VRF Per VTEP IPv6 Pool for Loopbacks: "" # unused
+  Service Level Agreement (SLA) ID Range: 10000-19999
+  Tracked Object ID Range: 100-299
+  Service Network VLAN Range: 3966-3967 # Per Switch Overlay Service Network VLAN Range (Min:2, Max:4094)
+  Route Map Sequence Number Range: 1-65534 # (Min:1, Max:65534)
+
+Manageability:
+  Inband Management: False
+  DNS Server IPs: 10.10.1.1,10.10.2.2
+  DNS Server VRFs: management
+  NTP Server IPs: # Fabric
+  NTP Server VRFs: management
+  Syslog Server IPs: # Fabric
+  Syslog Server Severity: 6
+  Syslog Server VRFs: management
+  AAA Freeform Config: 
+    Freeform: AAA Freeform Config
+  Banner: 
+    Freeform: Banner
+  
+Bootstrap:
+  Enable Bootstrap: False
+  Enable Local DHCP Server: False # unused
+  DHCP Version: "" # unused
+  DHCP Scope Start Address: "" # unused
+  DHCP Scope End Address: "" # unused
+  Switch Mgmt Default Gateway: "" # unused
+  Switch Mgmt IP Subnet Prefix: "" # unused
+  Switch Mgmt IPv6 Subnet Prefix: "" # unused
+  DHCPv4 Multi Subnet Scope: "#Scope_Start_IP, Scope_End_IP, Scope_Default_Gateway, Scope_Subnet_Prefix" # unused
+  Seed Switch Fabric Interfaces: "" # unused
+  Spine Switch Fabric Interfaces: "" # unused
+  External DHCP Server IP Addresses: "" # unused
+  Bootstrap Seed Switch Loopback Interface ID: "" # unused
+  Switch Loopback DHCP Scope Start Address: "" # unused
+  Switch Loopback DHCP Scope End Address: "" # unused
+  Enable AAA Config: False # unused
+  Bootstrap Freeform Config: 
+    Freeform: "" # unused
+
+Configuration Backup:
+  Hourly Fabric Backup: False
+  Scheduled Fabric Backup: True
+  Scheduled Time: 04:00
+
+Flow Monitor:
+  Enable Netflow: False

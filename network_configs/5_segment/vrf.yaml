@@ -1,0 +1,29 @@
+---
+VRF:
+- Fabric: "Site1"
+  VRF Name: bluevrf
+  VRF ID: 50000
+  VLAN ID: 2000
+
+  General Parameters:
+    VRF VLAN Name: bluevrf
+    VRF Interface Description: bluevrf
+    VRF Description: bluevrf
+
+  Route Target:
+    Import: 
+    Export: 
+    
+- Fabric: "Site1"
+  VRF Name: bluevrf2
+  VRF ID: 50001
+  VLAN ID: 2001
+
+  General Parameters:
+    VRF VLAN Name: bluevrf
+    VRF Interface Description: bluevrf
+    VRF Description: bluevrf
+
+  Route Target:
+    Import: 
+    Export: 

@@ -1,0 +1,50 @@
+---
+VRF Template: vrfTemplate
+VRF Extension Template: vrfExtensionTemplate
+General Parameters:
+  VRF VLAN Name: vrfVlanName
+  VRF Interface Description: vrfIntfDescription
+  VRF Description: vrfDescription
+
+Advanced:
+  VRF Interface MTU: mtu
+  Loopback Routing Tag: tag
+  Redistribute Direct Route Map: vrfRouteMap
+  IPv6 Redistribute Direct Route Map: v6VrfRouteMap
+  Max BGP Paths: maxBgpPaths
+  Max iBGP Paths: maxIbgpPaths
+  Enable IPv6 link-local Option: ipv6LinkLocalFlag
+  Enable L3VNI w/o VLAN: enableL3VniNoVlan
+  Enable BGP Best-path As-path Multipath-relax: enableBgpBestPathEcmp
+  Advertise Host Routes: advertiseHostRouteFlag
+  Advertise Default Route: advertiseDefaultRouteFlag
+  Config Static 0/0 Route: configureStaticDefaultRouteFlag
+  BGP Neighbor Password: bgpPassword
+  BGP Password Key Encryption Type: bgpPasswordKeyType
+  Enable Netflow: ENABLE_NETFLOW
+  NetFlow Monitor: NETFLOW_MONITOR
+
+TRM:
+  IPv4 TRM Enable: trmEnabled
+  No RP: isRPAbsent
+  Is RP External: isRPExternal
+  RP Address: rpAddress
+  RP Loopback ID: loopbackNumber
+  Underlay Mcast Address: multicastGroup
+  Overlay Mcast Groups: L3VniMcastGroup
+  TRMv6 Enable: trmV6Enabled
+  TRMv6 No RP: isV6RPAbsent
+  Is TRMv6 RP External: isV6RPExternal
+  TRMv6 RP Address: rpV6Address
+  Overlay IPv6 Mcast Groups: ipv6MulticastGroup
+  Enable MVPN inter-as: mvpnInterAs
+  Enable IPv4/IPv6 TRM BGW MSite: trmBGWMSiteEnabled
+
+Route Target:
+  Disable RT Auto-Generate: disableRtAuto
+  Import: routeTargetImport
+  Export: routeTargetExport
+  Import EVPN: routeTargetImportEvpn
+  Export EVPN: routeTargetExportEvpn
+  Import MVPN: routeTargetImportMvpn
+  Export MVPN: routeTargetExportMvpn

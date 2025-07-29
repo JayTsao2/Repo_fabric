@@ -1,0 +1,25 @@
+---
+Fabric:
+  type: Data Center VXLAN EVPN
+  Location: Taipei, TW
+
+General Parameter:
+  BGP ASN: 4240650300
+
+Resources:
+  Underlay Routing Loopback IP Range: 192.168.243.0/24
+  Underlay VTEP Loopback IP Range: 192.168.233.0/24
+  Underlay Subnet IP Range: 192.168.13.0/24
+
+Manageability:
+  NTP Server IPs: 10.11.82.31,10.11.83.31
+  Syslog Server IPs: 10.228.90.42,10.228.90.43, 10.11.116.100, 10.11.117.100
+
+  AAA Freeform Config: 
+    Freeform: Site3-Test_FreeForm/AAA Freeform Config
+
+Advanced:
+  Leaf Freeform Config:
+    Freeform: Site3-Test_FreeForm/Leaf Freeform Config
+  Spine Freeform Config: 
+    Freeform: Site3-Test_FreeForm/Spine Freeform Config

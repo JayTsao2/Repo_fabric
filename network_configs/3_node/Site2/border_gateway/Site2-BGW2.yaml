@@ -1,0 +1,22 @@
+---
+IP Address: 10.192.195.88
+IP Netmask Length: 24 # For management interface
+Role: border gateway
+Serial Number: 9JFD82ZJI78
+Platform: N9K-C9300v # For switch discovery
+Version: 9.3(15) # For switch discovery
+
+Switch Freeform Config: Site2-BGW2_FreeForm\Site2-BGW2.sh
+
+Interface:
+
+  - Ethernet1/34:
+      policy: int_routed_host
+      Interface VRF: Z01
+      Interface IP: 10.255.255.5
+      IP Netmask Length: 31
+      Interface Description: 
+      MTU: # Blank (controlled by policy)
+      SPEED: # Blank (controlled by policy)
+      Enable Interface: True
+      Freeform Config: Site2-BGW2_FreeForm\Site2-BGW2_Eth_1_34.sh

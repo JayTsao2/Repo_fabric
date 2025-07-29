@@ -1,0 +1,29 @@
+---
+networkTemplate: networkTemplate
+networkExtensionTemplate: networkExtensionTemplate
+General Parameters:
+  IPv4 Gateway/NetMask: gatewayIpAddress
+  IPv6 Gateway/Prefix List: gatewayIpV6Address
+  VLAN Name: vlanName
+  Interface Description: intfDescription
+  MTU for L3 interface: mtu
+  IPv4 Secondary GW1: secondaryGW1
+  IPv4 Secondary GW2: secondaryGW2
+  IPv4 Secondary GW3: secondaryGW3
+  IPv4 Secondary GW4: secondaryGW4
+
+Advanced:
+  ARP Suppression: suppressArp
+  Ingress Replication: enableIR
+  Multicast Group Address: mcastGroup
+  Loopback ID for DHCP Relay interface: loopbackId
+  Routing Tag: tag
+  IPv4 TRM Enable: trmEnabled
+  IGMP Version: igmpVersion
+  IPv6 TRM Enable: trmV6Enabled
+  L2 VNI Route-Target Both Enable: rtBothAuto
+  Enable Netflow: ENABLE_NETFLOW
+  Interface Vlan Netflow Monitor: SVI_NETFLOW_MONITOR
+  Vlan Netflow Monitor: VLAN_NETFLOW_MONITOR
+  Enable L3 Gateway on Border and Border Gateway: enableL3OnBorder
+  Enable L3 Gateway on Border and vPC Border Gateway: enableL3OnBorderVpcBgw

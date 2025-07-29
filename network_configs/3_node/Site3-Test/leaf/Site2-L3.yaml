@@ -1,0 +1,131 @@
+---
+IP Address: 10.192.195.83
+Role: Leaf
+Serial Number: 9CTODQEOPI8
+Platform: N9K-C9300v
+Version: 9.3(15)
+
+Interface:
+
+  - Ethernet1/1:
+      Interface Description: Site1-S1
+      Enable Interface: True
+
+  - Ethernet1/2:
+      Interface Description: Site1-S2
+      Enable Interface: True
+
+  - Ethernet1/3:
+      Interface Description: Site1-S3
+      Enable Interface: True
+
+  - Ethernet1/4:
+      policy: int_routed_host
+      Interface VRF: bluevrf
+      Interface IP: 10.192.1.1
+      IP Netmask Length: 24
+      Interface Description: 
+      MTU: 9100
+      SPEED: Auto
+      Enable Interface: True
+
+  - Ethernet1/5:
+      policy: int_routed_host
+      Interface VRF: bluevrf
+      Interface IP: 10.192.2.1
+      IP Netmask Length: 24
+      Interface Description: 
+      MTU: 9100
+      SPEED: Auto
+      Enable Interface: True
+
+  - Ethernet1/6:
+      policy: int_routed_host
+      Interface VRF: bluevrf
+      Interface IP: 10.192.3.1
+      IP Netmask Length: 24
+      Interface Description: 
+      MTU: 9100
+      SPEED: Auto
+      Enable Interface: True
+
+  - Ethernet1/7:
+      policy: int_access_host
+      Access Vlan: 20
+      Interface Description:
+      MTU: jumbo
+      SPEED: Auto
+      Enable Interface: True
+
+  - Ethernet1/8:
+      policy: int_access_host
+      Access Vlan: 2300
+      Interface Description:
+      MTU: jumbo
+      SPEED: Auto
+      Enable Interface: True
+
+  - Ethernet1/9:
+      policy: int_access_host
+      Access Vlan: 2301
+      Interface Description:
+      MTU: jumbo
+      SPEED: Auto
+      Enable Interface: True
+
+  - Ethernet1/10:
+      policy: int_trunk_host
+      Trunk Allowed Vlans: 20,2300,2301
+      Interface Description:
+      MTU: jumbo
+      SPEED: Auto
+      Enable Interface: True
+
+  - Ethernet1/11:
+      policy: int_trunk_host
+      Trunk Allowed Vlans: # Blank (controlled by policy)
+      Interface Description:
+      MTU: jumbo
+      SPEED: Auto
+      Enable Interface: True
+
+  - Ethernet1/12:
+      policy: int_trunk_host
+      Trunk Allowed Vlans: # Blank (controlled by policy)
+      Interface Description:
+      MTU: jumbo
+      SPEED: Auto
+      Enable Interface: True
+
+  - Ethernet1/13:
+      policy: int_routed_host
+      Interface VRF: Z02
+      Interface IP: 
+      IP Netmask Length: 
+      Interface Description: 
+      MTU: 9100
+      SPEED: Auto
+      Enable Interface: True
+      Freeform Config: Site2-L3_FreeForm\Site2-L3_Eth_1_13.sh
+
+  - Ethernet1/14:
+      policy: int_routed_host
+      Interface VRF: Z02
+      Interface IP: 
+      IP Netmask Length: 
+      Interface Description: 
+      MTU: 9100
+      SPEED: Auto
+      Enable Interface: True
+      Freeform Config: Site2-L3_FreeForm\Site2-L3_Eth_1_14.sh
+
+  - Ethernet1/15:
+      policy: int_routed_host
+      Interface VRF: Z02
+      Interface IP: 
+      IP Netmask Length: 
+      Interface Description: 
+      MTU: 9100
+      SPEED: Auto
+      Enable Interface: True
+      Freeform Config: Site2-L3_FreeForm\Site2-L3_Eth_1_15.sh
