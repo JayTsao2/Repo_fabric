@@ -16,11 +16,11 @@ Manageability:
   Syslog Server IPs: 10.228.90.42,10.228.90.43, 10.11.116.100, 10.11.117.100
 
   AAA Freeform Config: 
-    Freeform: Site2-Brownfield_FreeForm\AAA Freeform Config
+    Freeform: Site2_FreeForm\AAA Freeform Config
 
 Advanced:
   Leaf Freeform Config: # Additional CLIs, added before interface configurations, for all Leafs as captured from Show Running Configuration
-    Freeform: Site2-Brownfield_FreeForm\Leaf Freeform Config
+    Freeform: Site2_FreeForm\Leaf Freeform Config
   Spine Freeform Config: 
-    Freeform: Site2-Brownfield_FreeForm\Spine Freeform Config
+    Freeform: Site2_FreeForm\Spine Freeform Config
 

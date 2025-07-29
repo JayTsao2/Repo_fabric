@@ -4,8 +4,8 @@ Fabric:
 
 Child Fabric:
   Fabric:
-    - Site1-Greenfield
-    - Site2-Brownfield
+    - Site1
+    - Site2
   ISN:
     - ISN
 
