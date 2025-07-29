@@ -137,6 +137,42 @@ def deploy_fabric_config(fabric_name: str) -> bool:
     # print(f"Message: {r.text}")
     return r.status_code < 400
 
+def get_pending_config(fabric_name: str) -> Optional[Dict[str, Any]]:
+    """Get pending configuration for a fabric and save in formatted text file."""
+    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric_name}/config-preview")
+    headers = get_api_key_header()
+    
+    r = requests.get(url=url, headers=headers, verify=False)
+    check_status_code(r)
+    
+    try:
+        data = r.json()
+        
+        # Save original JSON for reference (commented out for production)
+        # json_filename = "pending.json"
+        # with open(json_filename, "w") as f:
+        #     json.dump(data, f, indent=4)
+        # print(f"Pending configuration JSON for fabric {fabric_name} saved to {json_filename}")
+        
+        # Parse and create formatted text file
+        txt_filename = "pending.txt"
+        with open(txt_filename, "w") as f:
+            for switch_data in data:
+                switch_name = switch_data.get("switchName", "Unknown")
+                pending_config = switch_data.get("pendingConfig", [])
+                
+                f.write(f"- {switch_name}\n")
+                for command in pending_config:
+                    f.write(f"{command}\n")
+                f.write("===\n")
+        
+        print(f"Formatted pending configuration for fabric {fabric_name} saved to {txt_filename}")
+        return data
+        
+    except Exception as e:
+        print(f"Error getting pending config for fabric {fabric_name}: {e}")
+        return None
+
 def add_MSD(parent_fabric_name: str, child_fabric_name: str) -> bool:
     """Add a child fabric to a Multi-Site Domain."""
     url = get_url("/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/msdAdd")

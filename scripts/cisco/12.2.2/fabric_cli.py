@@ -9,6 +9,9 @@ Usage:
     python fabric_cli.py create <fabric_name>
     python fabric_cli.py update <fabric_name>
     python fabric_cli.py delete <fabric_name>
+    python fabric_cli.py recalculate <fabric_name>
+    python fabric_cli.py get-pending <fabric_name>
+    python fabric_cli.py deploy <fabric_name>
     python fabric_cli.py add-msd <parent_msd> <child_fabric>
     python fabric_cli.py remove-msd <parent_msd> <child_fabric>
 """
@@ -23,6 +26,7 @@ import argparse
 from modules.fabric.create_fabric import FabricCreator
 from modules.fabric.update_fabric import FabricUpdater
 from modules.fabric.delete_fabric import FabricDeleter
+from api.fabric import recalculate_config, deploy_fabric_config, get_pending_config
 
 def create_fabric_command(fabric_name: str):
     """Handle fabric creation command."""
@@ -47,6 +51,51 @@ def delete_fabric_command(fabric_name: str):
         
     success = deleter.delete_fabric(fabric_name)
     return 0 if success else 1
+
+def recalculate_fabric_command(fabric_name: str):
+    """Handle fabric recalculation command."""
+    print(f"Recalculating configuration for fabric: {fabric_name}")
+    try:
+        success = recalculate_config(fabric_name)
+        if success:
+            print(f"✅ Successfully recalculated configuration for fabric {fabric_name}")
+            return 0
+        else:
+            print(f"❌ Failed to recalculate configuration for fabric {fabric_name}")
+            return 1
+    except Exception as e:
+        print(f"❌ Error recalculating fabric {fabric_name}: {e}")
+        return 1
+
+def deploy_fabric_command(fabric_name: str):
+    """Handle fabric deployment command."""
+    print(f"Deploying configuration for fabric: {fabric_name}")
+    try:
+        success = deploy_fabric_config(fabric_name)
+        if success:
+            print(f"✅ Successfully deployed configuration for fabric {fabric_name}")
+            return 0
+        else:
+            print(f"❌ Failed to deploy configuration for fabric {fabric_name}")
+            return 1
+    except Exception as e:
+        print(f"❌ Error deploying fabric {fabric_name}: {e}")
+        return 1
+
+def get_pending_fabric_command(fabric_name: str):
+    """Handle getting pending configuration command."""
+    print(f"Getting pending configuration for fabric: {fabric_name}")
+    try:
+        result = get_pending_config(fabric_name)
+        if result is not None:
+            print(f"✅ Successfully retrieved pending configuration for fabric {fabric_name}")
+            return 0
+        else:
+            print(f"❌ Failed to retrieve pending configuration for fabric {fabric_name}")
+            return 1
+    except Exception as e:
+        print(f"❌ Error getting pending config for fabric {fabric_name}: {e}")
+        return 1
 
 def add_msd_command(parent_fabric: str, child_fabric: str):
     """Handle adding child fabric to MSD command."""
@@ -75,13 +124,16 @@ Examples:
   python fabric_cli.py create Site3-Test                     # Create a specific fabric
   python fabric_cli.py update MSD-Test1                    # Update a specific fabric
   python fabric_cli.py delete ISN-Test                       # Delete a specific fabric
+  python fabric_cli.py recalculate Site1                     # Recalculate fabric configuration
+  python fabric_cli.py get-pending Site1                     # Get pending configuration (saves to pending.json)
+  python fabric_cli.py deploy Site1                          # Deploy fabric configuration
   python fabric_cli.py add-msd MSD-Test1 Site3-Test          # Add child fabric to MSD
   python fabric_cli.py remove-msd MSD-Test1 Site3-Test       # Remove specific child fabric from MSD
 """
     )
     
     parser.add_argument('command', 
-                       choices=['create', 'update', 'delete', 'add-msd', 'remove-msd'],
+                       choices=['create', 'update', 'delete', 'recalculate', 'get-pending', 'deploy', 'add-msd', 'remove-msd'],
                        help='Command to execute')
     
     # Handle different argument patterns for different commands
@@ -105,6 +157,15 @@ Examples:
             
         elif args.command == 'delete':
             return delete_fabric_command(args.fabric_name)
+            
+        elif args.command == 'recalculate':
+            return recalculate_fabric_command(args.fabric_name)
+            
+        elif args.command == 'get-pending':
+            return get_pending_fabric_command(args.fabric_name)
+            
+        elif args.command == 'deploy':
+            return deploy_fabric_command(args.fabric_name)
             
         elif args.command == 'add-msd':
             return add_msd_command(args.parent_fabric, args.child_fabric)

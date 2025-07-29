@@ -137,14 +137,22 @@
 - 🏗️ **建立 Fabric**: 支援各種類型的 fabric 建立
 - 🔧 **更新 Fabric**: 更新現有 fabric 配置
 - 🗑️ **刪除 Fabric**: 安全刪除 fabric (含確認提示)
-- 📋 **自動類型偵測**: 自動從 YAML 配置檔案偵測 fabric 類型
+- � **重新計算配置**: 重新計算 fabric 配置
+- 🚀 **部署配置**: 部署 fabric 配置到設備
+- 🔗 **MSD 管理**: 多站點網域連結與分離功能
+- �📋 **自動類型偵測**: 自動從 YAML 配置檔案偵測 fabric 類型
 
 **使用方式 (Usage):**
 ```bash
 # 在 scripts/cisco/12.2.2/ 目錄下執行
-python fabric_cli.py create <fabric_name>   # 建立特定 fabric
-python fabric_cli.py update <fabric_name>   # 更新特定 fabric
-python fabric_cli.py delete <fabric_name>   # 刪除特定 fabric (需確認)
+python fabric_cli.py create <fabric_name>      # 建立特定 fabric
+python fabric_cli.py update <fabric_name>      # 更新特定 fabric
+python fabric_cli.py delete <fabric_name>      # 刪除特定 fabric (需確認)
+python fabric_cli.py recalculate <fabric_name> # 重新計算 fabric 配置
+python fabric_cli.py get-pending <fabric_name> # 獲取待部署配置 (儲存至 pending.txt)
+python fabric_cli.py deploy <fabric_name>      # 部署 fabric 配置
+python fabric_cli.py add-msd <parent> <child>  # 將子 fabric 加入 MSD
+python fabric_cli.py remove-msd <parent> <child> # 從 MSD 移除子 fabric
 
 # 顯示幫助資訊
 python fabric_cli.py --help
@@ -202,6 +210,7 @@ python fabric_cli.py --help
 - `get_fabric(fabric_name, fabric_dir)` - 讀取 fabric 配置
 - `delete_fabric(fabric_name)` - 刪除 fabric
 - `recalculate_config(fabric_name)` - 重新計算 fabric 配置
+- `get_pending_config(fabric_name)` - 獲取待部署配置並格式化輸出至 pending.txt
 - `deploy_fabric_config(fabric_name)` - 部署 fabric 配置
 - `add_MSD(parent_fabric_name, child_fabric_name)` - 將子 fabric 添加到 Multi-Site Domain
 - `remove_MSD(parent_fabric_name, child_fabric_name)` - 從 Multi-Site Domain 移除子 fabric
@@ -973,7 +982,36 @@ python fabric_cli.py create Site1-Greenfield
 python fabric_cli.py create MSD-Test
 python fabric_cli.py create ISN-Test
 python fabric_cli.py update Site1-Greenfield
+python fabric_cli.py recalculate Site1-Greenfield  # 重新計算配置
+python fabric_cli.py get-pending Site1-Greenfield  # 查看待部署配置
+python fabric_cli.py deploy Site1-Greenfield       # 部署配置
 python fabric_cli.py delete ISN-Test  # 需要確認
+```
+
+**Console 輸出範例 (Console Output Examples):**
+
+**獲取待部署配置:**
+```
+Getting pending configuration for fabric: Site1-Greenfield
+Formatted pending configuration for fabric Site1-Greenfield saved to pending.txt
+✅ Successfully retrieved pending configuration for fabric Site1-Greenfield
+```
+
+**pending.txt 格式範例:**
+```
+- Site1-L1
+vlan 3900
+  vn-segment 34000
+configure terminal
+vrf context bluevrf
+  vni 34000
+===
+- Site1-L2
+interface Vlan3900
+  vrf member bluevrf
+  ip forward
+  ipv6 address use-link-local-only
+===
 ```
 
 **VRF CLI 使用方式 (VRF CLI Usage):**
