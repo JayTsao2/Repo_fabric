@@ -1,11 +1,14 @@
 ---
-IP Address: 10.192.195.77
+IP Address: 10.192.195.78
+IP Netmask Length: 24 # For management interface
 Role: border gateway
-Serial Number: 9WI7FS9YW2Y
+Serial Number: 9MG7FC4YSQY
+Platform: N9K-C9300v # For switch discovery
+Version: 9.3(15) # For switch discovery
 
 vlan: 2300
 
-Switch Freeform Config: Site1-BGW1_FreeForm\Site1-BGW1.sh
+Switch Freeform Config: Site1-BGW2_FreeForm\Site1-BGW2.sh
 
 Interface:
 
@@ -42,4 +45,4 @@ Interface:
       MTU: 9100
       SPEED: Auto
       Enable Interface: True
-      Freeform Config: Site1-BGW1_FreeForm\Site1-BGW1_Eth_1_34.sh
+      Freeform Config: Site2-BGW1_FreeForm\Site2-BGW1_Eth_1_34.sh

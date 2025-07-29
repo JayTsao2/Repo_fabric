@@ -1,7 +1,10 @@
 ---
 IP Address: 10.192.195.88
+IP Netmask Length: 24 # For management interface
 Role: border gateway
-Serial Number: 9IAAMLWUQ6A
+Serial Number: 9JFD82ZJI78
+Platform: N9K-C9300v # For switch discovery
+Version: 9.3(15) # For switch discovery
 
 vlan: 2300
 

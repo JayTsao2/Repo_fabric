@@ -17,7 +17,7 @@ router bgp 4240650100
       inherit peer EBGP-PEER-TEMPLATE-CORE
       remote-as 4240600101
     neighbor Ethernet1/35
-     inherit peer EBGP-PEER-TEMPLATE-CORE
+      inherit peer EBGP-PEER-TEMPLATE-CORE
       remote-as 4240600101
     neighbor Ethernet1/36
       inherit peer EBGP-PEER-TEMPLATE-CORE

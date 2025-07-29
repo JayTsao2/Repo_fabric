@@ -1,7 +1,10 @@
 ---
 IP Address: 10.192.195.74
+IP Netmask Length: 24 # For management interface
 Role: Spine
-Serial Number: 9A58GFZ5DD4
+Serial Number: 9MIDV69R5RO
+Platform: N9K-C9300v # For switch discovery
+Version: 9.3(15) # For switch discovery
 
 Interface:
 
