@@ -84,7 +84,7 @@ Interface:
 
   - Ethernet1/11:
       policy: int_trunk_host
-      Trunk Allowed Vlans: # Blank (controlled by policy)
+      Trunk Allowed Vlans: all # Blank (controlled by policy)
       Interface Description:
       MTU: jumbo
       SPEED: Auto
@@ -92,7 +92,7 @@ Interface:
 
   - Ethernet1/12:
       policy: int_trunk_host
-      Trunk Allowed Vlans: # Blank (controlled by policy)
+      Trunk Allowed Vlans: all # Blank (controlled by policy)
       Interface Description:
       MTU: jumbo
       SPEED: Auto

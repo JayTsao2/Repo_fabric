@@ -6,8 +6,6 @@ Serial Number: 9JFD82ZJI78
 Platform: N9K-C9300v # For switch discovery
 Version: 9.3(15) # For switch discovery
 
-vlan: 2300
-
 Switch Freeform Config: Site2-BGW2_FreeForm\Site2-BGW2.sh
 
 Interface:
