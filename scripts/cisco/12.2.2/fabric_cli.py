@@ -12,7 +12,6 @@ Usage:
     python fabric_cli.py recalculate <fabric_name>
     python fabric_cli.py get-pending <fabric_name>
     python fabric_cli.py deploy <fabric_name>
-    python fabric_cli.py workflow <fabric_name>
     python fabric_cli.py add-msd <parent_msd> <child_fabric>
     python fabric_cli.py remove-msd <parent_msd> <child_fabric>
 """
@@ -69,11 +68,6 @@ def remove_msd_command(parent_fabric: str, child_fabric: str):
     success = fabric_manager.remove_from_msd(parent_fabric, child_fabric)
     return 0 if success else 1
 
-def deploy_workflow_command(fabric_name: str):
-    """Handle full deployment workflow command."""
-    success = fabric_manager.full_deployment_workflow(fabric_name)
-    return 0 if success else 1
-
 def main():
     parser = argparse.ArgumentParser(
         description="Fabric Management CLI",
@@ -86,14 +80,13 @@ Examples:
   python fabric_cli.py recalculate Site1                     # Recalculate fabric configuration
   python fabric_cli.py get-pending Site1                     # Get pending configuration (saves to pending.txt)
   python fabric_cli.py deploy Site1                          # Deploy fabric configuration
-  python fabric_cli.py workflow Site1                        # Full deployment workflow (recalculate->pending->deploy)
   python fabric_cli.py add-msd MSD-Test1 Site3-Test          # Add child fabric to MSD
   python fabric_cli.py remove-msd MSD-Test1 Site3-Test       # Remove specific child fabric from MSD
 """
     )
     
     parser.add_argument('command', 
-                       choices=['create', 'update', 'delete', 'recalculate', 'get-pending', 'deploy', 'workflow', 'add-msd', 'remove-msd'],
+                       choices=['create', 'update', 'delete', 'recalculate', 'get-pending', 'deploy', 'add-msd', 'remove-msd'],
                        help='Command to execute')
     
     # Handle different argument patterns for different commands
@@ -126,9 +119,6 @@ Examples:
             
         elif args.command == 'deploy':
             return deploy_fabric_command(args.fabric_name)
-            
-        elif args.command == 'workflow':
-            return deploy_workflow_command(args.fabric_name)
             
         elif args.command == 'add-msd':
             return add_msd_command(args.parent_fabric, args.child_fabric)

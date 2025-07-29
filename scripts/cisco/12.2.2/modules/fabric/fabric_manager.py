@@ -99,24 +99,17 @@ class FabricManager:
             print(f"❌ Error updating fabric {fabric_name}: {e}")
             return False
     
-    def delete_fabric(self, fabric_name: str, force: bool = False) -> bool:
+    def delete_fabric(self, fabric_name: str) -> bool:
         """
-        Delete a fabric with optional confirmation.
+        Delete a fabric.
         
         Args:
             fabric_name: Name of the fabric to delete
-            force: Skip confirmation prompt if True
             
         Returns:
             bool: True if successful, False otherwise
         """
         try:
-            if not force:
-                confirm = input(f"Are you sure you want to delete fabric '{fabric_name}'? (y/N): ")
-                if confirm.lower() not in ['y', 'yes']:
-                    print("❌ Delete operation cancelled by user")
-                    return True  # Not an error, user chose to cancel
-            
             print(f"Deleting fabric: {fabric_name}")
             success = self.deleter.delete_fabric(fabric_name)
             if success:
@@ -255,39 +248,4 @@ class FabricManager:
             print(f"❌ Error removing fabric from MSD: {e}")
             return False
     
-    # Workflow Operations
-    def full_deployment_workflow(self, fabric_name: str) -> bool:
-        """
-        Execute a complete deployment workflow: recalculate -> get-pending -> deploy.
-        
-        Args:
-            fabric_name: Name of the fabric to deploy
-            
-        Returns:
-            bool: True if all steps successful, False otherwise
-        """
-        print(f"Starting full deployment workflow for fabric: {fabric_name}")
-        
-        # Step 1: Recalculate configuration
-        if not self.recalculate_config(fabric_name):
-            print("❌ Deployment workflow failed at recalculation step")
-            return False
-        
-        # Step 2: Get pending configuration for review
-        if not self.get_pending_config(fabric_name):
-            print("❌ Deployment workflow failed at pending config step")
-            return False
-        
-        # Step 3: Ask for confirmation before deployment
-        confirm = input("Review the pending.txt file. Continue with deployment? (y/N): ")
-        if confirm.lower() not in ['y', 'yes']:
-            print("❌ Deployment cancelled by user")
-            return False
-        
-        # Step 4: Deploy configuration
-        if not self.deploy_fabric(fabric_name):
-            print("❌ Deployment workflow failed at deployment step")
-            return False
-        
-        print(f"✅ Full deployment workflow completed successfully for fabric {fabric_name}")
-        return True
+    # Utility Methods
