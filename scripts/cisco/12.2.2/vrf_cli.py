@@ -6,11 +6,11 @@ This script provides a unified command-line interface for VRF operations.
 Uses VRFManager for clean, consistent VRF management.
 
 Example usage:
-    python vrf_cli.py create PROD_VRF fabric1
-    python vrf_cli.py update PROD_VRF fabric1
-    python vrf_cli.py delete PROD_VRF
-    python vrf_cli.py attach Site1-Greenfield leaf Site1-L1
-    python vrf_cli.py detach Site1-Greenfield leaf Site1-L1
+    python vrf_cli.py create <fabric_name> <vrf_name>
+    python vrf_cli.py update <fabric_name> <vrf_name>
+    python vrf_cli.py delete <vrf_name>
+    python vrf_cli.py attach <fabric_name> <switch_role> <switch_name>
+    python vrf_cli.py detach <fabric_name> <switch_role> <switch_name>
 """
 
 import argparse
@@ -30,11 +30,11 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  Create VRF:     python vrf_cli.py create PROD_VRF fabric1
-  Update VRF:     python vrf_cli.py update PROD_VRF fabric1
-  Delete VRF:     python vrf_cli.py delete PROD_VRF
-  Attach VRF:     python vrf_cli.py attach Site1-Greenfield leaf Site1-L1
-  Detach VRF:     python vrf_cli.py detach Site1-Greenfield leaf Site1-L1
+  python vrf_cli.py create <fabric_name> <vrf_name>          # Create a VRF in specified fabric
+  python vrf_cli.py update <fabric_name> <vrf_name>          # Update a VRF in specified fabric
+  python vrf_cli.py delete <vrf_name>                        # Delete a VRF
+  python vrf_cli.py attach <fabric_name> <switch_role> <switch_name>  # Attach VRF to a specific switch
+  python vrf_cli.py detach <fabric_name> <switch_role> <switch_name>  # Detach VRF from a specific switch
         """
     )
     
@@ -42,13 +42,13 @@ Examples:
     
     # Create VRF command
     create_parser = subparsers.add_parser('create', help='Create a VRF')
-    create_parser.add_argument('vrf_name', help='Name of the VRF to create')
     create_parser.add_argument('fabric_name', help='Name of the fabric to create VRF in')
+    create_parser.add_argument('vrf_name', help='Name of the VRF to create')
     
     # Update VRF command
     update_parser = subparsers.add_parser('update', help='Update a VRF')
-    update_parser.add_argument('vrf_name', help='Name of the VRF to update')
     update_parser.add_argument('fabric_name', help='Name of the fabric to update VRF in')
+    update_parser.add_argument('vrf_name', help='Name of the VRF to update')
     
     # Delete VRF command
     delete_parser = subparsers.add_parser('delete', help='Delete a VRF')

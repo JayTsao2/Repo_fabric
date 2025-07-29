@@ -32,7 +32,20 @@ from modules.vpc import VPCManager
 
 def main():
     """Main CLI entry point."""
-    parser = argparse.ArgumentParser(description='Switch Management CLI')
+    parser = argparse.ArgumentParser(
+        description='Switch Management CLI',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python switch_cli.py discover <fabric_name> <role> <switch_name> [--preserve]  # Discover a switch
+  python switch_cli.py delete <fabric_name> <role> <switch_name>                 # Delete a switch
+  python switch_cli.py set-role <switch_name>                                    # Set switch role
+  python switch_cli.py change-ip <fabric_name> <role> <switch_name> <original_ip>/<mask> <new_ip>/<mask>  # Change switch IP
+  python switch_cli.py set-freeform <fabric_name> <role> <switch_name>           # Set freeform policy
+  python switch_cli.py create-vpc <fabric_name>                                  # Create VPC pairs
+  python switch_cli.py delete-vpc <fabric_name> <switch_name>                    # Delete VPC pairs
+        """
+    )
     subparsers = parser.add_subparsers(dest='command', help='Available commands')
     
     # Discover command

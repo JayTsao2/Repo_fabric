@@ -17,7 +17,18 @@ from modules.network import NetworkManager
 
 def main():
     """Main CLI entry point."""
-    parser = argparse.ArgumentParser(description='Network Management CLI')
+    parser = argparse.ArgumentParser(
+        description='Network Management CLI',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python network_cli.py create <fabric_name> <network_name>      # Create a network
+  python network_cli.py update <fabric_name> <network_name>      # Update a network
+  python network_cli.py delete <fabric_name> <network_name>      # Delete a network
+  python network_cli.py attach <fabric_name> <role> <switch_name>  # Attach networks to a switch
+  python network_cli.py detach <fabric_name> <role> <switch_name>  # Detach networks from a switch
+        """
+    )
     subparsers = parser.add_subparsers(dest='command', help='Available commands')
     
     # Create command

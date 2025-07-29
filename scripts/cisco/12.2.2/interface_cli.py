@@ -17,7 +17,14 @@ from modules.interface import InterfaceManager
 
 def main():
     """Main CLI entry point."""
-    parser = argparse.ArgumentParser(description='Interface Management CLI')
+    parser = argparse.ArgumentParser(
+        description='Interface Management CLI',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python interface_cli.py <fabric_name> <role> <switch_name>      # Update switch interfaces
+        """
+    )
     parser.add_argument('fabric_name', help='Name of the fabric')
     parser.add_argument('role', help='Role of the switch (leaf, spine, etc.)')
     parser.add_argument('switch_name', help='Name of the switch')

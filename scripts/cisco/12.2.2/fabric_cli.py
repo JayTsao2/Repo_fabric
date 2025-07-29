@@ -74,14 +74,14 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python fabric_cli.py create Site3-Test                     # Create a specific fabric
-  python fabric_cli.py update MSD-Test1                    # Update a specific fabric
-  python fabric_cli.py delete ISN-Test                       # Delete a specific fabric
-  python fabric_cli.py recalculate Site1                     # Recalculate fabric configuration
-  python fabric_cli.py get-pending Site1                     # Get pending configuration (saves to pending.txt)
-  python fabric_cli.py deploy Site1                          # Deploy fabric configuration
-  python fabric_cli.py add-msd MSD-Test1 Site3-Test          # Add child fabric to MSD
-  python fabric_cli.py remove-msd MSD-Test1 Site3-Test       # Remove specific child fabric from MSD
+  python fabric_cli.py create <fabric_name>                  # Create a specific fabric
+  python fabric_cli.py update <fabric_name>                  # Update a specific fabric
+  python fabric_cli.py delete <fabric_name>                  # Delete a specific fabric
+  python fabric_cli.py recalculate <fabric_name>             # Recalculate fabric configuration
+  python fabric_cli.py get-pending <fabric_name>             # Get pending configuration (saves to pending.txt)
+  python fabric_cli.py deploy <fabric_name>                  # Deploy fabric configuration
+  python fabric_cli.py add-msd <parent_msd> <child_fabric>   # Add child fabric to MSD
+  python fabric_cli.py remove-msd <parent_msd> <child_fabric> # Remove specific child fabric from MSD
 """
     )
     
