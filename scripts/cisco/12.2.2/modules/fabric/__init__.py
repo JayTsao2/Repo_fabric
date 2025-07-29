@@ -294,5 +294,9 @@ __all__ = [
     'FreeformPaths', 
     'FabricBuilder', 
     'PayloadGenerator', 
-    'BaseFabricMethods'
+    'BaseFabricMethods',
+    'FabricManager'  # Add the new FabricManager
 ]
+
+# Import the FabricManager for easy access
+from .fabric_manager import FabricManager

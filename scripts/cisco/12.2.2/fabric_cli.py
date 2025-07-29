@@ -12,6 +12,7 @@ Usage:
     python fabric_cli.py recalculate <fabric_name>
     python fabric_cli.py get-pending <fabric_name>
     python fabric_cli.py deploy <fabric_name>
+    python fabric_cli.py workflow <fabric_name>
     python fabric_cli.py add-msd <parent_msd> <child_fabric>
     python fabric_cli.py remove-msd <parent_msd> <child_fabric>
 """
@@ -23,96 +24,54 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent.absolute()))
 
 import argparse
-from modules.fabric.create_fabric import FabricCreator
-from modules.fabric.update_fabric import FabricUpdater
-from modules.fabric.delete_fabric import FabricDeleter
-from api.fabric import recalculate_config, deploy_fabric_config, get_pending_config
+from modules.fabric import FabricManager
+
+# Initialize the fabric manager (singleton pattern)
+fabric_manager = FabricManager()
 
 def create_fabric_command(fabric_name: str):
     """Handle fabric creation command."""
-    creator = FabricCreator()
-    success = creator.build_fabric(fabric_name)
+    success = fabric_manager.create_fabric(fabric_name)
     return 0 if success else 1
 
 def update_fabric_command(fabric_name: str):
     """Handle fabric update command."""
-    updater = FabricUpdater()
-    success = updater.update_fabric(fabric_name)
+    success = fabric_manager.update_fabric(fabric_name)
     return 0 if success else 1
 
 def delete_fabric_command(fabric_name: str):
     """Handle fabric deletion command."""
-    deleter = FabricDeleter()
-    # Add confirmation prompt for safety
-    confirm = input(f"Are you sure you want to delete fabric '{fabric_name}'? (y/N): ")
-    if confirm.lower() not in ['y', 'yes']:
-        print("❌ Delete operation cancelled by user")
-        return 0
-        
-    success = deleter.delete_fabric(fabric_name)
+    success = fabric_manager.delete_fabric(fabric_name)
     return 0 if success else 1
 
 def recalculate_fabric_command(fabric_name: str):
     """Handle fabric recalculation command."""
-    print(f"Recalculating configuration for fabric: {fabric_name}")
-    try:
-        success = recalculate_config(fabric_name)
-        if success:
-            print(f"✅ Successfully recalculated configuration for fabric {fabric_name}")
-            return 0
-        else:
-            print(f"❌ Failed to recalculate configuration for fabric {fabric_name}")
-            return 1
-    except Exception as e:
-        print(f"❌ Error recalculating fabric {fabric_name}: {e}")
-        return 1
+    success = fabric_manager.recalculate_config(fabric_name)
+    return 0 if success else 1
 
 def deploy_fabric_command(fabric_name: str):
     """Handle fabric deployment command."""
-    print(f"Deploying configuration for fabric: {fabric_name}")
-    try:
-        success = deploy_fabric_config(fabric_name)
-        if success:
-            print(f"✅ Successfully deployed configuration for fabric {fabric_name}")
-            return 0
-        else:
-            print(f"❌ Failed to deploy configuration for fabric {fabric_name}")
-            return 1
-    except Exception as e:
-        print(f"❌ Error deploying fabric {fabric_name}: {e}")
-        return 1
+    success = fabric_manager.deploy_fabric(fabric_name)
+    return 0 if success else 1
 
 def get_pending_fabric_command(fabric_name: str):
     """Handle getting pending configuration command."""
-    print(f"Getting pending configuration for fabric: {fabric_name}")
-    try:
-        result = get_pending_config(fabric_name)
-        if result is not None:
-            print(f"✅ Successfully retrieved pending configuration for fabric {fabric_name}")
-            return 0
-        else:
-            print(f"❌ Failed to retrieve pending configuration for fabric {fabric_name}")
-            return 1
-    except Exception as e:
-        print(f"❌ Error getting pending config for fabric {fabric_name}: {e}")
-        return 1
+    result = fabric_manager.get_pending_config(fabric_name)
+    return 0 if result is not None else 1
 
 def add_msd_command(parent_fabric: str, child_fabric: str):
     """Handle adding child fabric to MSD command."""
-    creator = FabricCreator()
-    success = creator.link_fabrics(parent_fabric, child_fabric)
+    success = fabric_manager.add_to_msd(parent_fabric, child_fabric)
     return 0 if success else 1
 
 def remove_msd_command(parent_fabric: str, child_fabric: str):
     """Handle removing specific child fabric from MSD command."""
-    creator = FabricCreator()
-    # Add confirmation prompt for safety
-    confirm = input(f"Are you sure you want to remove '{child_fabric}' from MSD '{parent_fabric}'? (y/N): ")
-    if confirm.lower() not in ['y', 'yes']:
-        print("❌ Remove operation cancelled by user")
-        return 0
-        
-    success = creator.unlink_fabrics(parent_fabric, child_fabric)
+    success = fabric_manager.remove_from_msd(parent_fabric, child_fabric)
+    return 0 if success else 1
+
+def deploy_workflow_command(fabric_name: str):
+    """Handle full deployment workflow command."""
+    success = fabric_manager.full_deployment_workflow(fabric_name)
     return 0 if success else 1
 
 def main():
@@ -125,15 +84,16 @@ Examples:
   python fabric_cli.py update MSD-Test1                    # Update a specific fabric
   python fabric_cli.py delete ISN-Test                       # Delete a specific fabric
   python fabric_cli.py recalculate Site1                     # Recalculate fabric configuration
-  python fabric_cli.py get-pending Site1                     # Get pending configuration (saves to pending.json)
+  python fabric_cli.py get-pending Site1                     # Get pending configuration (saves to pending.txt)
   python fabric_cli.py deploy Site1                          # Deploy fabric configuration
+  python fabric_cli.py workflow Site1                        # Full deployment workflow (recalculate->pending->deploy)
   python fabric_cli.py add-msd MSD-Test1 Site3-Test          # Add child fabric to MSD
   python fabric_cli.py remove-msd MSD-Test1 Site3-Test       # Remove specific child fabric from MSD
 """
     )
     
     parser.add_argument('command', 
-                       choices=['create', 'update', 'delete', 'recalculate', 'get-pending', 'deploy', 'add-msd', 'remove-msd'],
+                       choices=['create', 'update', 'delete', 'recalculate', 'get-pending', 'deploy', 'workflow', 'add-msd', 'remove-msd'],
                        help='Command to execute')
     
     # Handle different argument patterns for different commands
@@ -166,6 +126,9 @@ Examples:
             
         elif args.command == 'deploy':
             return deploy_fabric_command(args.fabric_name)
+            
+        elif args.command == 'workflow':
+            return deploy_workflow_command(args.fabric_name)
             
         elif args.command == 'add-msd':
             return add_msd_command(args.parent_fabric, args.child_fabric)

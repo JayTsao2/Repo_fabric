@@ -151,6 +151,7 @@ python fabric_cli.py delete <fabric_name>      # 刪除特定 fabric (需確認)
 python fabric_cli.py recalculate <fabric_name> # 重新計算 fabric 配置
 python fabric_cli.py get-pending <fabric_name> # 獲取待部署配置 (儲存至 pending.txt)
 python fabric_cli.py deploy <fabric_name>      # 部署 fabric 配置
+python fabric_cli.py workflow <fabric_name>    # 完整部署工作流程 (重新計算->查看待部署->部署)
 python fabric_cli.py add-msd <parent> <child>  # 將子 fabric 加入 MSD
 python fabric_cli.py remove-msd <parent> <child> # 從 MSD 移除子 fabric
 
@@ -985,10 +986,26 @@ python fabric_cli.py update Site1-Greenfield
 python fabric_cli.py recalculate Site1-Greenfield  # 重新計算配置
 python fabric_cli.py get-pending Site1-Greenfield  # 查看待部署配置
 python fabric_cli.py deploy Site1-Greenfield       # 部署配置
+# 或者使用完整工作流程命令 (推薦)
+python fabric_cli.py workflow Site1-Greenfield     # 執行完整部署工作流程
 python fabric_cli.py delete ISN-Test  # 需要確認
 ```
 
 **Console 輸出範例 (Console Output Examples):**
+
+**完整工作流程 (Full Workflow):**
+```
+Starting full deployment workflow for fabric: Site1-Greenfield
+Recalculating configuration for fabric: Site1-Greenfield
+✅ Successfully recalculated configuration for fabric Site1-Greenfield
+Getting pending configuration for fabric: Site1-Greenfield
+Formatted pending configuration for fabric Site1-Greenfield saved to pending.txt
+✅ Successfully retrieved pending configuration for fabric Site1-Greenfield
+Review the pending.txt file. Continue with deployment? (y/N): y
+Deploying configuration for fabric: Site1-Greenfield
+✅ Successfully deployed configuration for fabric Site1-Greenfield
+✅ Full deployment workflow completed successfully for fabric Site1-Greenfield
+```
 
 **獲取待部署配置:**
 ```
