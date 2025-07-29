@@ -198,24 +198,6 @@ def set_switch_role(serial_number, role):
     print(f"Status Code: {r.status_code}")
     print(f"Message: {r.text}")
 
-def exec_freeform_config(serial_number, cli_commands):
-    """Execute freeform configuration on switch using NDFC API."""
-    url = get_url("/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/config/delivery/exec_freeform/exec")
-    headers = get_api_key_header()
-    headers['Content-Type'] = 'application/json'
-    
-    payload = {
-        "deviceList": [serial_number],
-        "paramValueMap": {
-            "CLI": cli_commands
-        }
-    }
-    
-    r = requests.post(url, headers=headers, json=payload, verify=False)
-    check_status_code(r)
-    print(f"Status Code: {r.status_code}")
-    print(f"Message: {r.text}")
-
 
 if __name__ == "__main__":
     # get_switches(fabric="Site1", switch_dir="switches")

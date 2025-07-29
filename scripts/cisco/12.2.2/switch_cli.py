@@ -11,6 +11,8 @@ Usage:
     python switch_cli.py set-role {switch}
     python switch_cli.py change-ip {fabric} {role} {switch} {original-ip}/{mask} {new-ip}/{mask}
     python switch_cli.py set-freeform {fabric} {role} {switch}
+    
+Note: set-freeform creates a freeform policy for the switch using NDFC Policy API
 """
 
 import argparse
@@ -54,7 +56,7 @@ def main():
     changeip_parser.add_argument('new_ip', help='New IP address with mask (e.g., 192.168.1.2/24)')
     
     # Set-freeform command
-    setfreeform_parser = subparsers.add_parser('set-freeform', help='Apply freeform configuration to switch')
+    setfreeform_parser = subparsers.add_parser('set-freeform', help='Create freeform policy for switch')
     setfreeform_parser.add_argument('fabric_name', help='Name of the fabric')
     setfreeform_parser.add_argument('role', help='Role of the switch (leaf, spine, border, etc.)')
     setfreeform_parser.add_argument('switch_name', help='Name of the switch')

@@ -19,6 +19,7 @@ import time
 # Setup import paths
 sys.path.append(str(Path(__file__).parent.parent.absolute()))
 import api.switch as switch_api
+import api.policy as policy_api
 from modules.config_utils import load_yaml_file
 
 # Valid switch roles enum
@@ -362,7 +363,7 @@ class SwitchManager:
             return False
     
     def set_switch_freeform(self, fabric_name: str, role: str, switch_name: str) -> bool:
-        """Apply freeform configuration to switch based on YAML configuration."""
+        """Create a freeform policy for switch based on YAML configuration."""
         try:
             # Load switch configuration
             switch_data = self._load_switch_config(fabric_name, role, switch_name)
@@ -379,8 +380,13 @@ class SwitchManager:
                 print(f"Error: Switch Freeform Config not found in {switch_name} configuration")
                 return False
             
-            print(f"Applying freeform config for switch: {switch_name} ({serial_number})")
+            print(f"Creating freeform policy for switch: {switch_name} ({serial_number})")
             print(f"Freeform config file: {freeform_config_path}")
+            
+            # Delete existing policies for this switch first
+            print(f"Checking for existing policies for switch {switch_name}...")
+            if not policy_api.delete_existing_policies_for_switch(switch_name, serial_number):
+                print(f"Warning: Failed to delete some existing policies for {switch_name}")
             
             # Parse freeform configuration file
             cli_commands = self._parse_freeform_config(fabric_name, role, freeform_config_path)
@@ -388,15 +394,31 @@ class SwitchManager:
                 return False
             
             print(f"Parsed {len(cli_commands.splitlines())} command lines")
-            print("Executing freeform configuration via NDFC API")
+            print("Creating freeform policy via NDFC API")
             
-            # Call API to execute freeform configuration
-            switch_api.exec_freeform_config(serial_number, cli_commands)
-            print(f"Successfully applied freeform config for switch {switch_name}")
+            # Create policy with random ID until successful
+            policy_id = policy_api.create_policy_with_random_id(
+                switch_name=switch_name,
+                serial_number=serial_number,
+                fabric_name=fabric_name,
+                freeform_config=cli_commands
+            )
+            
+            if not policy_id:
+                print(f"❌ Failed to create policy for switch {switch_name}")
+                return False
+            
+            # Get the created policy and save it with new filename format
+            print(f"Retrieving and saving policy {policy_id}")
+            # Extract numeric ID from POLICY-123456 format
+            numeric_id = policy_id.split('-')[1]
+            policy_api.get_policy_by_id(numeric_id, switch_name=switch_name)
+            
+            print(f"✅ Successfully created and saved freeform policy for switch {switch_name}")
             return True
             
         except Exception as e:
-            print(f"Error applying freeform config: {e}")
+            print(f"Error creating freeform policy: {e}")
             return False
     
     def _parse_freeform_config(self, fabric_name: str, role: str, freeform_config_path: str) -> Optional[str]:
