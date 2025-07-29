@@ -198,6 +198,35 @@ def set_switch_role(serial_number, role):
     print(f"Status Code: {r.status_code}")
     print(f"Message: {r.text}")
 
+def create_vpc_pair(peer_one_id, peer_two_id, use_virtual_peerlink=False):
+    """Create VPC pair using the vpcpair API endpoint."""
+    url = get_url("/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/vpcpair")
+    headers = get_api_key_header()
+    headers['Content-Type'] = 'application/json'
+    
+    payload = {
+        "peerOneId": peer_one_id,
+        "peerTwoId": peer_two_id,
+        "useVirtualPeerlink": use_virtual_peerlink
+    }
+    
+    r = requests.post(url, headers=headers, json=payload, verify=False)
+    check_status_code(r)
+    print(f"Status Code: {r.status_code}")
+    print(f"Message: {r.text}")
+    return r.status_code == 200
+
+def delete_vpc_pair(serial_number):
+    """Delete VPC pair using the vpcpair API endpoint with serial number."""
+    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/vpcpair?serialNumber={serial_number}")
+    headers = get_api_key_header()
+    
+    r = requests.delete(url, headers=headers, verify=False)
+    check_status_code(r)
+    print(f"Status Code: {r.status_code}")
+    print(f"Message: {r.text}")
+    return r.status_code == 200
+
 
 if __name__ == "__main__":
     # get_switches(fabric="Site1", switch_dir="switches")

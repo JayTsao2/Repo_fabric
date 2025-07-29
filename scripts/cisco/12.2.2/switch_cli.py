@@ -11,8 +11,12 @@ Usage:
     python switch_cli.py set-role {switch}
     python switch_cli.py change-ip {fabric} {role} {switch} {original-ip}/{mask} {new-ip}/{mask}
     python switch_cli.py set-freeform {fabric} {role} {switch}
+    python switch_cli.py create-vpc {fabric}
+    python switch_cli.py delete-vpc {fabric} {switchname}
     
 Note: set-freeform creates a freeform policy for the switch using NDFC Policy API
+Note: create-vpc creates VPC pairs for all switches in the fabric using NDFC VPC API
+Note: delete-vpc deletes VPC pairs for a specific switch in the fabric using NDFC VPC API
 """
 
 import argparse
@@ -61,6 +65,15 @@ def main():
     setfreeform_parser.add_argument('role', help='Role of the switch (leaf, spine, border, etc.)')
     setfreeform_parser.add_argument('switch_name', help='Name of the switch')
     
+    # Create VPC command
+    createvpc_parser = subparsers.add_parser('create-vpc', help='Create VPC pairs for switches in a fabric')
+    createvpc_parser.add_argument('fabric_name', help='Name of the fabric')
+    
+    # Delete VPC command
+    deletevpc_parser = subparsers.add_parser('delete-vpc', help='Delete VPC pairs for a specific switch in a fabric')
+    deletevpc_parser.add_argument('fabric_name', help='Name of the fabric')
+    deletevpc_parser.add_argument('switch_name', help='Name of the switch')
+    
     args = parser.parse_args()
     
     if not args.command:
@@ -105,6 +118,12 @@ def main():
                 args.role,
                 args.switch_name
             )
+        elif args.command == 'create-vpc':
+            # Create VPC pairs
+            success = switch_manager.create_vpc_pairs(args.fabric_name)
+        elif args.command == 'delete-vpc':
+            # Delete VPC pairs for specific switch
+            success = switch_manager.delete_vpc_pairs(args.fabric_name, args.switch_name)
         else:
             print(f"Unknown command: {args.command}")
             sys.exit(1)
