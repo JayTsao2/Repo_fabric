@@ -1,6 +1,6 @@
 ---
 VRF:
-- Fabric: "Site3-Test"
+- Fabric: "Site1"
   VRF Name: bluevrf
   VRF ID: 50000
   VLAN ID: 2000
@@ -14,7 +14,7 @@ VRF:
     Import: 
     Export: 
     
-- Fabric: "Site3-Test"
+- Fabric: "Site1"
   VRF Name: bluevrf2
   VRF ID: 50001
   VLAN ID: 2001
