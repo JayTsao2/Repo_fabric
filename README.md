@@ -78,6 +78,9 @@
             * **`/scripts/cisco/12.2.2/modules/switch`**
                 * 用途: Switch 管理模組，提供交換器發現、刪除、角色設定、IP 變更等功能。
             
+            * **`/scripts/cisco/12.2.2/modules/vpc`**
+                * 用途: VPC 管理模組，提供 VPC 配對建立、刪除、政策配置等功能。
+            
             * **`/scripts/cisco/12.2.2/modules/config_utils.py`**
                 * 用途: 配置工具函數模組，提供 YAML 載入與驗證功能。
                 
@@ -493,7 +496,8 @@ Processing Ethernet1/10 (int_trunk_host)
 - 🗑️ **交換器刪除**: 從 fabric 中安全移除交換器
 - 🏷️ **角色設定**: 設定交換器角色 (leaf、spine、border gateway 等)
 - 🌐 **IP 地址變更**: 透過 SSH 變更交換器管理 IP 並更新 NDFC
-- ⚙️ **Freeform 配置**: 執行自訂 CLI 命令配置
+- ⚙️ **Freeform 配置**: 透過 Policy API 執行自訂配置模板
+- 🔗 **VPC 配對管理**: 建立和刪除 VPC 配對，並自動設定 VPC 介面政策
 - 📋 **YAML 驅動**: 完全基於 YAML 配置檔案的交換器管理
 
 **使用方式 (Usage):**
@@ -504,6 +508,8 @@ python switch_cli.py delete <fabric_name> <role> <switch_name>                  
 python switch_cli.py set-role <switch_name>                                     # 設定交換器角色
 python switch_cli.py change-ip <fabric_name> <role> <switch_name> <original-ip>/<mask> <new-ip>/<mask>  # 變更管理 IP
 python switch_cli.py set-freeform <fabric_name> <role> <switch_name>           # 執行 freeform 配置
+python switch_cli.py create-vpc <fabric_name>                                  # 建立 VPC 配對並設定政策
+python switch_cli.py delete-vpc <fabric_name> <switch_name>                    # 刪除指定交換器的 VPC 配對
 
 # 範例
 python switch_cli.py discover Site3-Test leaf Site1-L3 --preserve             # 發現交換器並保留配置
@@ -511,6 +517,8 @@ python switch_cli.py delete Site3-Test leaf Site1-L3                          # 
 python switch_cli.py set-role Site1-L3                                        # 設定 Site1-L3 的角色
 python switch_cli.py change-ip Site3-Test leaf Site1-L3 10.192.195.73/24 10.192.195.74/24  # 變更管理 IP
 python switch_cli.py set-freeform Site1-Greenfield border_gateway Site1-BGW2  # 執行 freeform 配置
+python switch_cli.py create-vpc Site1                                         # 建立 Site1 fabric 所有 VPC 配對
+python switch_cli.py delete-vpc Site1 Site1-L1                               # 刪除 Site1-L1 交換器的 VPC 配對
 
 # 顯示幫助資訊
 python switch_cli.py --help
@@ -552,6 +560,10 @@ python switch_cli.py <command> --help
 **Freeform 配置方法:**
 - `set_switch_freeform(fabric_name, role, switch_name)` - 執行 freeform 配置方法
 
+**VPC 管理方法:**
+- `create_vpc_pairs(fabric_name)` - 建立 VPC 配對並設定政策方法
+- `delete_vpc_pairs(fabric_name, switch_name)` - 刪除指定交換器的 VPC 配對方法
+
 **高層邏輯流程 (High-Level Logic Flow):**
 
 **交換器發現操作:**
@@ -583,9 +595,27 @@ python switch_cli.py <command> --help
 **Freeform 配置操作:**
 1. **配置路徑解析**: 從 YAML 中的 `Switch Freeform Config` 欄位獲取配置檔案路徑
 2. **配置檔案讀取**: 載入 freeform 配置檔案內容 (通常為 `.sh` 檔案)
-3. **命令解析**: 計算配置檔案中的命令行數
-4. **API 執行**: 透過 `/exec_freeform/exec` API 執行 CLI 命令
+3. **政策建立**: 透過 Policy API 建立包含 freeform 配置的政策
+4. **政策套用**: 將政策套用到指定交換器
 5. **驗證結果**: 確認配置執行成功
+
+**VPC 配對管理操作:**
+
+**VPC 建立操作 (create-vpc):**
+1. **VPC 配置掃描**: 掃描 `3_node/{fabric}/vpc/` 目錄中的所有 VPC YAML 配置檔案
+2. **Step 1 - VPC 配對建立**: 解析 Peer-1 和 Peer-2 序號，透過 NDFC VPC API 建立 VPC 配對
+3. **Step 2 - VPC 政策設定**: 從 YAML 配置中提取政策參數，透過 Interface API 設定 VPC 介面政策
+4. **配置解析**: 自動解析檔名格式 `{switch1}={switch2}={vpc_name}.yaml` 獲取 VPC 名稱
+5. **政策參數對應**: 將 YAML 中的配置對應到 NDFC 政策參數 (Port-Channel ID、Member Interfaces、Allowed VLANs 等)
+6. **驗證結果**: 確認 VPC 配對和政策都成功建立
+
+**VPC 刪除操作 (delete-vpc):**
+1. **交換器匹配**: 根據交換器名稱匹配相關的 VPC 配置檔案
+2. **Step 1 - VPC 政策刪除**: 透過 Interface markdelete API 嘗試刪除 VPC 介面政策
+3. **Step 2 - VPC 配對刪除**: 透過 VPC API 刪除 VPC 配對
+4. **序號解析**: 自動判斷目標交換器對應的序號 (Peer-1 或 Peer-2)
+5. **容錯處理**: 即使政策刪除失敗，仍會繼續執行 VPC 配對刪除
+6. **驗證結果**: 確認刪除操作成功完成
 
 **有效交換器角色 (Valid Switch Roles):**
 - `leaf` - 葉子交換器
@@ -638,10 +668,129 @@ Loading config: Site1-BGW2.yaml
 Applying freeform config for switch: Site1-BGW2 (9WI7FS9YW2Y)
 Freeform config file: Site1-BGW2_FreeForm\Site1-BGW2.sh
 Reading freeform config: Site1-BGW2.sh
-Parsed 24 command lines
-Executing freeform configuration via NDFC API
+Creating policy with random ID: policy_abc123_Site1-BGW2_9WI7FS9YW2Y
 ✅ API operation successful
 Successfully applied freeform config for switch Site1-BGW2
+```
+
+**VPC 建立:**
+```
+Found 1 VPC configuration file(s) in Site1
+Processing VPC configuration: Site1-L1=Site1-L2=vPC1.yaml
+Step 1: Creating VPC pair:
+  Peer-1 ID: 9W4GBLXU5CR
+  Peer-2 ID: 95H3IT6BGM0
+✅ Successfully created VPC pair for Site1-L1=Site1-L2=vPC1.yaml
+Step 2: Setting VPC policy...
+  Policy: int_vpc_trunk_host
+  VPC Name: vPC1
+  Serial Numbers: 9W4GBLXU5CR~95H3IT6BGM0
+  Peer-1 PCID: 1
+  Peer-2 PCID: 1
+✅ Successfully set VPC policy for Site1-L1=Site1-L2=vPC1.yaml
+VPC Creation Summary:
+Successfully processed: 1/1 VPC configurations
+(Each includes VPC pair creation and policy configuration)
+```
+
+**VPC 刪除:**
+```
+Found 1 VPC configuration file(s) containing switch 'Site1-L1' in Site1
+Processing VPC configuration: Site1-L1=Site1-L2=vPC1.yaml
+  Parsed switches: Site1-L1 = Site1-L2
+  VPC name: vPC1
+Target switch 'Site1-L1' matches Peer-1: 9W4GBLXU5CR
+Step 1: Deleting VPC policy for vPC1...
+✅ Successfully deleted VPC policy for vPC1
+Step 2: Deleting VPC pair with serial number 9W4GBLXU5CR...
+✅ Successfully deleted VPC pair for Site1-L1=Site1-L2=vPC1.yaml
+VPC Deletion Summary:
+Successfully deleted: 1/1 VPC pairs
+```
+
+#### [VPC Manager Module](scripts/cisco/12.2.2/modules/vpc/)
+**專用 VPC 管理系統 (Dedicated VPC Management System)**
+
+**模組結構 (Module Structure):**
+
+##### 1. 核心模組 (`vpc.py`)
+- `VPCConfig` - VPC 配置資料類別
+- `VPCManager` - 專用 VPC 管理類別
+
+**核心類別說明 (Core Classes):**
+
+##### VPCConfig (資料類別)
+- **用途**: 結構化的 VPC 配置，包含配對序號、政策參數等資訊
+- **功能**: 
+  - `parse_vpc_yaml()` - 解析 VPC YAML 配置檔案
+  - `extract_vpc_policy_params()` - 提取 VPC 政策參數
+  - 包含所有 NDFC VPC API 所需的配置欄位
+
+##### VPCManager (主要管理類別)
+**VPC 配對建立方法:**
+- `create_vpc_pairs(fabric_name)` - 建立指定 fabric 中的所有 VPC 配對並設定政策
+
+**VPC 配對刪除方法:**
+- `delete_vpc_pairs(fabric_name, switch_name)` - 刪除包含指定交換器的 VPC 配對
+
+**高層邏輯流程 (High-Level Logic Flow):**
+
+**VPC 配對建立操作:**
+1. **VPC 配置掃描**: 掃描 `3_node/{fabric}/vpc/` 目錄中的所有 VPC YAML 配置檔案
+2. **配置解析**: 解析檔名格式 `{switch1}={switch2}={vpc_name}.yaml` 獲取 VPC 配對資訊
+3. **序號提取**: 從對應的交換器 YAML 檔案中提取 Peer-1 和 Peer-2 的序號
+4. **Step 1 - VPC 配對建立**: 透過 NDFC VPC API 建立 VPC 配對
+5. **Step 2 - VPC 政策設定**: 從 YAML 配置中提取政策參數並設定 VPC 介面政策
+6. **驗證結果**: 確認每個 VPC 的配對和政策都成功建立
+
+**VPC 配對刪除操作:**
+1. **VPC 配置匹配**: 根據交換器名稱匹配相關的 VPC 配置檔案
+2. **配置解析**: 解析 VPC 配置以確定目標交換器的角色 (Peer-1 或 Peer-2)
+3. **序號提取**: 從對應的交換器 YAML 檔案中提取目標交換器的序號
+4. **Step 1 - VPC 政策刪除**: 透過 Interface markdelete API 刪除 VPC 介面政策
+5. **Step 2 - VPC 配對刪除**: 透過 VPC API 刪除 VPC 配對
+6. **驗證結果**: 確認刪除操作成功完成
+
+**VPC 配置檔案結構:**
+- **檔案位置**: `network_configs/3_node/{fabric}/vpc/{switch1}={switch2}={vpc_name}.yaml`
+- **檔名格式**: 交換器名稱用等號分隔，最後是 VPC 名稱
+- **配置內容**: 包含政策名稱、Port-Channel ID、成員介面、VLAN 設定等參數
+
+**Console 輸出範例:**
+
+**建立 VPC 配對:**
+```
+Found 1 VPC configuration file(s) in Site1
+Processing VPC configuration: Site1-L1=Site1-L2=vPC1.yaml
+Step 1: Creating VPC pair:
+  Peer-1 ID: 9W4GBLXU5CR
+  Peer-2 ID: 95H3IT6BGM0
+✅ Successfully created VPC pair for Site1-L1=Site1-L2=vPC1.yaml
+Step 2: Setting VPC policy...
+  Policy: int_vpc_trunk_host
+  VPC Name: vPC1
+  Serial Numbers: 9W4GBLXU5CR~95H3IT6BGM0
+  Peer-1 PCID: 1
+  Peer-2 PCID: 1
+✅ Successfully set VPC policy for Site1-L1=Site1-L2=vPC1.yaml
+VPC Creation Summary:
+Successfully processed: 1/1 VPC configurations
+(Each includes VPC pair creation and policy configuration)
+```
+
+**刪除 VPC 配對:**
+```
+Found 1 VPC configuration file(s) containing switch 'Site1-L1' in Site1
+Processing VPC configuration: Site1-L1=Site1-L2=vPC1.yaml
+  Parsed switches: Site1-L1 = Site1-L2
+  VPC name: vPC1
+Target switch 'Site1-L1' matches Peer-1: 9W4GBLXU5CR
+Step 1: Deleting VPC policy for vPC1...
+✅ Successfully deleted VPC policy for vPC1
+Step 2: Deleting VPC pair with serial number 9W4GBLXU5CR...
+✅ Successfully deleted VPC pair for Site1-L1=Site1-L2=vPC1.yaml
+VPC Deletion Summary:
+Successfully deleted: 1/1 VPC pairs
 ```
 
 #### Switch 配置檔案結構 (Switch Configuration File Structure)
