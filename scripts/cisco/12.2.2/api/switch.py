@@ -227,6 +227,39 @@ def delete_vpc_pair(serial_number):
     print(f"Message: {r.text}")
     return r.status_code == 200
 
+def delete_vpc_policy(vpc_name, serial_numbers):
+    """Delete VPC policy using the interface markdelete endpoint."""
+    url = get_url("/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/interface/markdelete")
+    headers = get_api_key_header()
+    headers['Content-Type'] = 'application/json'
+    
+    payload = [{
+        "ifName": vpc_name,
+        "serialNumber": serial_numbers
+    }]
+    try:
+        r = requests.delete(url, headers=headers, json=payload, verify=False)
+        print(f"Status Code: {r.status_code}")
+        print(f"Message: {r.text}")
+        
+        # Return True if successful (2xx status codes)
+        return 200 <= r.status_code < 300
+    except Exception as e:
+        print(f"Error in VPC policy deletion: {e}")
+        return False
+
+def set_vpc_policy(policy_data):
+    """Set VPC policy using the interface API endpoint."""
+    url = get_url("/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/interface")
+    headers = get_api_key_header()
+    headers['Content-Type'] = 'application/json'
+    
+    r = requests.post(url, headers=headers, json=policy_data, verify=False)
+    check_status_code(r)
+    print(f"Status Code: {r.status_code}")
+    print(f"Message: {r.text}")
+    return r.status_code == 200
+
 
 if __name__ == "__main__":
     # get_switches(fabric="Site1", switch_dir="switches")

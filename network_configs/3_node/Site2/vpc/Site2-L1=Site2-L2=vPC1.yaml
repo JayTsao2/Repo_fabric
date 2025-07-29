@@ -12,6 +12,8 @@ Policy:
     Peer-2 Member Interfaces: eth1/6
 
     Port Channel Mode: active
+    Enable BPDU Guard: "false"
+    Enable Port Type Fast: False
 
     Peer-1 Trunk Allowed Vlans: 20
     Peer-2 Trunk Allowed Vlans: 20

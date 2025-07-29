@@ -15,8 +15,9 @@ Usage:
     python switch_cli.py delete-vpc {fabric} {switchname}
     
 Note: set-freeform creates a freeform policy for the switch using NDFC Policy API
-Note: create-vpc creates VPC pairs for all switches in the fabric using NDFC VPC API
+Note: create-vpc creates VPC pairs and sets VPC policies for all switches in the fabric using NDFC APIs
 Note: delete-vpc deletes VPC pairs for a specific switch in the fabric using NDFC VPC API
+Note: set-vpc-policy configures VPC interface policies for all VPC pairs in the fabric
 """
 
 import argparse
@@ -27,6 +28,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent.absolute()))
 
 from modules.switch import SwitchManager
+from modules.vpc import VPCManager
 
 def main():
     """Main CLI entry point."""
@@ -66,7 +68,7 @@ def main():
     setfreeform_parser.add_argument('switch_name', help='Name of the switch')
     
     # Create VPC command
-    createvpc_parser = subparsers.add_parser('create-vpc', help='Create VPC pairs for switches in a fabric')
+    createvpc_parser = subparsers.add_parser('create-vpc', help='Create VPC pairs and set policies for switches in a fabric')
     createvpc_parser.add_argument('fabric_name', help='Name of the fabric')
     
     # Delete VPC command
@@ -83,6 +85,9 @@ def main():
     try:
         # Create SwitchManager instance
         switch_manager = SwitchManager()
+        
+        # Create VPCManager instance for VPC operations
+        vpc_manager = VPCManager()
         
         if args.command == 'discover':
             # Discover switch with preserve config option
@@ -120,10 +125,10 @@ def main():
             )
         elif args.command == 'create-vpc':
             # Create VPC pairs
-            success = switch_manager.create_vpc_pairs(args.fabric_name)
+            success = vpc_manager.create_vpc_pairs(args.fabric_name)
         elif args.command == 'delete-vpc':
             # Delete VPC pairs for specific switch
-            success = switch_manager.delete_vpc_pairs(args.fabric_name, args.switch_name)
+            success = vpc_manager.delete_vpc_pairs(args.fabric_name, args.switch_name)
         else:
             print(f"Unknown command: {args.command}")
             sys.exit(1)
