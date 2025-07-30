@@ -13,8 +13,7 @@ from typing import Optional, Dict, Any
 # Add parent directory to path for imports
 sys.path.append(str(Path(__file__).parent.parent.absolute()))
 
-from .create_fabric import FabricCreator
-from .update_fabric import FabricUpdater
+from .fabric_operations import FabricOperations
 import api.fabric as fabric_api
 
 
@@ -26,22 +25,14 @@ class FabricManager:
     
     def __init__(self):
         """Initialize the fabric manager with required components."""
-        self._creator = None
-        self._updater = None
+        self._operations = None
     
     @property
-    def creator(self) -> FabricCreator:
-        """Lazy initialization of FabricCreator."""
-        if self._creator is None:
-            self._creator = FabricCreator()
-        return self._creator
-    
-    @property
-    def updater(self) -> FabricUpdater:
-        """Lazy initialization of FabricUpdater."""
-        if self._updater is None:
-            self._updater = FabricUpdater()
-        return self._updater
+    def operations(self) -> FabricOperations:
+        """Lazy initialization of FabricOperations."""
+        if self._operations is None:
+            self._operations = FabricOperations()
+        return self._operations
     
     # Core Fabric Operations
     def create_fabric(self, fabric_name: str) -> bool:
@@ -56,12 +47,7 @@ class FabricManager:
         """
         try:
             print(f"Creating fabric: {fabric_name}")
-            success = self.creator.build_fabric(fabric_name)
-            if success:
-                print(f"✅ Successfully created fabric {fabric_name}")
-            else:
-                print(f"❌ Failed to create fabric {fabric_name}")
-            return success
+            return self.operations.create_fabric(fabric_name)
             
         except Exception as e:
             print(f"❌ Error creating fabric {fabric_name}: {e}")
@@ -79,12 +65,7 @@ class FabricManager:
         """
         try:
             print(f"Updating fabric: {fabric_name}")
-            success = self.updater.update_fabric(fabric_name)
-            if success:
-                print(f"✅ Successfully updated fabric {fabric_name}")
-            else:
-                print(f"❌ Failed to update fabric {fabric_name}")
-            return success
+            return self.operations.update_fabric(fabric_name)
             
         except Exception as e:
             print(f"❌ Error updating fabric {fabric_name}: {e}")

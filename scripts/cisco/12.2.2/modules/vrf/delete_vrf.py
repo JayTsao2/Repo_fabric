@@ -7,7 +7,7 @@ This module handles VRF deletion operations:
 - Managing VRF detachment from switches
 """
 
-from modules.common_utils import setup_module_path, OperationExecutor, get_confirmation, MessageFormatter
+from modules.common_utils import setup_module_path, OperationExecutor, MessageFormatter
 setup_module_path(__file__)
 
 import api.vrf as vrf_api
@@ -37,11 +37,6 @@ class VRFDeleter(BaseVRFMethods):
                 return False
             
             print(f"\n=== Deleting VRF: {vrf_name} from Fabric: {fabric_name} ===")
-            
-            # Confirm deletion
-            if not get_confirmation(f"Are you sure you want to delete VRF '{vrf_name}' from fabric '{fabric_name}'?"):
-                print("Deletion cancelled.")
-                return False
             
             # Execute the VRF deletion operation
             return OperationExecutor.execute_operation(
