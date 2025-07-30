@@ -14,7 +14,6 @@
 │   │   │   │   │   ├── __init__.py
 │   │   │   │   │   ├── create_fabric.py
 │   │   │   │   │   ├── update_fabric.py
-│   │   │   │   │   ├── delete_fabric.py
 │   │   │   │   │   └── fabric_manager.py
 │   │   │   │   ├── vrf/
 │   │   │   │   │   ├── __init__.py
@@ -199,15 +198,11 @@ python fabric_cli.py --help
   - `update_multi_site_domain()` - MSD 更新
   - `update_inter_site_network()` - ISN 更新
 
-##### 4. 刪除模組 (`delete_fabric.py`)
-- `FabricDeleter` - Fabric 刪除操作類別
-  - `delete_fabric(fabric_name)` - 通用 fabric 刪除方法
-
-##### 5. 統一管理模組 (`fabric_manager.py`)
+##### 4. 統一管理模組 (`fabric_manager.py`)
 - `FabricManager` - 統一 Fabric 管理介面
   - `create_fabric(fabric_name)` - 建立 fabric
   - `update_fabric(fabric_name)` - 更新 fabric
-  - `delete_fabric(fabric_name)` - 刪除 fabric
+  - `delete_fabric(fabric_name)` - 刪除 fabric (直接呼叫 API)
   - `recalculate_config(fabric_name)` - 重新計算配置
   - `get_pending_config(fabric_name)` - 獲取待部署配置
   - `deploy_fabric(fabric_name)` - 部署 fabric
@@ -215,6 +210,7 @@ python fabric_cli.py --help
   - `remove_from_msd(parent_fabric, child_fabric)` - 從 MSD 移除
   - 提供統一錯誤處理和狀態回報
   - 使用懶載入模式初始化組件
+  - 簡化刪除操作，直接呼叫 fabric API 而非使用獨立刪除模組
 
 ##### Note
 - AAA Freeform config = AAA_SERVER_CONF
@@ -1082,7 +1078,7 @@ python switch_cli.py set-freeform Site1 border_gateway Site1-BGW2  # 執行 free
 # Fabric 模組
 from modules.fabric.create_fabric import FabricCreator
 from modules.fabric.update_fabric import FabricUpdater
-from modules.fabric.delete_fabric import FabricDeleter
+from modules.fabric.fabric_manager import FabricManager
 
 # 建立 fabric
 creator = FabricCreator()
@@ -1092,9 +1088,9 @@ creator.build_fabric("Site1")
 updater = FabricUpdater() 
 updater.update_fabric("Site1")
 
-# 刪除 fabric
-deleter = FabricDeleter()
-deleter.delete_fabric("Site1")
+# 刪除 fabric (推薦使用 FabricManager)
+fabric_manager = FabricManager()
+fabric_manager.delete_fabric("Site1")
 
 # VRF 模組
 from modules.vrf.create_vrf import VRFCreator

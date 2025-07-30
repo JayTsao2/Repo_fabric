@@ -89,30 +89,6 @@ class FabricCreator(BaseFabricMethods):
             MessageFormatter.error("create", fabric_name, e, type_name)
             return False
 
-    def link_fabrics(self, parent_fabric: str, child_fabric: str) -> bool:
-        """Link a child fabric to a parent fabric."""
-        print(f"\n=== Linking {child_fabric} to {parent_fabric} ===")
-        
-        try:
-            fabric_api.add_MSD(parent_fabric_name=parent_fabric, child_fabric_name=child_fabric)
-            print(f"✅ Successfully linked {child_fabric} to {parent_fabric}")
-            return True
-        except Exception as e:
-            print(f"❌ Error linking fabrics: {e}")
-            return False
-
-    def unlink_fabrics(self, parent_fabric: str, child_fabric: str) -> bool:
-        """Unlink a child fabric from a parent fabric."""
-        print(f"\n=== Unlinking {child_fabric} from {parent_fabric} ===")
-        
-        try:
-            fabric_api.remove_MSD(parent_fabric_name=parent_fabric, child_fabric_name=child_fabric)
-            print(f"✅ Successfully unlinked {child_fabric} from {parent_fabric}")
-            return True
-        except Exception as e:
-            print(f"❌ Error unlinking fabrics: {e}")
-            return False
-
     def build_fabric(self, fabric_name: str) -> bool:
         """
         Generic method to build any type of fabric.

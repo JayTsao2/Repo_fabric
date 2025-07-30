@@ -67,19 +67,16 @@ def check_status_code(response: requests.Response, operation_name: str = "API op
         operation_name: Descriptive name of the operation for error messages
         
     Returns:
-        True if successful, otherwise exits the program
-        
-    Raises:
-        SystemExit: If the response indicates failure
+        True if successful (status 200), False otherwise
     """
     if response.status_code == 200:
-        print(f"✅ {operation_name} successful")
+        print("✅ API operation successful")
         return True
     else:
-        print(f"❌ {operation_name} failed")
+        print(f"❌ API operation failed")
         print(f"Status Code: {response.status_code}")
-        print(f"Error Message: {response.text}")
-        sys.exit(1)
+        print(f"Message: {response.text}")
+        return False
 
 def get_api_timeout() -> int:
     """

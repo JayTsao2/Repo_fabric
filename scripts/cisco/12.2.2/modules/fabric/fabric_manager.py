@@ -15,7 +15,6 @@ sys.path.append(str(Path(__file__).parent.parent.absolute()))
 
 from .create_fabric import FabricCreator
 from .update_fabric import FabricUpdater
-from .delete_fabric import FabricDeleter
 import api.fabric as fabric_api
 
 
@@ -29,7 +28,6 @@ class FabricManager:
         """Initialize the fabric manager with required components."""
         self._creator = None
         self._updater = None
-        self._deleter = None
     
     @property
     def creator(self) -> FabricCreator:
@@ -44,13 +42,6 @@ class FabricManager:
         if self._updater is None:
             self._updater = FabricUpdater()
         return self._updater
-    
-    @property
-    def deleter(self) -> FabricDeleter:
-        """Lazy initialization of FabricDeleter."""
-        if self._deleter is None:
-            self._deleter = FabricDeleter()
-        return self._deleter
     
     # Core Fabric Operations
     def create_fabric(self, fabric_name: str) -> bool:
@@ -111,7 +102,7 @@ class FabricManager:
         """
         try:
             print(f"Deleting fabric: {fabric_name}")
-            success = self.deleter.delete_fabric(fabric_name)
+            success = fabric_api.delete_fabric(fabric_name)
             if success:
                 print(f"✅ Successfully deleted fabric {fabric_name}")
             else:
@@ -206,7 +197,7 @@ class FabricManager:
         """
         try:
             print(f"Adding fabric '{child_fabric}' to MSD '{parent_fabric}'")
-            success = self.creator.link_fabrics(parent_fabric, child_fabric)
+            success = fabric_api.add_MSD(parent_fabric, child_fabric)
             if success:
                 print(f"✅ Successfully added '{child_fabric}' to MSD '{parent_fabric}'")
             else:
@@ -237,7 +228,7 @@ class FabricManager:
                     return True  # Not an error, user chose to cancel
             
             print(f"Removing fabric '{child_fabric}' from MSD '{parent_fabric}'")
-            success = self.creator.unlink_fabrics(parent_fabric, child_fabric)
+            success = fabric_api.remove_MSD(parent_fabric, child_fabric)
             if success:
                 print(f"✅ Successfully removed '{child_fabric}' from MSD '{parent_fabric}'")
             else:
