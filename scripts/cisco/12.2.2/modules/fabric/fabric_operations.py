@@ -73,6 +73,8 @@ class FabricOperations(BaseFabricMethods):
                     print(f"  Leaf: {freeform_paths.leaf}")
                 if freeform_paths.spine:
                     print(f"  Spine: {freeform_paths.spine}")
+                if freeform_paths.intra_links:
+                    print(f"  Intra-fabric Links: {freeform_paths.intra_links}")
                 if freeform_paths.banner:
                     print(f"  Banner: {freeform_paths.banner}")
                 if freeform_paths.fabric:

@@ -62,6 +62,7 @@ class FreeformPaths:
     spine: str = ""
     banner: str = ""
     fabric: str = ""
+    intra_links: str = ""
 
 # --- Utility Classes ---
 
@@ -188,6 +189,9 @@ class PayloadGenerator:
             if freeform_paths.spine and validate_file_exists(freeform_paths.spine):
                 payload_data["EXTRA_CONF_SPINE"] = read_freeform_config(freeform_paths.spine)
             
+            if freeform_paths.intra_links and validate_file_exists(freeform_paths.intra_links):
+                payload_data["EXTRA_CONF_INTRA_LINKS"] = read_freeform_config(freeform_paths.intra_links)
+            
             if freeform_paths.aaa and validate_file_exists(freeform_paths.aaa):
                 payload_data["AAA_SERVER_CONF"] = read_freeform_config(freeform_paths.aaa)
                 
@@ -214,6 +218,10 @@ class BaseFabricMethods:
         resources_freeform_dir = self.builder.resources_dir / "freeform"
         
         if fabric_type == FabricType.VXLAN_EVPN:
+            # Load fabric configuration to get custom freeform paths
+            fabric_config_path = self.builder.get_fabric_config(fabric_type, fabric_name).config_path
+            fabric_config = load_yaml_file(fabric_config_path)
+            
             # Check for fabric-specific freeform configs first
             fabric_freeform_dir = (self.builder.project_root / "network_configs" / 
                                  "1_vxlan_evpn" / "fabric" / f"{fabric_name}_FreeForm")
@@ -223,14 +231,53 @@ class BaseFabricMethods:
             freeform_paths.leaf = str(resources_freeform_dir / "Leaf Freeform Config.sh")
             freeform_paths.spine = str(resources_freeform_dir / "Spine Freeform Config.sh")
             freeform_paths.banner = str(resources_freeform_dir / "Banner.sh")
+            freeform_paths.intra_links = str(resources_freeform_dir / "Intra-fabric Links Additional Config.sh")
             
-            # Override with fabric-specific configs if they exist
+            # Override with paths from fabric configuration YAML if specified
+            if fabric_config:
+                # Check for AAA Freeform Config in Manageability section first
+                manageability_config = fabric_config.get('Manageability', {})
+                aaa_config = manageability_config.get('AAA Freeform Config', {})
+                if isinstance(aaa_config, dict) and 'Freeform' in aaa_config:
+                    aaa_path = aaa_config['Freeform']
+                    freeform_paths.aaa = str(fabric_freeform_dir / f"{aaa_path}.sh")
+                
+                # Then check Advanced section
+                advanced_config = fabric_config.get('Advanced', {})
+                
+                # Check for AAA Freeform Config in Advanced (fallback)
+                if not freeform_paths.aaa or freeform_paths.aaa == str(resources_freeform_dir / "AAA Freeform Config.sh"):
+                    aaa_advanced_config = advanced_config.get('AAA Freeform Config', {})
+                    if isinstance(aaa_advanced_config, dict) and 'Freeform' in aaa_advanced_config:
+                        aaa_path = aaa_advanced_config['Freeform']
+                        freeform_paths.aaa = str(fabric_freeform_dir / f"{aaa_path}.sh")
+                
+                # Check for Leaf Freeform Config
+                leaf_config = advanced_config.get('Leaf Freeform Config', {})
+                if isinstance(leaf_config, dict) and 'Freeform' in leaf_config:
+                    leaf_path = leaf_config['Freeform']
+                    freeform_paths.leaf = str(fabric_freeform_dir / f"{leaf_path}.sh")
+                
+                # Check for Spine Freeform Config
+                spine_config = advanced_config.get('Spine Freeform Config', {})
+                if isinstance(spine_config, dict) and 'Freeform' in spine_config:
+                    spine_path = spine_config['Freeform']
+                    freeform_paths.spine = str(fabric_freeform_dir / f"{spine_path}.sh")
+                
+                # Check for Intra-fabric Links Additional Config
+                intra_config = advanced_config.get('Intra-fabric Links Additional Config', {})
+                if isinstance(intra_config, dict) and 'Freeform' in intra_config:
+                    intra_path = intra_config['Freeform']
+                    freeform_paths.intra_links = str(fabric_freeform_dir / f"{intra_path}.sh")
+            
+            # Override with fabric-specific configs if they exist in the FreeForm directory
             if fabric_freeform_dir.exists():
                 for config_type, filename in [
                     ("aaa", "AAA Freeform Config.sh"),
                     ("leaf", "Leaf Freeform Config.sh"),
                     ("spine", "Spine Freeform Config.sh"),
-                    ("banner", "Banner.sh")
+                    ("banner", "Banner.sh"),
+                    ("intra_links", "Intra-fabric Links Additional Config.sh")
                 ]:
                     fabric_specific_path = fabric_freeform_dir / filename
                     if fabric_specific_path.exists():

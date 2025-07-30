@@ -83,13 +83,7 @@ class FabricManager:
         """
         try:
             print(f"Deleting fabric: {fabric_name}")
-            success = fabric_api.delete_fabric(fabric_name)
-            if success:
-                print(f"✅ Successfully deleted fabric {fabric_name}")
-            else:
-                print(f"❌ Failed to delete fabric {fabric_name}")
-            return success
-            
+            return fabric_api.delete_fabric(fabric_name)
         except Exception as e:
             print(f"❌ Error deleting fabric {fabric_name}: {e}")
             return False
@@ -107,12 +101,7 @@ class FabricManager:
         """
         try:
             print(f"Recalculating configuration for fabric: {fabric_name}")
-            success = fabric_api.recalculate_config(fabric_name)
-            if success:
-                print(f"✅ Successfully recalculated configuration for fabric {fabric_name}")
-            else:
-                print(f"❌ Failed to recalculate configuration for fabric {fabric_name}")
-            return success
+            return fabric_api.recalculate_config(fabric_name)
             
         except Exception as e:
             print(f"❌ Error recalculating fabric {fabric_name}: {e}")
@@ -130,12 +119,8 @@ class FabricManager:
         """
         try:
             print(f"Getting pending configuration for fabric: {fabric_name}")
-            result = fabric_api.get_pending_config(fabric_name)
-            if result is not None:
-                print(f"✅ Successfully retrieved pending configuration for fabric {fabric_name}")
-            else:
-                print(f"❌ Failed to retrieve pending configuration for fabric {fabric_name}")
-            return result
+            fabric_api.get_pending_config(fabric_name)
+            return
             
         except Exception as e:
             print(f"❌ Error getting pending config for fabric {fabric_name}: {e}")
@@ -153,12 +138,7 @@ class FabricManager:
         """
         try:
             print(f"Deploying configuration for fabric: {fabric_name}")
-            success = fabric_api.deploy_fabric_config(fabric_name)
-            if success:
-                print(f"✅ Successfully deployed configuration for fabric {fabric_name}")
-            else:
-                print(f"❌ Failed to deploy configuration for fabric {fabric_name}")
-            return success
+            return fabric_api.deploy_fabric_config(fabric_name)
             
         except Exception as e:
             print(f"❌ Error deploying fabric {fabric_name}: {e}")
@@ -178,12 +158,7 @@ class FabricManager:
         """
         try:
             print(f"Adding fabric '{child_fabric}' to MSD '{parent_fabric}'")
-            success = fabric_api.add_MSD(parent_fabric, child_fabric)
-            if success:
-                print(f"✅ Successfully added '{child_fabric}' to MSD '{parent_fabric}'")
-            else:
-                print(f"❌ Failed to add '{child_fabric}' to MSD '{parent_fabric}'")
-            return success
+            return fabric_api.add_MSD(parent_fabric, child_fabric)
             
         except Exception as e:
             print(f"❌ Error adding fabric to MSD: {e}")
@@ -202,22 +177,9 @@ class FabricManager:
             bool: True if successful, False otherwise
         """
         try:
-            if not force:
-                confirm = input(f"Are you sure you want to remove '{child_fabric}' from MSD '{parent_fabric}'? (y/N): ")
-                if confirm.lower() not in ['y', 'yes']:
-                    print("❌ Remove operation cancelled by user")
-                    return True  # Not an error, user chose to cancel
-            
             print(f"Removing fabric '{child_fabric}' from MSD '{parent_fabric}'")
-            success = fabric_api.remove_MSD(parent_fabric, child_fabric)
-            if success:
-                print(f"✅ Successfully removed '{child_fabric}' from MSD '{parent_fabric}'")
-            else:
-                print(f"❌ Failed to remove '{child_fabric}' from MSD '{parent_fabric}'")
-            return success
+            return fabric_api.remove_MSD(parent_fabric, child_fabric)
             
         except Exception as e:
             print(f"❌ Error removing fabric from MSD: {e}")
             return False
-    
-    # Utility Methods

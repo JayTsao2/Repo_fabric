@@ -23,4 +23,6 @@ Advanced:
     Freeform: Site2_FreeForm\Leaf Freeform Config
   Spine Freeform Config: 
     Freeform: Site2_FreeForm\Spine Freeform Config
+  Intra-fabric Links Additional Config: 
+    Freeform: Site2_FreeForm\Intra-fabric Links Additional Config
 
