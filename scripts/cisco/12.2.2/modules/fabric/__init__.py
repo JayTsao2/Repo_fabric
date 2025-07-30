@@ -20,13 +20,12 @@ from enum import Enum
 
 # Update import path to go back to parent directory for api and modules
 sys.path.append(str(Path(__file__).parent.parent.absolute()))
-import api.fabric as fabric_api
 from modules.config_utils import (
     load_yaml_file, merge_configs, 
     read_freeform_config, apply_field_mapping, 
     get_nested_value,
     validate_file_exists, 
-    validate_configuration_files, flatten_config
+    flatten_config
 )
 
 # --- Constants and Enums ---

@@ -6,9 +6,7 @@ This module handles VRF update operations:
 - Updating VRFs with template configurations
 - Managing VRF attachment updates
 """
-
-from typing import Dict, Any
-from modules.common_utils import setup_module_path, OperationExecutor, MessageFormatter, create_main_function_wrapper
+from modules.common_utils import setup_module_path
 setup_module_path(__file__)
 
 import api.vrf as vrf_api
@@ -29,8 +27,6 @@ class VRFUpdater(BaseVRFMethods):
             bool: True if successful, False otherwise
         """
         try:
-            print(f"\n=== Updating VRF: {vrf_name} ===")
-            
             # Get configuration
             config = self.builder.get_vrf_config()
             
@@ -53,46 +49,13 @@ class VRFUpdater(BaseVRFMethods):
                 return False
             
             # Execute the VRF update operation
-            return OperationExecutor.execute_operation(
-                operation_name="update",
-                resource_name=vrf_name,
-                resource_type="VRF",
-                pre_operation_message=f"Updating VRF: {vrf_name}",
-                operation_func=lambda: vrf_api.update_vrf(
-                    fabric_name=fabric_name,
-                    vrf_name=vrf_name,
-                    vrf_payload=main_payload,
-                    template_payload=template_payload
-                )
+            return vrf_api.update_vrf(
+                vrf_name=vrf_name,
+                fabric_name=fabric_name,
+                vrf_payload=main_payload,
+                template_payload=template_payload
             )
                 
         except Exception as e:
-            MessageFormatter.error("update", vrf_name, e, "VRF")
+            print(f"❌ Error updating VRF {vrf_name}: {e}")
             return False
-
-def main():
-    """
-    Main function for VRF update operations.
-    """
-    vrf_updater = VRFUpdater()
-    
-    print("🔧  VRF Updater - Network VRF Update Tool")
-    print("=" * 60)
-    
-    # Configuration - Update these values as needed
-    vrf_to_update = "bluevrf"
-    
-    # --- Update VRF ---
-    
-    # Update VRF (fabric name is extracted from VRF configuration)
-    success = vrf_updater.update_vrf(vrf_to_update)
-    if not success:
-        print(f"Failed to update VRF: {vrf_to_update}")
-        return 1
-    
-    print("\n🎉 VRF update process completed successfully!")
-    return 0
-
-if __name__ == "__main__":
-    main_wrapper = create_main_function_wrapper("VRF Updater", main)
-    main_wrapper()

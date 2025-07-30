@@ -9,7 +9,7 @@ This module handles VRF attachment and detachment operations:
 """
 
 from typing import Dict, Any, List, Optional
-from modules.common_utils import setup_module_path, MessageFormatter, create_main_function_wrapper
+from modules.common_utils import setup_module_path, MessageFormatter
 setup_module_path(__file__)
 
 import api.vrf as vrf_api
@@ -177,32 +177,3 @@ class VRFAttachment(BaseVRFMethods):
         
         print(f"❌ No interface with 'int_routed_host' policy and VRF found in switch '{switch_name}'")
         return None
-
-def main():
-    """
-    Main function for VRF attachment operations.
-    """
-    vrf_attachment = VRFAttachment()
-    
-    print("🔗  VRF Attachment - Network VRF Attachment Tool")
-    print("=" * 60)
-    
-    # Configuration - Update these values as needed
-    fabric_to_use = "Site3-Test"
-    switch_role = "leaf"
-    switch_name = "Site1-L3"
-    
-    # --- Attach VRF by Switch ---
-    
-    # Attach VRF to specific switch
-    success = vrf_attachment.manage_vrf_by_switch(fabric_to_use, switch_role, switch_name, "attach")
-    if not success:
-        print(f"Failed to attach VRF to switch '{switch_name}'")
-        return 1
-    
-    print("\n🎉 VRF attachment process completed successfully!")
-    return 0
-
-if __name__ == "__main__":
-    main_wrapper = create_main_function_wrapper("VRF Attachment", main)
-    main_wrapper()
