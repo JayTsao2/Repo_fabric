@@ -149,6 +149,27 @@ def create_policy_with_random_id(switch_name, serial_number, fabric_name, freefo
     print(f"❌ Failed to create policy after {max_attempts} attempts")
     return None
 
+def get_policies_by_serial_number(serial_number):
+    """Get all policies for a switch by serial number."""
+    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/policies/switches/{serial_number}")
+    headers = get_api_key_header()
+    r = requests.get(url, headers=headers, verify=False)
+    
+    if not check_status_code(r):
+        return None
+    
+    return r.json()
+
+def update_policy(policy_id, payload):
+    """Update an existing policy using the provided payload."""
+    headers = get_api_key_header()
+    headers['Content-Type'] = 'application/json'
+    
+    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/policies/{policy_id}")
+    r = requests.put(url, headers=headers, json=payload, verify=False)
+    
+    return check_status_code(r)
+
 def get_policy_by_id(id, policy_dir="policies", switch_name=None):
     """Get policy by ID and save with new filename format if switch_name provided."""
     url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/policies/{id}")

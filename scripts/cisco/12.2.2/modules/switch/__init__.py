@@ -15,6 +15,7 @@ from pathlib import Path
 from dataclasses import dataclass
 import paramiko
 import time
+import json
 
 # Setup import paths
 sys.path.append(str(Path(__file__).parent.parent.absolute()))
@@ -448,6 +449,66 @@ class SwitchManager:
         except Exception as e:
             print(f"Error parsing freeform config: {e}")
             return None
+    
+    def change_switch_hostname(self, fabric_name: str, role: str, switch_name: str, new_hostname: str) -> bool:
+        """Change the hostname of a switch by updating the host_11_1 policy."""
+        try:
+            # Load switch configuration to get serial number
+            switch_data = self._load_switch_config(fabric_name, role, switch_name)
+            if not switch_data:
+                return False
+            
+            serial_number = switch_data.get("Serial Number")
+            if not serial_number:
+                print(f"Error: Serial Number not found in {switch_name} configuration")
+                return False
+            
+            print(f"Changing hostname for switch: {switch_name} ({serial_number}) to '{new_hostname}'")
+            
+            # Step 1: Get all policies for this switch
+            print("Step 1: Getting all policies for the switch...")
+            policies = policy_api.get_policies_by_serial_number(serial_number)
+            if not policies:
+                print(f"No policies found for switch {switch_name}")
+                return False
+            
+            print(f"Found {len(policies)} policies for switch {switch_name}")
+            
+            # Step 2: Find the host_11_1 policy that is not deleted
+            hostname_policy = None
+            for policy in policies:
+                if (policy.get("templateName") == "host_11_1" and 
+                    policy.get("deleted") == False):
+                    hostname_policy = policy
+                    break
+            
+            if not hostname_policy:
+                print(f"Error: host_11_1 policy not found for switch {switch_name}")
+                print("Available policies:")
+                for policy in policies:
+                    print(f"  - {policy.get('templateName')} (deleted: {policy.get('deleted')})")
+                return False
+            
+            policy_id = hostname_policy.get("policyId")
+            print(f"Found hostname policy: {policy_id}")
+            
+            # Step 3: Update the nvPairs with new hostname
+            hostname_policy["nvPairs"]["SWITCH_NAME"] = new_hostname
+            
+            # Step 4: Update the policy via API
+            print(f"Step 4: Updating policy {policy_id} with new hostname...")
+            success = policy_api.update_policy(policy_id, hostname_policy)
+            
+            if success:
+                print(f"✅ Successfully changed hostname to '{new_hostname}' for switch {switch_name}")
+            else:
+                print(f"❌ Failed to change hostname for switch {switch_name}")
+            
+            return success
+            
+        except Exception as e:
+            print(f"Error changing hostname: {e}")
+            return False
 
 # --- Expose the SwitchManager class ---
 __all__ = ['SwitchManager', 'SwitchConfig']
