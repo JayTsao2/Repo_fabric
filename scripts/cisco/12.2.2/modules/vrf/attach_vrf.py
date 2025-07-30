@@ -33,10 +33,6 @@ class VRFAttachment(BaseVRFMethods):
             bool: True if successful, False otherwise
         """
         try:
-            action = "Attaching" if operation == "attach" else "Detaching"
-            preposition = "to" if operation == "attach" else "from"
-            print(f"\n=== {action} VRF {preposition} switch: {switch_name} ===")
-            
             # Load switch configuration and find VRF
             switch_config, serial_number = self._load_switch_config(fabric_name, switch_role, switch_name)
             if not switch_config:

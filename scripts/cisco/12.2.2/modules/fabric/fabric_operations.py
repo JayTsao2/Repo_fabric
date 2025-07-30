@@ -8,7 +8,7 @@ This module handles both fabric creation and update operations:
 - Building/Updating Inter-Site Networks (ISN)
 """
 
-from modules.common_utils import setup_module_path, OperationExecutor
+from modules.common_utils import setup_module_path
 setup_module_path(__file__)
 
 import api.fabric as fabric_api
@@ -82,8 +82,6 @@ class FabricOperations(BaseFabricMethods):
                 
                 self.payload_generator.add_freeform_content_to_payload(payload_data, template_name, freeform_paths)
             
-            print(f"Calling API for {type_name}")
-            
             # Choose the appropriate API function based on operation
             if operation == "create":
                 api_func = lambda: fabric_api.create_fabric(
@@ -99,12 +97,7 @@ class FabricOperations(BaseFabricMethods):
                 )
             
             # Execute the fabric operation
-            return OperationExecutor.execute_operation(
-                operation_name=operation,
-                resource_name=fabric_name,
-                resource_type=type_name,
-                operation_func=api_func
-            )
+            return api_func()
                 
         except Exception as e:
             print(f"❌ Error during {operation} operation for fabric {fabric_name}: {e}")
