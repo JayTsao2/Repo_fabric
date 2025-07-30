@@ -9,7 +9,7 @@ This module handles VRF attachment and detachment operations:
 """
 
 from typing import Dict, Any, List, Optional
-from modules.common_utils import setup_module_path, MessageFormatter
+from modules.common_utils import setup_module_path
 setup_module_path(__file__)
 
 import api.vrf as vrf_api
@@ -69,16 +69,10 @@ class VRFAttachment(BaseVRFMethods):
             
             success = (vrf_api.attach_vrf_to_switches(fabric_name, vrf_name, payload) if operation == "attach" 
                       else vrf_api.detach_vrf_from_switches(fabric_name, vrf_name, payload))
-            
-            if success:
-                MessageFormatter.success(f"VRF {operation.title()}", f"{vrf_name} (VLAN {vlan_id}) {preposition} {switch_name}", "")
-            else:
-                MessageFormatter.failure(f"VRF {operation.title()}", f"{vrf_name} (VLAN {vlan_id}) {preposition} {switch_name}", "")
-            
             return success
                 
         except Exception as e:
-            MessageFormatter.error(f"VRF {operation}", f"{switch_name}", e, "")
+            print(f"❌ Error {operation} VRF {vrf_name} on switch {switch_name}: {e}")
             return False
 
     def _find_vrf_by_name(self, vrf_name: str, fabric_name: str) -> Optional[Dict[str, Any]]:

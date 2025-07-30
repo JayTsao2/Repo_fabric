@@ -13,8 +13,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent.absolute()))
 
 # Import VRF components with absolute imports to avoid circular imports
-from modules.vrf.create_vrf import VRFCreator
-from modules.vrf.update_vrf import VRFUpdater
+from modules.vrf.vrf_operations import VRFOperations
 from modules.vrf.attach_vrf import VRFAttachment
 import api.vrf as vrf_api
 
@@ -27,23 +26,15 @@ class VRFManager:
     
     def __init__(self):
         """Initialize the VRF manager with required components."""
-        self._creator = None
-        self._updater = None
+        self._operations = None
         self._attacher = None
     
     @property
-    def creator(self) -> VRFCreator:
-        """Lazy initialization of VRFCreator."""
-        if self._creator is None:
-            self._creator = VRFCreator()
-        return self._creator
-    
-    @property
-    def updater(self) -> VRFUpdater:
-        """Lazy initialization of VRFUpdater."""
-        if self._updater is None:
-            self._updater = VRFUpdater()
-        return self._updater
+    def operations(self) -> VRFOperations:
+        """Lazy initialization of VRFOperations."""
+        if self._operations is None:
+            self._operations = VRFOperations()
+        return self._operations
     
     @property
     def attacher(self) -> VRFAttachment:
@@ -66,7 +57,7 @@ class VRFManager:
         """
         try:
             print(f"Creating {vrf_name} in {fabric_name}")
-            return self.creator.create_vrf(vrf_name)
+            return self.operations.create_vrf(vrf_name)
             
         except Exception as e:
             print(f"❌ Error creating VRF {vrf_name}: {e}")
@@ -85,7 +76,7 @@ class VRFManager:
         """
         try:
             print(f"Updating {vrf_name} in {fabric_name}")
-            return self.updater.update_vrf(vrf_name)
+            return self.operations.update_vrf(vrf_name)
         except Exception as e:
             print(f"❌ Error updating VRF {vrf_name}: {e}")
             return False
