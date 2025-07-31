@@ -202,7 +202,7 @@ __all__ = [
 # Import VRFManager at module level to avoid circular imports
 def _get_vrf_manager():
     """Lazy import of VRFManager to avoid circular import issues."""
-    from .vrf_manager import VRFManager
+    from .vrf import VRFManager
     return VRFManager
 
 # Add VRFManager to __all__ and provide access

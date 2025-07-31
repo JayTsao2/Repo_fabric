@@ -345,4 +345,4 @@ __all__ = [
 ]
 
 # Import the FabricManager for easy access
-from .fabric_manager import FabricManager
+from .fabric import FabricManager
