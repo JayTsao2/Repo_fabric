@@ -8,17 +8,13 @@ Provides YAML-based network management for Cisco NDFC:
 - Corp defaults integration and Layer 2 Only support
 """
 
-import os
-import sys
 from typing import List, Dict, Any, Tuple, Optional
-from pathlib import Path
 from dataclasses import dataclass, asdict
 import json
 
-# Setup import paths
-sys.path.append(str(Path(__file__).parent.parent.absolute()))
 import api.network as network_api
 from modules.config_utils import load_yaml_file, validate_configuration_files
+from config.config_factory import config_factory
 
 @dataclass
 class NetworkTemplateConfig:
@@ -97,12 +93,11 @@ class NetworkManager:
     """Unified network operations manager with YAML configuration support."""
     
     def __init__(self):
-        """Initialize with resource paths and configuration caching."""
-        self.repo_root = Path(__file__).resolve().parents[5]
-        self.base_path = self.repo_root / "scripts" / "cisco" / "12.2.2" / "resources"
-        self.defaults_path = self.base_path / "corp_defaults" / "network.yaml"
-        self.field_mapping_path = self.base_path / "_field_mapping" / "network.yaml"
-        self.config_path = self.repo_root / "network_configs" / "5_segment" / "network.yaml"
+        """Initialize with centralized configuration paths."""
+        self.config_paths = config_factory.create_network_config()
+        self.defaults_path = self.config_paths['defaults_path']
+        self.field_mapping_path = self.config_paths['field_mapping_path']
+        self.config_path = self.config_paths['config_path']
         # Lazy-loaded cached configurations
         self._defaults = None
         self._field_mapping = None
@@ -246,7 +241,7 @@ class NetworkManager:
             print(f"{operation.capitalize()}ing networks {'to' if operation == 'attach' else 'from'} {switch_name} ({role}) in {fabric_name}...")
             
             # Load switch configuration
-            switch_path = self.repo_root / "network_configs" / "3_node" / fabric_name / role / f"{switch_name}.yaml"
+            switch_path = self.config_paths['configs_dir'] / fabric_name / role / f"{switch_name}.yaml"
             if not switch_path.exists():
                 print(f"Switch configuration not found: {switch_path}")
                 return False

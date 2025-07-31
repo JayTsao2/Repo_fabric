@@ -10,9 +10,6 @@ import sys
 from pathlib import Path
 from typing import Optional, Dict, Any
 
-# Add parent directory to path for imports
-sys.path.append(str(Path(__file__).parent.parent.absolute()))
-
 from .fabric_operations import FabricOperations
 import api.fabric as fabric_api
 

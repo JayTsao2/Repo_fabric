@@ -7,33 +7,18 @@ This module provides VPC management functionality including:
 - Parsing VPC YAML configuration files
 """
 
-from pathlib import Path
-import sys
-
-# Setup import paths
-sys.path.append(str(Path(__file__).parent.parent.absolute()))
 import api.switch as switch_api
 from modules.config_utils import load_yaml_file
+from config.config_factory import config_factory
 
 
 class VPCManager:
     """Manager class for VPC operations."""
     
-    def __init__(self, config_base_path="network_configs/3_node"):
-        """
-        Initialize VPC Manager.
-        
-        Args:
-            config_base_path: Base path to network configurations
-        """
-        # Convert to Path object and make it relative to the repo root
-        if isinstance(config_base_path, str):
-            # Go up to the repo root from scripts/cisco/12.2.2/modules/vpc/
-            # This means going up 5 levels: vpc -> modules -> 12.2.2 -> cisco -> scripts -> repo_root
-            repo_root = Path(__file__).parent.parent.parent.parent.parent.parent
-            self.config_base_path = repo_root / config_base_path
-        else:
-            self.config_base_path = config_base_path
+    def __init__(self):
+        """Initialize VPC Manager with centralized configuration paths."""
+        self.config_paths = config_factory.create_vpc_config()
+        self.config_base_path = self.config_paths['configs_dir']
 
     def create_vpc_pairs(self, fabric_name: str) -> bool:
         """Create VPC pairs and set policies for all VPC configurations in the specified fabric."""
@@ -82,7 +67,6 @@ class VPCManager:
                 vpc_pair_created = False
                 try:
                     if switch_api.create_vpc_pair(peer_one_id, peer_two_id):
-                        print(f"✅ Successfully created VPC pair for {vpc_file.name}")
                         vpc_pair_created = True
                     else:
                         print(f"❌ Failed to create VPC pair for {vpc_file.name}")

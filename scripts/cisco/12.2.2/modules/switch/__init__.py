@@ -9,19 +9,16 @@ Provides YAML-based switch management for Cisco NDFC:
 """
 
 import os
-import sys
 from typing import Dict, Any, Optional
 from pathlib import Path
 from dataclasses import dataclass
 import paramiko
 import time
-import json
 
-# Setup import paths
-sys.path.append(str(Path(__file__).parent.parent.absolute()))
 import api.switch as switch_api
 import api.policy as policy_api
 from modules.config_utils import load_yaml_file
+from config.config_factory import config_factory
 
 # Valid switch roles enum
 VALID_SWITCH_ROLES = {
@@ -62,9 +59,9 @@ class SwitchManager:
     """Unified switch operations manager with YAML configuration support."""
     
     def __init__(self):
-        """Initialize with configuration paths."""
-        self.repo_root = Path(__file__).resolve().parents[5]  # Go up 5 levels to reach Repo_fabric
-        self.config_base_path = self.repo_root / "network_configs" / "3_node"
+        """Initialize with centralized configuration paths."""
+        self.config_paths = config_factory.create_switch_config()
+        self.config_base_path = self.config_paths['configs_dir']
     
     def _validate_switch_role(self, role: str) -> bool:
         """Validate if the role is in the allowed enum values."""
@@ -395,7 +392,6 @@ class SwitchManager:
                 return False
             
             print(f"Parsed {len(cli_commands.splitlines())} command lines")
-            print("Creating freeform policy via NDFC API")
             
             # Create policy with random ID until successful
             policy_id = policy_api.create_policy_with_random_id(
@@ -406,17 +402,14 @@ class SwitchManager:
             )
             
             if not policy_id:
-                print(f"❌ Failed to create policy for switch {switch_name}")
+                print(f"Failed to create policy for switch {switch_name}")
                 return False
             
             # Get the created policy and save it with new filename format
             print(f"Retrieving and saving policy {policy_id}")
             # Extract numeric ID from POLICY-123456 format
             numeric_id = policy_id.split('-')[1]
-            policy_api.get_policy_by_id(numeric_id, switch_name=switch_name)
-            
-            print(f"✅ Successfully created and saved freeform policy for switch {switch_name}")
-            return True
+            return policy_api.get_policy_by_id(numeric_id, switch_name=switch_name)
             
         except Exception as e:
             print(f"Error creating freeform policy: {e}")
@@ -466,13 +459,11 @@ class SwitchManager:
             print(f"Changing hostname for switch: {switch_name} ({serial_number}) to '{new_hostname}'")
             
             # Step 1: Get all policies for this switch
-            print("Step 1: Getting all policies for the switch...")
+            print("Getting all policies for the switch...")
             policies = policy_api.get_policies_by_serial_number(serial_number)
             if not policies:
                 print(f"No policies found for switch {switch_name}")
                 return False
-            
-            print(f"Found {len(policies)} policies for switch {switch_name}")
             
             # Step 2: Find the host_11_1 policy that is not deleted
             hostname_policy = None
@@ -496,13 +487,8 @@ class SwitchManager:
             hostname_policy["nvPairs"]["SWITCH_NAME"] = new_hostname
             
             # Step 4: Update the policy via API
-            print(f"Step 4: Updating policy {policy_id} with new hostname...")
+            print(f"Updating policy {policy_id} with new hostname...")
             success = policy_api.update_policy(policy_id, hostname_policy)
-            
-            if success:
-                print(f"✅ Successfully changed hostname to '{new_hostname}' for switch {switch_name}")
-            else:
-                print(f"❌ Failed to change hostname for switch {switch_name}")
             
             return success
             

@@ -1,0 +1,93 @@
+#!/usr/bin/env python3
+"""
+Configuration Factory
+
+Provides configuration objects for different modules.
+Centralizes configuration creation and management.
+"""
+
+from pathlib import Path
+from typing import Any, Dict
+from .paths import project_paths
+
+class ConfigFactory:
+    """Factory for creating configuration objects."""
+    
+    @staticmethod
+    def create_vrf_config():
+        """Create VRF configuration."""
+        paths = project_paths.get_vrf_paths()
+        # Import here to avoid circular imports
+        from modules.vrf import VRFConfig
+        return VRFConfig(
+            config_path=str(paths['configs']),
+            defaults_path=str(paths['defaults']),
+            field_mapping_path=str(paths['field_mapping'])
+        )
+    
+    @staticmethod
+    def create_fabric_config(fabric_name: str):
+        """Create fabric configuration."""
+        paths = project_paths.get_fabric_paths()
+        # Import here to avoid circular imports
+        from modules.fabric import FabricConfig
+        return FabricConfig(
+            config_path=str(paths['configs'] / f"{fabric_name}.yaml"),
+            defaults_path=str(paths['defaults']),
+            field_mapping_path=str(paths['field_mapping'])
+        )
+    
+    @staticmethod
+    def create_switch_config():
+        """Create switch configuration."""
+        paths = project_paths.get_switch_paths()
+        # Return a dictionary since switch module doesn't have a specific config class
+        return {
+            'configs_dir': paths['configs'],
+            'defaults_path': paths['defaults'],
+            'field_mapping_path': paths['field_mapping'],
+            'policy_dir': paths['policy']
+        }
+    
+    @staticmethod
+    def create_network_config():
+        """Create network configuration."""
+        paths = project_paths.get_network_paths()
+        return {
+            'config_path': paths['configs'],
+            'defaults_path': paths['defaults'],
+            'field_mapping_path': paths['field_mapping']
+        }
+    
+    @staticmethod
+    def create_interface_config():
+        """Create interface configuration."""
+        paths = project_paths.get_interface_paths()
+        return {
+            'configs_dir': paths['configs'],
+            'defaults_path': paths['defaults'],
+            'field_mapping_path': paths['field_mapping']
+        }
+    
+    @staticmethod
+    def create_vpc_config():
+        """Create VPC configuration."""
+        paths = project_paths.get_vpc_paths()
+        return {
+            'configs_dir': paths['configs'],
+            'defaults_path': paths['defaults'],
+            'field_mapping_path': paths['field_mapping']
+        }
+    
+    @staticmethod
+    def get_fabric_paths():
+        """Get fabric-related paths."""
+        return project_paths.get_fabric_paths()
+    
+    @staticmethod
+    def get_freeform_paths(fabric_name: str = None):
+        """Get freeform configuration paths."""
+        return project_paths.get_freeform_paths(fabric_name)
+
+# Global factory instance
+config_factory = ConfigFactory()

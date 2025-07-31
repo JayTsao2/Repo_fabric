@@ -12,9 +12,6 @@ This module provides a clean, unified interface for all VRF operations with:
 import sys
 from pathlib import Path
 
-# Add parent directory to path for imports
-sys.path.append(str(Path(__file__).parent.parent.absolute()))
-
 # Import VRF components with absolute imports to avoid circular imports
 from modules.vrf.vrf_operations import VRFOperations
 from modules.vrf.attach_vrf import VRFAttachment
@@ -116,7 +113,7 @@ class VRFManager:
             bool: True if successful, False otherwise
         """
         try:
-            print(f"Attaching VRF to '{switch_name}' ({role}) in fabric '{fabric_name}'")
+            print(f"Attaching VRF to switch {switch_name} ({role}) in fabric {fabric_name}")
             return self.attacher.manage_vrf_by_switch(fabric_name, role, switch_name, operation="attach")
             
         except Exception as e:
@@ -136,7 +133,7 @@ class VRFManager:
             bool: True if successful, False otherwise
         """
         try:
-            print(f"Detaching VRF from '{switch_name}' ({role}) in fabric '{fabric_name}'")
+            print(f"Detaching VRF from switch {switch_name} ({role}) in fabric {fabric_name}")
             return self.attacher.manage_vrf_by_switch(fabric_name, role, switch_name, operation="detach")
             
         except Exception as e:

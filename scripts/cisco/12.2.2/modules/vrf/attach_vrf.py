@@ -12,9 +12,6 @@ import sys
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 
-# Add parent directory to path for imports
-sys.path.append(str(Path(__file__).parent.parent.absolute()))
-
 import api.vrf as vrf_api
 from modules.config_utils import load_yaml_file
 from . import VRFBuilder, VRFPayloadGenerator
@@ -39,6 +36,7 @@ class VRFAttachment:
         Returns:
             bool: True if successful, False otherwise
         """
+        vrf_name = None  # Initialize to avoid UnboundLocalError
         try:
             # Load switch configuration and find VRF
             switch_config, serial_number = self._load_switch_config(fabric_name, switch_role, switch_name)
@@ -49,12 +47,12 @@ class VRFAttachment:
             if not vrf_name:
                 return False
             
-            print(f"Found VRF {vrf_name} in {switch_name} ({serial_number}) in {fabric_name}")
+            print(f"  - VRF '{vrf_name}' configured on {switch_name} ({serial_number})")
             
             # Get VRF details and build payload
             vrf_details = self._find_vrf_by_name(vrf_name, fabric_name)
             if not vrf_details:
-                print(f"❌ No VRF found with name '{vrf_name}' in fabric '{fabric_name}'")
+                print(f"No VRF found with name '{vrf_name}' in fabric '{fabric_name}'")
                 return False
             
             vlan_id = vrf_details.get("VLAN ID")
@@ -75,7 +73,8 @@ class VRFAttachment:
             return success
                 
         except Exception as e:
-            print(f"❌ Error {operation} VRF {vrf_name} on switch {switch_name}: {e}")
+            vrf_display = vrf_name if vrf_name else "unknown VRF"
+            print(f"Error {operation}ing {vrf_display} on switch {switch_name}: {e}")
             return False
 
     def _find_vrf_by_name(self, vrf_name: str, fabric_name: str) -> Optional[Dict[str, Any]]:
@@ -131,20 +130,22 @@ class VRFAttachment:
 
     def _load_switch_config(self, fabric_name: str, switch_role: str, switch_name: str) -> tuple:
         """Load switch configuration and return config and serial number."""
-        switch_path = self.builder.project_root / "network_configs" / "3_node" / fabric_name / switch_role / f"{switch_name}.yaml"
+        from config.config_factory import config_factory
+        switch_paths = config_factory.create_switch_config()
+        switch_path = switch_paths['configs_dir'] / fabric_name / switch_role / f"{switch_name}.yaml"
         
         if not switch_path.exists():
-            print(f"❌ Switch configuration not found: {switch_path}")
+            print(f"Switch configuration not found: {switch_path}")
             return None, None
         
         switch_config = load_yaml_file(str(switch_path))
         if not switch_config:
-            print(f"❌ Failed to load switch configuration: {switch_path}")
+            print(f"Failed to load switch configuration: {switch_path}")
             return None, None
         
         serial_number = switch_config.get('Serial Number', '')
         if not serial_number:
-            print(f"❌ No serial number found in switch configuration: {switch_name}")
+            print(f"No serial number found in switch configuration: {switch_name}")
             return None, None
         
         return switch_config, serial_number
@@ -154,7 +155,7 @@ class VRFAttachment:
         interfaces = switch_config.get("Interface", [])
         
         if not isinstance(interfaces, list):
-            print(f"❌ Invalid interface format in switch '{switch_name}'")
+            print(f"Invalid interface format in switch '{switch_name}'")
             return None
         
         for interface_item in interfaces:
@@ -169,8 +170,8 @@ class VRFAttachment:
                 if (interface_config.get("policy") == "int_routed_host" and 
                     interface_config.get("Interface VRF")):
                     vrf_name = interface_config.get("Interface VRF")
-                    print(f"📋 Found interface {interface_name} with policy 'int_routed_host' and VRF '{vrf_name}'")
+                    print(f"  - Found routed interface {interface_name} using VRF '{vrf_name}'")
                     return vrf_name
         
-        print(f"❌ No interface with 'int_routed_host' policy and VRF found in switch '{switch_name}'")
+        print(f"No routed interfaces with VRF configuration found in switch '{switch_name}'")
         return None

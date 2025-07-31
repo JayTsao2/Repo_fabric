@@ -8,15 +8,9 @@ Provides YAML-based interface management for Cisco NDFC:
 - Policy-based interface management (access, trunk, routed)
 """
 
-import os
-import sys
 from typing import List, Dict, Any, Optional
-from pathlib import Path
 from dataclasses import dataclass
-import json
 
-# Setup import paths
-sys.path.append(str(Path(__file__).parent.parent.absolute()))
 import api.interface as interface_api
 from modules.config_utils import load_yaml_file
 
@@ -40,20 +34,18 @@ class InterfaceManager:
     """Unified interface operations manager with YAML configuration support."""
     
     def __init__(self):
-        """Initialize with configuration paths."""
-        self.repo_root = Path(__file__).resolve().parents[5]  # Go up 5 levels to reach Repo_fabric
-        self.config_base_path = self.repo_root / "network_configs" / "3_node"
-    
-    def _get_switch_config_path(self, fabric_name: str, role: str, switch_name: str) -> Path:
-        """Get switch configuration file path."""
-        return self.config_base_path / fabric_name / role / f"{switch_name}.yaml"
+        """Initialize with centralized configuration paths."""
+        from config.config_factory import config_factory
+        
+        self.config_paths = config_factory.create_interface_config()
+        self.config_base_path = self.config_paths['configs_dir']
     
     def _load_switch_config(self, fabric_name: str, role: str, switch_name: str) -> Optional[Dict[str, Any]]:
         """Load switch configuration from YAML file."""
-        config_path = self._get_switch_config_path(fabric_name, role, switch_name)
+        config_path = self.config_base_path / fabric_name / role / f"{switch_name}.yaml"
         
         if not config_path.exists():
-            print(f"❌ Switch configuration not found: {config_path}")
+            print(f"Switch configuration not found: {config_path}")
             return None
         
         print(f"Loading config: {config_path.name}")
@@ -70,10 +62,10 @@ class InterfaceManager:
                 with open(freeform_full_path, 'r', encoding='utf-8') as f:
                     return f.read().strip()
             else:
-                print(f"⚠️  Freeform config not found: {freeform_full_path}")
+                print(f"Freeform config not found: {freeform_full_path}")
                 return ""
         except Exception as e:
-            print(f"❌ Error loading freeform config: {e}")
+            print(f"Error loading freeform config: {e}")
             return ""
     
     def _build_nv_pairs(self, interface_name: str, interface_data: Dict[str, Any], 
@@ -113,7 +105,7 @@ class InterfaceManager:
             
         elif policy == "int_trunk_host":
             # Trunk port specific fields
-            allowed_vlans = interface_data.get("Trunk Allowed Vlans", "none")
+            allowed_vlans = interface_data.get("Trunk Allowed Vlans", "all")
             if allowed_vlans and not (isinstance(allowed_vlans, str) and 'controlled by policy' in str(allowed_vlans).lower()):
                 if isinstance(allowed_vlans, (list, tuple)):
                     nv_pairs["ALLOWED_VLANS"] = ",".join(map(str, allowed_vlans))
@@ -161,7 +153,7 @@ class InterfaceManager:
         """Parse switch interfaces and group by policy."""
         serial_number = switch_config.get("Serial Number", "")
         if not serial_number:
-            print("❌ No serial number found in switch config")
+            print("No serial number found in switch config")
             return {}
         
         interfaces_by_policy = {
@@ -171,7 +163,7 @@ class InterfaceManager:
         }
         
         if "Interface" not in switch_config:
-            print("⚠️  No interfaces found in config")
+            print("No interfaces found in config")
             return interfaces_by_policy
         
         for interface_config in switch_config["Interface"]:
@@ -221,14 +213,14 @@ class InterfaceManager:
                         success = False
             
             if success and total_updated > 0:
-                print(f"✅ Successfully updated {total_updated} interfaces for {switch_name}")
+                print(f"Successfully updated {total_updated} interfaces for {switch_name}")
             elif total_updated == 0:
-                print(f"⚠️  No interfaces to update for {switch_name}")
+                print(f"No interfaces to update for {switch_name}")
             
             return success
             
         except Exception as e:
-            print(f"❌ Error updating switch interfaces: {e}")
+            print(f"Error updating switch interfaces: {e}")
             return False
 
 # --- Expose the InterfaceManager class ---

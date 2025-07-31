@@ -12,9 +12,6 @@ This module handles VRF lifecycle operations with:
 import sys
 from pathlib import Path
 
-# Add parent directory to path for imports
-sys.path.append(str(Path(__file__).parent.parent.absolute()))
-
 import api.vrf as vrf_api
 from modules.config_utils import validate_configuration_files
 from . import VRFBuilder, VRFPayloadGenerator

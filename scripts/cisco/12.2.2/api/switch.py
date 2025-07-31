@@ -30,9 +30,7 @@ def delete_switch(fabric, serial_number):
     headers = get_api_key_header()
     url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/switches/{serial_number}")
     r = requests.delete(url, headers=headers, verify=False)
-    check_status_code(r)
-    print(f"Status Code: {r.status_code}")
-    print(f"Message: {r.text}")
+    return check_status_code(r)
 
 def discover_switch_from_payload(fabric, payload):
     """Discover switch using provided payload data."""
@@ -44,13 +42,8 @@ def discover_switch_from_payload(fabric, payload):
     # Set password from environment
     payload["password"] = os.getenv("SWITCH_PASSWORD") 
     
-    try:
-        r = requests.post(url, headers=headers, json=payload, verify=False)
-        check_status_code(r)
-        return True
-    except Exception as e:
-        print(f"Error discovering switch: {e}")
-        return False
+    r = requests.post(url, headers=headers, json=payload, verify=False)
+    return check_status_code(r)
 
 def discover_switch(fabric, filename):
     load_dotenv()
@@ -70,9 +63,8 @@ def discover_switch(fabric, filename):
 
     payload["password"] = os.getenv("SWITCH_PASSWORD") 
     r = requests.post(url, headers=headers, json=payload, verify=False)
-    check_status_code(r)
-    print(f"Status Code: {r.status_code}")
-    print(f"Message: {r.text}")
+    return check_status_code(r)
+
 
 def change_discovery_ip(fabric, serial_number, new_ip):
     headers = get_api_key_header()
@@ -85,18 +77,14 @@ def change_discovery_ip(fabric, serial_number, new_ip):
         }
     ]
     r = requests.put(url, headers=headers, json=payload, verify=False)
-    check_status_code(r)
-    print(f"Status Code: {r.status_code}")
-    print(f"Message: {r.text}")
+    return check_status_code(r)
 
 def rediscover_device(fabric, serial_number):
     headers = get_api_key_header()
     url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/inventory/rediscover/{serial_number}")
 
     r = requests.post(url, headers=headers, verify=False)
-    check_status_code(r)
-    print(f"Status Code: {r.status_code}")
-    print(f"Message: {r.text}")
+    return check_status_code(r)
 
 def get_config_preview(fabric, serial_number):
     url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/config-preview/{serial_number}")
@@ -176,9 +164,7 @@ def deploy_switch_config(fabric, serial_number):
     url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/config-deploy/{serial_number}")
     headers = get_api_key_header()
     r = requests.post(url, headers=headers, verify=False)
-    check_status_code(r)
-    print(f"Status Code: {r.status_code}")
-    print(f"Message: {r.text}")
+    return check_status_code(r)
 
 def set_switch_role(serial_number, role):
     """Set switch role using the switches/roles API endpoint."""
@@ -194,9 +180,7 @@ def set_switch_role(serial_number, role):
     ]
     
     r = requests.post(url, headers=headers, json=payload, verify=False)
-    check_status_code(r)
-    print(f"Status Code: {r.status_code}")
-    print(f"Message: {r.text}")
+    return check_status_code(r)
 
 def create_vpc_pair(peer_one_id, peer_two_id, use_virtual_peerlink=False):
     """Create VPC pair using the vpcpair API endpoint."""
@@ -211,10 +195,7 @@ def create_vpc_pair(peer_one_id, peer_two_id, use_virtual_peerlink=False):
     }
     
     r = requests.post(url, headers=headers, json=payload, verify=False)
-    check_status_code(r)
-    print(f"Status Code: {r.status_code}")
-    print(f"Message: {r.text}")
-    return r.status_code == 200
+    return check_status_code(r)
 
 def delete_vpc_pair(serial_number):
     """Delete VPC pair using the vpcpair API endpoint with serial number."""
@@ -222,10 +203,7 @@ def delete_vpc_pair(serial_number):
     headers = get_api_key_header()
     
     r = requests.delete(url, headers=headers, verify=False)
-    check_status_code(r)
-    print(f"Status Code: {r.status_code}")
-    print(f"Message: {r.text}")
-    return r.status_code == 200
+    return check_status_code(r)
 
 def delete_vpc_policy(vpc_name, serial_numbers):
     """Delete VPC policy using the interface markdelete endpoint."""
@@ -237,16 +215,8 @@ def delete_vpc_policy(vpc_name, serial_numbers):
         "ifName": vpc_name,
         "serialNumber": serial_numbers
     }]
-    try:
-        r = requests.delete(url, headers=headers, json=payload, verify=False)
-        print(f"Status Code: {r.status_code}")
-        print(f"Message: {r.text}")
-        
-        # Return True if successful (2xx status codes)
-        return 200 <= r.status_code < 300
-    except Exception as e:
-        print(f"Error in VPC policy deletion: {e}")
-        return False
+    r = requests.delete(url, headers=headers, json=payload, verify=False)
+    return check_status_code(r)
 
 def set_vpc_policy(policy_data):
     """Set VPC policy using the interface API endpoint."""
@@ -255,19 +225,4 @@ def set_vpc_policy(policy_data):
     headers['Content-Type'] = 'application/json'
     
     r = requests.post(url, headers=headers, json=policy_data, verify=False)
-    check_status_code(r)
-    print(f"Status Code: {r.status_code}")
-    print(f"Message: {r.text}")
-    return r.status_code == 200
-
-
-if __name__ == "__main__":
-    # get_switches(fabric="Site1", switch_dir="switches")
-    delete_switch(fabric="Site1-TSMC", serial_number="9J9UDVX8MMA")
-    # discover_switch(fabric="Site1-TSMC", filename="switches/discover/Site1-L3-73.json")
-    # change_discovery_ip(fabric="Site1-TSMC", serial_number="9J9UDVX8MMA", new_ip="10.192.195.73")
-    # rediscover_device(fabric="Site1-TSMC", serial_number="9J9UDVX8MMA")
-    # get_config_preview(fabric="Site1", serial_number="9W4GBLXU5CR")
-    # get_config_preview(fabric="Site1", serial_number="95H3IT6BGM0")
-    # get_config_diff(fabric="ISN_DCI", serial_number="9IN4SP84L7L")
-    # deploy_switch_config(fabric="Site1", serial_number="9W4GBLXU5CR")
+    return check_status_code(r)

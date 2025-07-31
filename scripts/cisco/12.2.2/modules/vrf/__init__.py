@@ -17,12 +17,11 @@ from pathlib import Path
 from dataclasses import dataclass
 from enum import Enum
 
-# Update import path to go back to parent directory for api and modules
-sys.path.append(str(Path(__file__).parent.parent.absolute()))
 from modules.config_utils import (
     load_yaml_file, merge_configs, 
     apply_field_mapping, flatten_config
 )
+from config.config_factory import config_factory
 
 # --- Constants and Enums ---
 
@@ -51,20 +50,12 @@ class VRFBuilder:
     """Main class for building and managing VRFs."""
     
     def __init__(self):
-        """Initialize the VRFBuilder with project paths."""
-        # Adjust path calculation for modules subdirectory
-        self.script_dir = Path(__file__).parent.parent.parent.absolute()
-        self.project_root = self.script_dir.parents[2]
-        self.resources_dir = self.script_dir / "resources"
-        self.vrf_configs_dir = self.project_root / "network_configs" / "5_segment"
+        """Initialize the VRFBuilder with centralized path configuration."""
+        pass
     
     def get_vrf_config(self) -> VRFConfig:
         """Get configuration paths for VRF management."""
-        return VRFConfig(
-            config_path=str(self.vrf_configs_dir / "vrf.yaml"),
-            defaults_path=str(self.resources_dir / "corp_defaults" / "vrf.yaml"),
-            field_mapping_path=str(self.resources_dir / "_field_mapping" / "vrf.yaml")
-        )
+        return config_factory.create_vrf_config()
 
 class VRFPayloadGenerator:
     """Handles the generation of API payloads for VRF operations."""
