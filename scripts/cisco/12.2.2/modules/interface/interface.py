@@ -13,7 +13,7 @@ from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
 
 import api.interface as interface_api
-from modules.config_utils import load_yaml_file
+from modules.config_utils import load_yaml_file, read_freeform_config
 from config.config_factory import config_factory
 
 @dataclass
@@ -48,25 +48,17 @@ class InterfaceManager:
             print(f"Switch configuration not found: {config_path}")
             return None
         
-        print(f"Loading config: {config_path.name}")
+        print(f"Loading config: {config_path}")
         return load_yaml_file(str(config_path))
     
-    def _load_freeform_config(self, fabric_name: str, role: str, switch_name: str, freeform_path: str) -> str:
+    def _load_freeform_config(self, fabric_name: str, role: str, freeform_path: str) -> str:
         """Load freeform configuration from file."""
         # Construct full path relative to switch config directory
         switch_dir = self.config_base_path / fabric_name / role
         freeform_full_path = switch_dir / freeform_path
-        
-        try:
-            if freeform_full_path.exists():
-                with open(freeform_full_path, 'r', encoding='utf-8') as f:
-                    return f.read().strip()
-            else:
-                print(f"Freeform config not found: {freeform_full_path}")
-                return ""
-        except Exception as e:
-            print(f"Error loading freeform config: {e}")
-            return ""
+        print(f"Loading freeform config from: {freeform_full_path}")
+        # Use config_utils for consistent file loading with special banner handling
+        return read_freeform_config(str(freeform_full_path))
     
     def _build_nv_pairs(self, interface_name: str, interface_data: Dict[str, Any], 
                        fabric_name: str, role: str, switch_name: str) -> Dict[str, Any]:
@@ -143,7 +135,7 @@ class InterfaceManager:
         # Handle freeform configuration
         if "Freeform Config" in interface_data:
             freeform_path = interface_data["Freeform Config"]
-            freeform_content = self._load_freeform_config(fabric_name, role, switch_name, freeform_path)
+            freeform_content = self._load_freeform_config(fabric_name, role, freeform_path)
             nv_pairs["CONF"] = freeform_content
         
         return nv_pairs
