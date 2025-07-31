@@ -1,5 +1,0 @@
----
-Cisco:
-  NDFC:
-    version: 12.2.2
-    ip: 10.1.1.1
