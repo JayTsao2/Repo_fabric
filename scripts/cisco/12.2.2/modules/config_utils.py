@@ -22,6 +22,18 @@ def load_yaml_file(filepath: str) -> Optional[Dict[str, Any]]:
         print(f"Unexpected error loading YAML file {filepath}: {e}")
         return None
 
+def load_text_file(filepath: str) -> Optional[str]:
+    """Load a text file and return its content as a string."""
+    try:
+        with open(filepath, 'r', encoding='utf-8') as file:
+            return file.read().strip()
+    except FileNotFoundError:
+        print(f"Error: Text file not found at {filepath}")
+        return None
+    except Exception as e:
+        print(f"Error loading text file {filepath}: {e}")
+        return None
+
 def merge_configs(base_config: Dict[str, Any], override_config: Dict[str, Any]) -> Dict[str, Any]:
     """
     Recursively merge two configurations with override taking precedence.
@@ -108,10 +120,6 @@ def read_freeform_config(file_path: str) -> str:
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
             content = f.read()
-        
-        # Special handling for banner files
-        if "Banner.sh" in file_path:
-            content = "`" + content + "`"
             
         return content
     except FileNotFoundError:
