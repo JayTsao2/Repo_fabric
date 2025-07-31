@@ -7,10 +7,39 @@ from dotenv import load_dotenv
 import os
 import sys
 import requests
+import yaml
 from typing import Dict, Optional, Any
 
-# NDFC management IP - configurable via environment or direct setting
-DEFAULT_MANAGEMENT_IP = 'https://10.192.195.20'
+def _load_fabric_builder_config() -> str:
+    """
+    Load NDFC IP from fabric_builder.yaml configuration file.
+    
+    Returns:
+        NDFC management IP URL with https:// prefix
+    """
+    try:
+        # Get the path to fabric_builder.yaml relative to this file
+        current_dir = os.path.dirname(__file__)
+        config_path = os.path.join(current_dir, '..', '..', '..', '..', 'network_configs', 'fabric_builder.yaml')
+        config_path = os.path.normpath(config_path)
+        
+        with open(config_path, 'r', encoding='utf-8') as f:
+            config = yaml.safe_load(f)
+        
+        ndfc_ip = config['Cisco']['NDFC']['ip']
+        return f'https://{ndfc_ip}'
+        
+    except (FileNotFoundError, KeyError, yaml.YAMLError) as e:
+        print(f"Warning: Could not load fabric_builder.yaml config: {e}")
+        print("Falling back to default IP: 10.192.195.20")
+        return 'https://10.192.195.20'
+    except Exception as e:
+        print(f"Unexpected error loading fabric config: {e}")
+        print("Falling back to default IP: 10.192.195.20")
+        return 'https://10.192.195.20'
+
+# NDFC management IP - loaded from fabric_builder.yaml
+DEFAULT_MANAGEMENT_IP = _load_fabric_builder_config()
 
 def get_management_ip() -> str:
     """
