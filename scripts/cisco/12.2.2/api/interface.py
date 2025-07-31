@@ -121,3 +121,19 @@ def _save_all_interfaces(interfaces_data: List[Dict], interface_dir: str, serial
     
     with open(filepath, 'w', encoding='utf-8') as f:
         json.dump(interfaces_data, f, indent=2, ensure_ascii=False)
+
+def update_admin_status(payload: List[Dict[str, Any]]) -> bool:
+    """
+    Update interface admin status (enable/disable) for interfaces without policies.
+    
+    Args:
+        interfaces: List of interfaces with admin status configuration
+        
+    Returns:
+        True if successful, False otherwise
+    """
+    url = get_url("/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/interface/adminstatus")
+    headers = get_api_key_header()
+    
+    r = requests.post(url, headers=headers, json=payload, verify=False)
+    return check_status_code(r)

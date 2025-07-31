@@ -18,7 +18,7 @@ Interface:
 
   - Ethernet1/3:
       Interface Description: Site1-S3
-      Enable Interface: True
+      Enable Interface: False
 
   - Ethernet1/4:
       policy: int_routed_host

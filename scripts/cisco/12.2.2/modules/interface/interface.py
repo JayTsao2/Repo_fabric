@@ -104,9 +104,6 @@ class InterfaceManager:
             nv_pairs["PREFIX"] = str(prefix_value) if prefix_value else ""
             nv_pairs["INTF_VRF"] = str(interface_data.get("Interface VRF", "default"))
             nv_pairs["MTU"] = str(interface_data.get("MTU", "9100"))
-        elif policy == "int_fabric_num_11_1":
-            nv_pairs["IP"] = str(interface_data.get("Interface IP", ""))
-            nv_pairs["PREFIX"] = str(interface_data.get("IP Netmask Length", "31"))
         
         # Handle freeform configuration
         if "Freeform Config" in interface_data:
@@ -117,30 +114,31 @@ class InterfaceManager:
         return nv_pairs
     
     def _parse_interfaces(self, switch_config: Dict[str, Any], fabric_name: str, 
-                         role: str, switch_name: str) -> Dict[str, List[InterfaceConfig]]:
-        """Parse switch interfaces and group by policy."""
+                         role: str, switch_name: str) -> Dict[str, Any]:
+        """Parse switch interfaces and separate by policy vs non-policy interfaces."""
         serial_number = switch_config.get("Serial Number", "")
         if not serial_number:
             print("No serial number found in switch config")
-            return {}
+            return {"policy_interfaces": {}, "admin_interfaces": []}
         
-        interfaces_by_policy = {
+        policy_interfaces = {
             "int_access_host": [],
             "int_trunk_host": [],
-            "int_routed_host": [],
-            "int_fabric_num_11_1": []
+            "int_routed_host": []
         }
+        
+        admin_interfaces = []  # For interfaces without policies
         
         if "Interface" not in switch_config:
             print("No interfaces found in config")
-            return interfaces_by_policy
+            return {"policy_interfaces": policy_interfaces, "admin_interfaces": admin_interfaces}
         
         for interface_config in switch_config["Interface"]:
             for interface_name, interface_data in interface_config.items():
                 policy = interface_data.get("policy")
                 
-                if policy in interfaces_by_policy:
-                    
+                if policy and policy in policy_interfaces:
+                    # Interface with policy - use regular update API
                     nv_pairs_dict = self._build_nv_pairs(
                         interface_name, interface_data, fabric_name, role, switch_name
                     )
@@ -152,9 +150,18 @@ class InterfaceManager:
                         nv_pairs=nv_pairs_dict
                     )
                     
-                    interfaces_by_policy[policy].append(interface_config_obj)
+                    policy_interfaces[policy].append(interface_config_obj)
+                    
+                else:
+                    # Interface without policy - use admin status API
+                    enable_interface = interface_data.get("Enable Interface", True)
+                    admin_interfaces.append({
+                        "serialNumber": serial_number,
+                        "ifName": interface_name,
+                        "operation": "noshut" if enable_interface else "shut"
+                    })
         
-        return interfaces_by_policy
+        return {"policy_interfaces": policy_interfaces, "admin_interfaces": admin_interfaces}
     
     def update_switch_interfaces(self, fabric_name: str, role: str, switch_name: str) -> bool:
         """Update all interfaces for a switch based on YAML configuration."""
@@ -163,22 +170,28 @@ class InterfaceManager:
             if not switch_config:
                 return False
             
-            interfaces_by_policy = self._parse_interfaces(switch_config, fabric_name, role, switch_name)
+            parsed_interfaces = self._parse_interfaces(switch_config, fabric_name, role, switch_name)
+            policy_interfaces = parsed_interfaces["policy_interfaces"]
+            admin_interfaces = parsed_interfaces["admin_interfaces"]
             
             success = True
             total_updated = 0
             
-            # Update interfaces grouped by policy
-            for policy, interface_configs in interfaces_by_policy.items():
+            # Update policy-based interfaces
+            for policy, interface_configs in policy_interfaces.items():
                 if interface_configs:
-                    # Convert to API format
                     interfaces_payload = [config.to_dict() for config in interface_configs]
-                    
-                    # Call API to update interfaces
                     if interface_api.update_interface(fabric_name, policy, interfaces_payload):
                         total_updated += len(interface_configs)
                     else:
                         success = False
+            
+            # Update admin status interfaces
+            if admin_interfaces:
+                if self._update_admin_status_interfaces(admin_interfaces):
+                    total_updated += len(admin_interfaces)
+                else:
+                    success = False
             
             if success and total_updated > 0:
                 print(f"Successfully updated {total_updated} interfaces for {switch_name}")
@@ -189,4 +202,31 @@ class InterfaceManager:
             
         except Exception as e:
             print(f"Error updating switch interfaces: {e}")
+            return False
+    
+    def _update_admin_status_interfaces(self, admin_interfaces: List[Dict[str, Any]]) -> bool:
+        """Update admin status for interfaces without policies using dedicated API."""
+        try:
+            # Group interfaces by operation (shut/noshut)
+            for operation in ["shut", "noshut"]:
+                interfaces_for_operation = [
+                    {"serialNumber": intf["serialNumber"], "ifName": intf["ifName"]}
+                    for intf in admin_interfaces if intf["operation"] == operation
+                ]
+                
+                if interfaces_for_operation:
+                    payload = {
+                        "operation": operation,
+                        "interfaces": interfaces_for_operation
+                    }
+                    if not interface_api.update_admin_status(payload):
+                        print(f"Failed to {operation} interfaces: {[i['ifName'] for i in interfaces_for_operation]}")
+                        return False
+                    else:
+                        print(f"Successfully {operation} interfaces: {[i['ifName'] for i in interfaces_for_operation]}")
+            
+            return True
+            
+        except Exception as e:
+            print(f"Error updating admin status interfaces: {e}")
             return False
