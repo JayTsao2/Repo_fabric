@@ -71,8 +71,6 @@ class InterfaceManager:
         nv_pairs["DESC"] = str(interface_data.get("Interface Description", "")) if interface_data.get("Interface Description") else ""
         nv_pairs["ADMIN_STATE"] = "true" if interface_data.get("Enable Interface", True) else "false"
         nv_pairs["SPEED"] = str(interface_data.get("SPEED", "Auto"))
-        nv_pairs["PTP"] = "false"
-        nv_pairs["ENABLE_NETFLOW"] = "false"
         nv_pairs["NETFLOW_MONITOR"] = ""
         nv_pairs["POLICY_DESC"] = ""
         nv_pairs["CONF"] = ""
@@ -82,18 +80,8 @@ class InterfaceManager:
             # Access port specific fields
             nv_pairs["ACCESS_VLAN"] = str(interface_data.get("Access Vlan", "1"))
             nv_pairs["MTU"] = str(interface_data.get("MTU", "jumbo"))
-            nv_pairs["PRIORITY"] = "500"
             nv_pairs["BPDUGUARD_ENABLED"] = "true"
             nv_pairs["PORTTYPE_FAST_ENABLED"] = "true"
-            nv_pairs["CDP_ENABLE"] = "true"
-            nv_pairs["ENABLE_ORPHAN_PORT"] = "false"
-            nv_pairs["ENABLE_PFC"] = "false"
-            nv_pairs["QUEUING_POLICY"] = ""
-            nv_pairs["NETFLOW_SAMPLER"] = ""
-            nv_pairs["ENABLE_QOS"] = "false"
-            nv_pairs["PORT_DUPLEX_MODE"] = "auto"
-            nv_pairs["QOS_POLICY"] = ""
-            nv_pairs["ENABLE_MONITOR"] = "false"
             
         elif policy == "int_trunk_host":
             # Trunk port specific fields
@@ -104,14 +92,9 @@ class InterfaceManager:
                 else:
                     nv_pairs["ALLOWED_VLANS"] = str(allowed_vlans)
             else:
-                nv_pairs["ALLOWED_VLANS"] = "none"
+                nv_pairs["ALLOWED_VLANS"] = "all"
                 
             nv_pairs["MTU"] = str(interface_data.get("MTU", "jumbo"))
-            nv_pairs["PRIORITY"] = "450"
-            nv_pairs["BPDUGUARD_ENABLED"] = "no"
-            nv_pairs["PORTTYPE_FAST_ENABLED"] = "true"
-            nv_pairs["GF"] = ""
-            
         elif policy == "int_routed_host":
             # Routed port specific fields
             ip_value = interface_data.get("Interface IP")
@@ -121,16 +104,9 @@ class InterfaceManager:
             nv_pairs["PREFIX"] = str(prefix_value) if prefix_value else ""
             nv_pairs["INTF_VRF"] = str(interface_data.get("Interface VRF", "default"))
             nv_pairs["MTU"] = str(interface_data.get("MTU", "9100"))
-            nv_pairs["PRIORITY"] = "500"
-            nv_pairs["ENABLE_PFC"] = "false"
-            nv_pairs["ENABLE_PIM_SPARSE"] = "false"
-            nv_pairs["PIM_DR_PRIORITY"] = "1"
-            nv_pairs["QUEUING_POLICY"] = ""
-            nv_pairs["NETFLOW_SAMPLER"] = ""
-            nv_pairs["ENABLE_QOS"] = "false"
-            nv_pairs["QOS_POLICY"] = ""
-            nv_pairs["DISABLE_IP_REDIRECTS"] = "false"
-            nv_pairs["ROUTING_TAG"] = ""
+        elif policy == "int_fabric_num_11_1":
+            nv_pairs["IP"] = str(interface_data.get("Interface IP", ""))
+            nv_pairs["PREFIX"] = str(interface_data.get("IP Netmask Length", "31"))
         
         # Handle freeform configuration
         if "Freeform Config" in interface_data:
@@ -151,7 +127,8 @@ class InterfaceManager:
         interfaces_by_policy = {
             "int_access_host": [],
             "int_trunk_host": [],
-            "int_routed_host": []
+            "int_routed_host": [],
+            "int_fabric_num_11_1": []
         }
         
         if "Interface" not in switch_config:
@@ -163,7 +140,6 @@ class InterfaceManager:
                 policy = interface_data.get("policy")
                 
                 if policy in interfaces_by_policy:
-                    # print(f"Processing {interface_name} ({policy})")
                     
                     nv_pairs_dict = self._build_nv_pairs(
                         interface_name, interface_data, fabric_name, role, switch_name
