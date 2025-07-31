@@ -186,12 +186,4 @@ def delete_policy(id):
     url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/policies/POLICY-{id}")
     headers = get_api_key_header()
     r = requests.delete(url, headers=headers, verify=False)
-    check_status_code(r)
-    print(f"Status Code: {r.status_code}")
-    print(f"Message: {r.text}")
-
-if __name__ == "__main__":
-    # Example usage
-    # get_policy_by_id("188990", "policies")
-    # delete_policy("210860")
-    pass
+    return check_status_code(r)
