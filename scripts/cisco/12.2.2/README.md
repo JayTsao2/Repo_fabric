@@ -47,39 +47,82 @@
 # API Interfaces
 
 ## [Fabric](api/fabric.py)
-- `create_fabric(fabric_name, template_name, payload_data)` - 使用直接傳遞的 payload 資料創建 fabric
-- `update_fabric(fabric_name, template_name, payload_data)` - 使用直接傳遞的 payload 資料更新 fabric
-- `get_fabric(fabric_name, fabric_dir)` - 讀取 fabric 配置
-- `delete_fabric(fabric_name)` - 刪除 fabric
-- `recalculate_config(fabric_name)` - 重新計算 fabric 配置
-- `get_pending_config(fabric_name)` - 獲取待部署配置並格式化輸出至 pending.txt
-- `deploy_fabric_config(fabric_name)` - 部署 fabric 配置
-- `add_MSD(parent_fabric_name, child_fabric_name)` - 將子 fabric 添加到 Multi-Site Domain
-- `remove_MSD(parent_fabric_name, child_fabric_name)` - 從 Multi-Site Domain 移除子 fabric
+- `get_fabrics()` - 獲取所有 fabric 列表
+- `get_fabric(fabric_name: str, fabric_dir: str = "fabrics")` - 獲取指定 fabric 配置
+- `create_fabric(fabric_name: str, template_name: str, payload_data: Dict[str, Any])` - 使用直接傳遞的 payload 資料創建 fabric
+- `update_fabric(fabric_name: str, template_name: str, payload_data: Dict[str, Any])` - 使用直接傳遞的 payload 資料更新 fabric
+- `delete_fabric(fabric_name: str)` - 刪除 fabric
+- `recalculate_config(fabric_name: str)` - 重新計算 fabric 配置
+- `deploy_fabric_config(fabric_name: str)` - 部署 fabric 配置
+- `get_pending_config(fabric_name: str)` - 獲取待部署配置並格式化輸出至 pending.txt
+- `add_MSD(parent_fabric_name: str, child_fabric_name: str)` - 將子 fabric 添加到 Multi-Site Domain
+- `remove_MSD(parent_fabric_name: str, child_fabric_name: str)` - 從 Multi-Site Domain 移除子 fabric
 
 ## [Switch](api/switch.py)
-- Switch read / delete
-- Switch discover (add)
-- Read switch pending config
-- Read switch diff config 
-- Change discovery IP / rediscover IP 尚未測試
+- `get_switches(fabric, switch_dir="switches")` - 獲取指定 fabric 中的所有交換器
+- `delete_switch(fabric, serial_number)` - 根據序號刪除交換器
+- `discover_switch_from_payload(fabric, payload)` - 使用 payload 發現交換器
+- `discover_switch(fabric, filename)` - 使用檔案發現交換器
+- `change_discovery_ip(fabric, serial_number, new_ip)` - 變更交換器發現 IP
+- `rediscover_device(fabric, serial_number)` - 重新發現設備
+- `get_config_preview(fabric, serial_number)` - 獲取配置預覽
+- `get_config_diff(fabric, serial_number)` - 獲取配置差異
+- `parse_config_diff(data, filename)` - 解析配置差異
+- `parsePendingConfig(data, filename)` - 解析待部署配置
+- `deploy_switch_config(fabric, serial_number)` - 部署交換器配置
+- `set_switch_role(serial_number, role)` - 設定交換器角色
+- `create_vpc_pair(peer_one_id, peer_two_id, use_virtual_peerlink=False)` - 建立 VPC 配對
+- `delete_vpc_pair(serial_number)` - 刪除 VPC 配對
+- `delete_vpc_policy(vpc_name, serial_numbers)` - 刪除 VPC 政策
+- `set_vpc_policy(policy_data)` - 設定 VPC 政策
+
 ## [Interface](api/interface.py)
-- `update_interface(fabric_name, policy, interfaces_payload)` - 使用直接傳遞的 payload 資料更新介面配置
-- `get_interfaces(serial_number, if_name, template_name, interface_dir, save_by_policy)` - 讀取介面配置，支援按政策分組儲存
-## [Policy](api/policy.py)
-- Policy read / update / delete
+- `update_interface(fabric_name: str, policy: str, interfaces_payload: List[Dict[str, Any]])` - 使用直接傳遞的 payload 資料更新介面配置
+- `get_interfaces(serial_number: str = None, if_name: str = None, template_name: str = None, interface_dir: str = "interfaces", save_by_policy: bool = True)` - 讀取介面配置，支援按政策分組儲存
+- `update_admin_status(payload: List[Dict[str, Any]])` - 更新介面管理狀態 (enable/disable)，用於沒有政策的介面
+
 ## [Network](api/network.py)
-- Network create / read / update / delete
-- Network attachment read / update
-    - deployment = true 是接, deployment = false 是拔掉
-    - Issue: 如果同時放 switchPorts, detachSwitchPorts, deployment = true 還是會拔掉放在 detachSwitchPorts 的 ports
-    - 接的時候要將 deployment 設定成 true 並確定沒有 detachSwitchPorts 出現
-    - 拔的時候要將 deployment 設定成 false 並確定有放 detachSwitchPorts
-- Preview network (generate pending config)
-- Deploy network
+- `get_networks(fabric, network_dir="networks", network_template_config_dir="networks/network_templates", network_filter="", range=0)` - 獲取網路列表
+- `get_network(fabric, network_name, network_dir="networks", network_template_config_dir="networks/network_templates")` - 獲取指定網路配置
+- `create_network(fabric_name: str, network_payload: Dict[str, Any], template_payload: Dict[str, Any])` - 建立網路
+- `update_network(fabric_name: str, network_payload: Dict[str, Any], template_payload: Dict[str, Any])` - 更新網路
+- `delete_network(fabric_name: str, network_name: str)` - 刪除網路
+- `attach_network(fabric_name: str, network_name: str, serial_number: str, switch_ports: str, vlan: int)` - 將網路附加到交換器
+- `detach_network(fabric_name: str, network_name: str, serial_number: str, detach_switch_ports: str, vlan: int)` - 從交換器分離網路
+- `get_network_attachment(fabric, network_dir="networks", networkname="")` - 獲取網路附加狀態
+- `preview_networks(fabric, network_names)` - 預覽網路配置 (生成待部署配置)
+- `deploy_networks(fabric, network_names)` - 部署網路配置
+
 ## [VRF](api/vrf.py)
-- VRF create / read / update / delete
-- VRF attachment read / update
+- `get_VRFs(fabric, vrf_dir="vrfs", vrf_template_config_dir="vrf_template_config_dirs", vrf_filter="", range=0)` - 獲取 VRF 列表
+- `create_vrf(fabric_name: str, vrf_payload: Dict[str, Any], template_payload: Dict[str, Any])` - 建立 VRF
+- `update_vrf(fabric_name: str, vrf_name: str, vrf_payload: Dict[str, Any], template_payload: Dict[str, Any])` - 更新 VRF
+- `delete_vrf(fabric_name: str, vrf_name: str)` - 刪除 VRF
+- `update_vrf_attachment(fabric_name: str, attachment_payload: Dict[str, Any])` - 更新 VRF 附加配置
+- `attach_vrf_to_switches(fabric_name: str, vrf_name: str, attachment_payload: List[Dict[str, Any]])` - 將 VRF 附加到交換器
+- `detach_vrf_from_switches(fabric_name: str, vrf_name: str, attachment_payload: List[Dict[str, Any]])` - 從交換器分離 VRF
+
+## [Policy](api/policy.py)
+- `save_policy_config(data, policy_dir="policies", switch_name=None)` - 儲存政策配置
+- `create_policy(payload)` - 建立政策
+- `find_existing_policies_for_switch(switch_name, serial_number, policy_dir="policies")` - 尋找交換器的現有政策
+- `delete_existing_policies_for_switch(switch_name, serial_number, policy_dir="policies")` - 刪除交換器的現有政策
+- `create_policy_with_random_id(switch_name, serial_number, fabric_name, freeform_config, max_attempts=10)` - 建立具有隨機 ID 的政策
+- `get_policies_by_serial_number(serial_number)` - 根據序號獲取政策
+- `update_policy(policy_id, payload)` - 更新政策
+- `get_policy_by_id(id, policy_dir="policies", switch_name=None)` - 根據 ID 獲取政策
+- `delete_policy(id)` - 刪除政策
+
+## [Key/Authentication](api/key.py)
+- `login()` - 登入 NDFC 並獲取認證 token
+- `add_api_key(token)` - 添加 API key
+- `get_api_key(token)` - 獲取 API key
+- `generate_api_key()` - 生成新的 API key
+- Note: 記得要將環境變數放在 .env 裡面
+
+## [Utils](api/utils.py)
+- 提供 HTTP 通訊工具函數 (get_url, get_api_key_header, check_status_code 等)
+- 環境變數管理和 NDFC 管理 IP 配置
 
 # CLI Tools
 
@@ -94,7 +137,6 @@ python fabric_cli.py delete <fabric_name>      # 刪除特定 fabric (需確認)
 python fabric_cli.py recalculate <fabric_name> # 重新計算 fabric 配置
 python fabric_cli.py get-pending <fabric_name> # 獲取待部署配置 (儲存至 pending.txt)
 python fabric_cli.py deploy <fabric_name>      # 部署 fabric 配置
-python fabric_cli.py workflow <fabric_name>    # 完整部署工作流程 (重新計算->查看待部署->部署)
 python fabric_cli.py add-msd <parent> <child>  # 將子 fabric 加入 MSD
 python fabric_cli.py remove-msd <parent> <child> # 從 MSD 移除子 fabric
 
@@ -109,11 +151,13 @@ python fabric_cli.py --help
 # 在 scripts/cisco/12.2.2/ 目錄下執行
 python vrf_cli.py create <fabric_name> <vrf_name>     # 建立特定 VRF
 python vrf_cli.py update <fabric_name> <vrf_name>     # 更新特定 VRF
-python vrf_cli.py delete <vrf_name>                   # 刪除特定 VRF
+python vrf_cli.py delete <fabric_name> <vrf_name>     # 刪除特定 VRF
 python vrf_cli.py attach <fabric_name> <switch_role> <switch_name>   # 附加 VRF 到交換器
 python vrf_cli.py detach <fabric_name> <switch_role> <switch_name>   # 從交換器分離 VRF
 
 # 範例
+python vrf_cli.py create Site1 bluevrf         # 建立 bluevrf VRF
+python vrf_cli.py delete Site1 bluevrf         # 刪除 bluevrf VRF
 python vrf_cli.py attach Site1 leaf Site1-L1    # 附加 VRF 到指定 leaf 交換器
 python vrf_cli.py detach Site1 leaf Site1-L1    # 從指定 leaf 交換器分離 VRF
 
