@@ -80,10 +80,10 @@ Examples:
         success = False
         
         if args.command == 'create':
-            success = vrf_manager.create_vrf(args.vrf_name, args.fabric_name)
+            success = vrf_manager.create_vrf(args.fabric_name, args.vrf_name)
             
         elif args.command == 'update':
-            success = vrf_manager.update_vrf(args.vrf_name, args.fabric_name)
+            success = vrf_manager.update_vrf(args.fabric_name, args.vrf_name)
             
         elif args.command == 'delete':
             success = vrf_manager.delete_vrf(args.fabric_name, args.vrf_name)

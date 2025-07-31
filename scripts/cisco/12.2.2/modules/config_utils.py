@@ -1,10 +1,9 @@
 """
 Configuration Utilities - High-level utilities for fabric configuration management
-Contains YAML/JSON processing, config merging, and build-specific functions.
+Contains YAML processing, config merging, and build-specific functions.
 Used by build_fabric.py for configuration processing.
 """
 import yaml
-import json
 from typing import Dict, Any, Optional, List, Tuple
 from pathlib import Path
 
@@ -22,41 +21,6 @@ def load_yaml_file(filepath: str) -> Optional[Dict[str, Any]]:
     except Exception as e:
         print(f"Unexpected error loading YAML file {filepath}: {e}")
         return None
-
-def load_json_file(filepath: str) -> Optional[Dict[str, Any]]:
-    """Load a JSON file and return its content."""
-    try:
-        with open(filepath, 'r', encoding='utf-8') as file:
-            return json.load(file)
-    except FileNotFoundError:
-        print(f"Error: JSON file not found at {filepath}")
-        return None
-    except json.JSONDecodeError as e:
-        print(f"Error parsing JSON file {filepath}: {e}")
-        return None
-    except Exception as e:
-        print(f"Unexpected error loading JSON file {filepath}: {e}")
-        return None
-
-def save_yaml_file(data: Dict[str, Any], filepath: str) -> bool:
-    """Save data to a YAML file."""
-    try:
-        with open(filepath, 'w', encoding='utf-8') as file:
-            yaml.dump(data, file, default_flow_style=False, indent=2)
-        return True
-    except Exception as e:
-        print(f"Error saving YAML file {filepath}: {e}")
-        return False
-
-def save_json_file(data: Dict[str, Any], filepath: str, indent: int = 2) -> bool:
-    """Save data to a JSON file."""
-    try:
-        with open(filepath, 'w', encoding='utf-8') as file:
-            json.dump(data, file, indent=indent)
-        return True
-    except Exception as e:
-        print(f"Error saving JSON file {filepath}: {e}")
-        return False
 
 def merge_configs(base_config: Dict[str, Any], override_config: Dict[str, Any]) -> Dict[str, Any]:
     """
@@ -124,16 +88,6 @@ def get_nested_value(config_dict: Dict[str, Any], keys: Tuple[str, ...]) -> Any:
             return None
     return value
 
-def get_template_name(fabric_type: str, template_mapping_file: str) -> Optional[str]:
-    """
-    Get the template name from the mapping file based on fabric type.
-    Maps fabric types to their corresponding NDFC templates.
-    """
-    templates = load_yaml_file(template_mapping_file)
-    if templates:
-        return templates.get(fabric_type)
-    return None
-
 def validate_file_exists(filepath: str) -> bool:
     """Check if a file exists."""
     return Path(filepath).exists()
@@ -166,55 +120,3 @@ def read_freeform_config(file_path: str) -> str:
     except Exception as e:
         print(f"Error reading freeform config {file_path}: {e}")
         return ""
-
-def parse_freeform_config(file_path: str) -> str:
-    """
-    Legacy alias for read_freeform_config for backward compatibility.
-    Use read_freeform_config instead.
-    """
-    return read_freeform_config(file_path)
-
-def create_backup_config(original_config: Dict[str, Any], backup_dir: str = "backups") -> str:
-    """
-    Create a backup of configuration before modifications.
-    Returns the backup file path.
-    """
-    import datetime
-    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    backup_filename = f"config_backup_{timestamp}.json"
-    
-    Path(backup_dir).mkdir(exist_ok=True)
-    backup_path = Path(backup_dir) / backup_filename
-    
-    if save_json_file(original_config, str(backup_path)):
-        print(f"Configuration backed up to: {backup_path}")
-        return str(backup_path)
-    else:
-        print("Failed to create configuration backup")
-        return ""
-
-def extract_child_fabrics_config(config_dict: Dict[str, Any]) -> Dict[str, List[str]]:
-    """
-    Extract child fabric information from MSD configuration.
-    Returns dictionary with 'regular_fabrics' and 'isn_fabrics' keys.
-    """
-    child_fabric_config = config_dict.get("Child Fabric", {})
-    
-    # Extract regular fabrics
-    regular_fabrics = child_fabric_config.get("Fabric", [])
-    if isinstance(regular_fabrics, str):
-        regular_fabrics = [regular_fabrics]
-    elif not isinstance(regular_fabrics, list):
-        regular_fabrics = []
-    
-    # Extract ISN fabrics
-    isn_fabrics = child_fabric_config.get("ISN", [])
-    if isinstance(isn_fabrics, str):
-        isn_fabrics = [isn_fabrics]
-    elif not isinstance(isn_fabrics, list):
-        isn_fabrics = []
-    
-    return {
-        "regular_fabrics": regular_fabrics,
-        "isn_fabrics": isn_fabrics
-    }

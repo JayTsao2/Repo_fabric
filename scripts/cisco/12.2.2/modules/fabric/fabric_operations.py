@@ -8,8 +8,11 @@ This module handles both fabric creation and update operations:
 - Building/Updating Inter-Site Networks (ISN)
 """
 
-from modules.common_utils import setup_module_path
-setup_module_path(__file__)
+import sys
+from pathlib import Path
+
+# Add parent directory to path for imports
+sys.path.append(str(Path(__file__).parent.parent.absolute()))
 
 import api.fabric as fabric_api
 from modules.config_utils import validate_configuration_files

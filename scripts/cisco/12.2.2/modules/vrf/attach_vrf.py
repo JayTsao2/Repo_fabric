@@ -8,16 +8,23 @@ This module handles VRF attachment and detachment operations:
 - Switch discovery and payload building
 """
 
+import sys
+from pathlib import Path
 from typing import Dict, Any, List, Optional
-from modules.common_utils import setup_module_path
-setup_module_path(__file__)
+
+# Add parent directory to path for imports
+sys.path.append(str(Path(__file__).parent.parent.absolute()))
 
 import api.vrf as vrf_api
 from modules.config_utils import load_yaml_file
-from . import BaseVRFMethods
+from . import VRFBuilder, VRFPayloadGenerator
 
-class VRFAttachment(BaseVRFMethods):
+class VRFAttachment:
     """Handles VRF attachment and detachment operations."""
+    
+    def __init__(self):
+        self.builder = VRFBuilder()
+        self.payload_generator = VRFPayloadGenerator()
     
     def manage_vrf_by_switch(self, fabric_name: str, switch_role: str, switch_name: str, operation: str = "attach") -> bool:
         """

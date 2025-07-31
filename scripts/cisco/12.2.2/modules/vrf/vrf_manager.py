@@ -2,8 +2,11 @@
 """
 VRF Manager - Unified VRF Management Interface
 
-This module provides a clean, unified interface for all VRF operations.
-It orchestrates VRF operations while delegating to specialized components.
+This module provides a clean, unified interface for all VRF operations with:
+- Consistent parameter ordering (fabric_name, vrf_name)
+- Centralized error handling and validation
+- Clear separation between VRF lifecycle and attachment operations
+- Improved logging and user feedback
 """
 
 import sys
@@ -20,8 +23,14 @@ import api.vrf as vrf_api
 
 class VRFManager:
     """
-    Unified VRF management interface.
-    Orchestrates VRF operations while delegating to specialized components.
+    Unified VRF Management Interface
+    
+    Provides a clean, consistent interface for all VRF operations:
+    - VRF lifecycle management (create, update, delete)
+    - VRF attachment management (attach, detach)
+    - Centralized error handling and logging
+    
+    All methods follow consistent parameter ordering: fabric_name, vrf_name/switch_name
     """
     
     def __init__(self):
@@ -44,42 +53,31 @@ class VRFManager:
         return self._attacher
     
     # Core VRF Operations
-    def create_vrf(self, vrf_name: str, fabric_name: str) -> bool:
+    def create_vrf(self, fabric_name: str, vrf_name: str) -> bool:
         """
         Create a VRF with validation and error handling.
         
         Args:
-            vrf_name: Name of the VRF to create
             fabric_name: Name of the fabric where VRF will be created
+            vrf_name: Name of the VRF to create
             
         Returns:
             bool: True if successful, False otherwise
         """
-        try:
-            print(f"Creating {vrf_name} in {fabric_name}")
-            return self.operations.create_vrf(vrf_name)
-            
-        except Exception as e:
-            print(f"❌ Error creating VRF {vrf_name}: {e}")
-            return False
+        return self.operations.create_vrf(fabric_name, vrf_name)
     
-    def update_vrf(self, vrf_name: str, fabric_name: str) -> bool:
+    def update_vrf(self, fabric_name: str, vrf_name: str) -> bool:
         """
         Update an existing VRF.
         
         Args:
-            vrf_name: Name of the VRF to update
             fabric_name: Name of the fabric containing the VRF
+            vrf_name: Name of the VRF to update
             
         Returns:
             bool: True if successful, False otherwise
         """
-        try:
-            print(f"Updating {vrf_name} in {fabric_name}")
-            return self.operations.update_vrf(vrf_name)
-        except Exception as e:
-            print(f"❌ Error updating VRF {vrf_name}: {e}")
-            return False
+        return self.operations.update_vrf(fabric_name, vrf_name)
     
     def delete_vrf(self, fabric_name: str, vrf_name: str) -> bool:
         """
@@ -93,11 +91,15 @@ class VRFManager:
             bool: True if successful, False otherwise
         """
         try:
-            print(f"Deleting {vrf_name} from {fabric_name}")
-            return vrf_api.delete_vrf(fabric_name, vrf_name)
-
+            print(f"Deleting VRF '{vrf_name}' from fabric '{fabric_name}'")
+            success = vrf_api.delete_vrf(fabric_name, vrf_name)
+            if success:
+                print(f"Successfully deleted VRF '{vrf_name}' from fabric '{fabric_name}'")
+            else:
+                print(f"Failed to delete VRF '{vrf_name}' from fabric '{fabric_name}'")
+            return success
         except Exception as e:
-            print(f"❌ Error deleting VRF {vrf_name}: {e}")
+            print(f"Error deleting VRF '{vrf_name}' from fabric '{fabric_name}': {e}")
             return False
     
     # VRF Attachment Operations
@@ -114,11 +116,11 @@ class VRFManager:
             bool: True if successful, False otherwise
         """
         try:
-            print(f"Attaching VRF to {switch_name} ({role}) in {fabric_name}")
-            return  self.attacher.manage_vrf_by_switch(fabric_name, role, switch_name, operation="attach")
+            print(f"Attaching VRF to '{switch_name}' ({role}) in fabric '{fabric_name}'")
+            return self.attacher.manage_vrf_by_switch(fabric_name, role, switch_name, operation="attach")
             
         except Exception as e:
-            print(f"❌ Error attaching VRF to switch {switch_name}: {e}")
+            print(f"Error attaching VRF to switch '{switch_name}': {e}")
             return False
     
     def detach_vrf(self, fabric_name: str, role: str, switch_name: str) -> bool:
@@ -134,9 +136,9 @@ class VRFManager:
             bool: True if successful, False otherwise
         """
         try:
-            print(f"Detaching VRF from {switch_name} ({role}) in {fabric_name}")
+            print(f"Detaching VRF from '{switch_name}' ({role}) in fabric '{fabric_name}'")
             return self.attacher.manage_vrf_by_switch(fabric_name, role, switch_name, operation="detach")
             
         except Exception as e:
-            print(f"❌ Error detaching VRF from switch {switch_name}: {e}")
+            print(f"Error detaching VRF from switch '{switch_name}': {e}")
             return False
