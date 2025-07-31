@@ -192,8 +192,8 @@ class PayloadGenerator:
                 payload_data["AAA_SERVER_CONF"] = read_freeform_config(freeform_paths.aaa)
                 
             if freeform_paths.banner and validate_file_exists(freeform_paths.banner):
-                payload_data["BANNER"] = read_freeform_config(freeform_paths.banner)
-        
+                payload_data["BANNER"] = "`" + read_freeform_config(freeform_paths.banner) + "`"
+
         elif template_name == FabricType.INTER_SITE_NETWORK.value:
             if freeform_paths.fabric and validate_file_exists(freeform_paths.fabric):
                 payload_data["FABRIC_FREEFORM"] = read_freeform_config(freeform_paths.fabric)
