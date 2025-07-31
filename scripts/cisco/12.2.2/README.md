@@ -220,6 +220,8 @@ python switch_cli.py <command> --help
 - `set_switch_role_by_name(switch_name: str)` - 根據交換器名稱設定角色
 - `change_switch_ip(fabric_name: str, role: str, switch_name: str, original_ip_with_mask: str, new_ip_with_mask: str)` - 變更交換器管理 IP
 - `set_switch_freeform(fabric_name: str, role: str, switch_name: str)` - 執行 freeform 配置
+    - 注意: 這個會將 Policy 的 JSON 檔案存下來，以便之後能夠透過 API 讀取並執行
+    - 因為在設定的時候實際上是創造出一個 freeform policy，如果之後沒有這個 JSON 檔案就無法知道正確的 policy ID 並做修改
 - `change_switch_hostname(fabric_name: str, role: str, switch_name: str, new_hostname: str)` - 變更交換器主機名稱
 
 ## VPCManager
