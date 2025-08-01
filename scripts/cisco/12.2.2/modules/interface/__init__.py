@@ -9,7 +9,7 @@ Provides YAML-based interface management for Cisco NDFC:
 """
 
 # Import the InterfaceManager and related components from interface.py
-from .interface import InterfaceManager, InterfaceConfig
+from .interface import InterfaceManager
 
 # --- Expose the InterfaceManager class ---
-__all__ = ['InterfaceManager', 'InterfaceConfig']
+__all__ = ['InterfaceManager']
