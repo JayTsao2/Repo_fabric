@@ -8,8 +8,8 @@ Provides YAML-based network management for Cisco NDFC:
 - Corp defaults integration and Layer 2 Only support
 """
 
-# Import the NetworkManager and related components from network.py
-from .network import NetworkManager, NetworkTemplateConfig, NetworkPayload
+# Import the NetworkManager from network.py
+from .network import NetworkManager
 
-# --- Expose the NetworkManager class and dataclasses ---
-__all__ = ['NetworkManager', 'NetworkTemplateConfig', 'NetworkPayload']
+# --- Expose the NetworkManager class ---
+__all__ = ['NetworkManager']

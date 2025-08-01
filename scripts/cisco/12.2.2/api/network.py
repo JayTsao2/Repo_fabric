@@ -180,7 +180,7 @@ def attach_network(fabric_name: str, network_name: str, serial_number: str, swit
     
     url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric_name}/networks/{network_name}/attachments")
     r = requests.post(url, headers=headers, json=payload, verify=False)
-    return check_status_code(r, operation_name="Attach Network")
+    return check_status_code(r, operation_name=f"Attach {network_name} to port {switch_ports}")
 
 def detach_network(fabric_name: str, network_name: str, serial_number: str, detach_switch_ports: str, vlan: int) -> bool:
     """
@@ -212,7 +212,7 @@ def detach_network(fabric_name: str, network_name: str, serial_number: str, deta
     
     url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric_name}/networks/{network_name}/attachments")
     r = requests.post(url, headers=headers, json=payload, verify=False)
-    return check_status_code(r, operation_name="Detach Network")
+    return check_status_code(r, operation_name=f"Detach {network_name} from port {detach_switch_ports}")
 
 def preview_networks(fabric, network_names):
     headers = get_api_key_header()

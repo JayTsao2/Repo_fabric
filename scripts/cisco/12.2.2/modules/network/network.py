@@ -11,85 +11,11 @@ This module provides a clean, unified interface for all network operations with:
 """
 
 from typing import List, Dict, Any, Tuple, Optional
-from dataclasses import dataclass, asdict
 import json
 
 import api.network as network_api
 from modules.config_utils import load_yaml_file, validate_configuration_files
 from config.config_factory import config_factory
-
-@dataclass
-class NetworkTemplateConfig:
-    """Network template configuration with all required fields."""
-    # Core network fields
-    networkName: str
-    vlanName: str
-    vlanId: str
-    intfDescription: str
-    segmentId: str
-    type: str
-    vrfName: str
-    isLayer2Only: str
-    
-    # Optional gateway
-    gatewayIpAddress: str = ""
-    
-    # Required fields with defaults
-    nveId: str = "1"
-    tag: str = "12345"
-    mcastGroup: str = ""
-    switchRole: str = ""
-    gen_address: str = ""
-    isIpDhcpRelay: str = ""
-    flagSet: str = ""
-    vrfDhcp: str = ""
-    dhcpServerAddr1: str = ""
-    dhcpServerAddr2: str = ""
-    dhcpServerAddr3: str = ""
-    gen_mask: str = ""
-    isIp6DhcpRelay: str = ""
-    dhcpServers: str = ""
-    
-    def to_json(self) -> str:
-        """Convert to JSON string for API payload."""
-        return json.dumps(asdict(self))
-    
-    def apply_defaults(self, defaults: Dict[str, Any], field_mapping: Dict[str, Any]) -> None:
-        """Apply corp defaults with field mapping."""
-        for section in ["General Parameters", "Advanced"]:
-            if section in defaults:
-                for key, value in defaults[section].items():
-                    mapped_field = field_mapping.get(section, {}).get(key, key)
-                    if hasattr(self, mapped_field):
-                        setattr(self, mapped_field, value)
-
-@dataclass
-class NetworkPayload:
-    """Network payload structure for API operations."""
-    fabric: str
-    networkName: str
-    displayName: str
-    networkId: int
-    networkTemplate: str
-    networkExtensionTemplate: str
-    vrf: str
-    vlanName: str
-    type: str
-    
-    # Additional fields for complete payload
-    networkTemplateConfig: str = ""
-    tenantName: Optional[str] = None
-    serviceNetworkTemplate: Optional[str] = None
-    source: Optional[str] = None
-    interfaceGroups: Optional[str] = None
-    primaryNetworkId: int = -1
-    primaryNetworkName: Optional[str] = None
-    vlanId: Optional[int] = None
-    hierarchicalKey: str = ""
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for API calls."""
-        return asdict(self)
 
 class NetworkManager:
     """Unified network operations manager with YAML configuration support."""
@@ -97,9 +23,12 @@ class NetworkManager:
     def __init__(self):
         """Initialize with centralized configuration paths."""
         self.config_paths = config_factory.create_network_config()
+        self.switch_config_paths = config_factory.create_switch_config()
         self.defaults_path = self.config_paths['defaults_path']
         self.field_mapping_path = self.config_paths['field_mapping_path']
         self.config_path = self.config_paths['config_path']
+        # Initialize network API
+        self.network_api = network_api
         # Lazy-loaded cached configurations
         self._defaults = None
         self._field_mapping = None
@@ -151,6 +80,95 @@ class NetworkManager:
         """Validate required resource files exist."""
         validate_configuration_files([str(self.defaults_path), str(self.field_mapping_path)])
     
+    def _build_network_template_config(self, fabric_name: str, network_name: str, network: Dict[str, Any]) -> Dict[str, Any]:
+        """Build network template configuration dictionary."""
+        # Extract required fields from network data
+        vlan_name = network.get('VLAN Name', '')
+        vlan_id = str(network.get('VLAN ID', 0))
+        intf_description = network.get('Interface Description', '')
+        segment_id = str(network.get('Network ID', 0))
+        vrf_name = self._get_effective_vrf(network)
+        is_layer2_only = "true" if network.get('Layer 2 Only', False) else "false"
+        
+        # Apply transformations - build base template config
+        template_config = {
+            "networkName": network_name,
+            "vlanName": vlan_name,
+            "vlanId": vlan_id,
+            "intfDescription": intf_description,
+            "segmentId": segment_id,
+            "type": "Normal",
+            "vrfName": vrf_name,
+            "isLayer2Only": is_layer2_only,
+            # Required fields with defaults
+            "gatewayIpAddress": "",
+            "nveId": "1",
+            "tag": "12345",
+            "mcastGroup": "",
+            "switchRole": "",
+            "gen_address": "",
+            "isIpDhcpRelay": "",
+            "flagSet": "",
+            "vrfDhcp": "",
+            "dhcpServerAddr1": "",
+            "dhcpServerAddr2": "",
+            "dhcpServerAddr3": "",
+            "gen_mask": "",
+            "isIp6DhcpRelay": "",
+            "dhcpServers": ""
+        }
+        
+        # Apply corp defaults with field mapping
+        self._apply_template_defaults(template_config)
+        
+        # Add gateway for Layer 3 networks
+        gateway = network.get('IPv4 Gateway/NetMask', '')
+        if gateway and not network.get('Layer 2 Only', False):
+            template_config["gatewayIpAddress"] = gateway
+        
+        return template_config
+    
+    def _apply_template_defaults(self, template_config: Dict[str, Any]) -> None:
+        """Apply corp defaults with field mapping to template config."""
+        for section in ["General Parameters", "Advanced"]:
+            if section in self.defaults:
+                for key, value in self.defaults[section].items():
+                    mapped_field = self.field_mapping.get(section, {}).get(key, key)
+                    if mapped_field in template_config:
+                        template_config[mapped_field] = value
+    
+    def _build_network_payload(self, fabric_name: str, network_name: str, network: Dict[str, Any]) -> Dict[str, Any]:
+        """Build network payload dictionary."""
+        # Extract required fields from network data
+        network_id = network.get('Network ID', 0)
+        vrf_name = self._get_effective_vrf(network)
+        vlan_name = network.get('VLAN Name', '')
+        
+        # Apply transformations - build base payload
+        payload = {
+            "fabric": fabric_name,
+            "networkName": network_name,
+            "displayName": network_name,
+            "networkId": network_id,
+            "networkTemplate": self.defaults.get("networkTemplate", "Default_Network_Universal"),
+            "networkExtensionTemplate": self.defaults.get("networkExtensionTemplate", "Default_Network_Extension_Universal"),
+            "vrf": vrf_name,
+            "vlanName": vlan_name,
+            "type": "Normal",
+            "hierarchicalKey": fabric_name,
+            # Additional fields for complete payload
+            "networkTemplateConfig": "",
+            "tenantName": None,
+            "serviceNetworkTemplate": None,
+            "source": None,
+            "interfaceGroups": None,
+            "primaryNetworkId": -1,
+            "primaryNetworkName": None,
+            "vlanId": None
+        }
+        
+        return payload
+
     def _build_complete_payload(self, fabric_name: str, network_name: str) -> Tuple[Dict[str, Any], str]:
         """Build complete network payload for API operations."""
         self._validate_resources()
@@ -159,76 +177,37 @@ class NetworkManager:
         if not network:
             raise ValueError(f"Network '{network_name}' not found in fabric '{fabric_name}'")
         
-        # Build NetworkPayload dataclass
-        payload = NetworkPayload(
-            fabric=fabric_name,
-            networkName=network_name,
-            displayName=network_name,
-            networkId=network.get('Network ID', 0),
-            networkTemplate=self.defaults.get("networkTemplate", "Default_Network_Universal"),
-            networkExtensionTemplate=self.defaults.get("networkExtensionTemplate", "Default_Network_Extension_Universal"),
-            vrf=self._get_effective_vrf(network),
-            vlanName=network.get('VLAN Name', ''),
-            type="Normal",
-            hierarchicalKey=fabric_name
-        )
+        # Build network payload using dictionary approach
+        payload = self._build_network_payload(fabric_name, network_name, network)
         
-        # Build NetworkTemplateConfig dataclass
-        template_config = NetworkTemplateConfig(
-            networkName=network_name,
-            vlanName=network.get('VLAN Name', ''),
-            vlanId=str(network.get('VLAN ID', 0)),
-            intfDescription=network.get('Interface Description', ''),
-            segmentId=str(network.get('Network ID', 0)),
-            type="Normal",
-            vrfName=self._get_effective_vrf(network),
-            isLayer2Only="true" if network.get('Layer 2 Only', False) else "false"
-        )
-        
-        # Apply corp defaults with field mapping
-        template_config.apply_defaults(self.defaults, self.field_mapping)
-        
-        # Add gateway for Layer 3 networks
-        gateway = network.get('IPv4 Gateway/NetMask', '')
-        if gateway and not network.get('Layer 2 Only', False):
-            template_config.gatewayIpAddress = gateway
+        # Build template config using dictionary approach
+        template_config = self._build_network_template_config(fabric_name, network_name, network)
         
         # Convert template config to JSON string
-        template_config_json = template_config.to_json()
-        payload.networkTemplateConfig = template_config_json
+        template_config_json = json.dumps(template_config)
+        payload["networkTemplateConfig"] = template_config_json
         
-        return payload.to_dict(), template_config_json
+        return payload, template_config_json
     
     # --- Network CRUD Operations ---
     
     def create_network(self, fabric_name: str, network_name: str) -> bool:
         """Create a network using YAML configuration."""
-        try:
-            print(f"[Network] Creating network: {network_name} in fabric: {fabric_name}")
-            payload, template_config = self._build_complete_payload(fabric_name, network_name)
-            return network_api.create_network(fabric_name, payload, template_config)
-        except Exception as e:
-            print(f"Error creating network: {e}")
-            return False
+        print(f"[Network] Creating network: {network_name} in fabric: {fabric_name}")
+        payload, template_config = self._build_complete_payload(fabric_name, network_name)
+        return network_api.create_network(fabric_name, payload, template_config)
     
     def update_network(self, fabric_name: str, network_name: str) -> bool:
         """Update a network using YAML configuration."""
-        try:
-            print(f"[Network] Updating network: {network_name} in fabric: {fabric_name}")
-            payload, template_config = self._build_complete_payload(fabric_name, network_name)
-            return network_api.update_network(fabric_name, payload, template_config)
-        except Exception as e:
-            print(f"Error updating network: {e}")
-            return False
+        print(f"[Network] Updating network: {network_name} in fabric: {fabric_name}")
+        payload, template_config = self._build_complete_payload(fabric_name, network_name)
+        return network_api.update_network(fabric_name, payload, template_config)
+
     
     def delete_network(self, fabric_name: str, network_name: str) -> bool:
         """Delete a network."""
-        try:
-            print(f"[Network] Deleting network: {network_name} in fabric: {fabric_name}")
-            return network_api.delete_network(fabric_name, network_name)
-        except Exception as e:
-            print(f"Error deleting network: {e}")
-            return False
+        print(f"[Network] Deleting network: {network_name} in fabric: {fabric_name}")
+        return network_api.delete_network(fabric_name, network_name)
     
     # --- Network Attachment Operations ---
     
@@ -245,75 +224,196 @@ class NetworkManager:
     def _process_switch_networks(self, fabric_name: str, role: str, switch_name: str, operation: str) -> bool:
         """Process network attach/detach operations for a switch."""
         try:
-            print(f"{operation.capitalize()}ing networks {'to' if operation == 'attach' else 'from'} {switch_name} ({role}) in {fabric_name}...")
-            
-            # Load switch configuration
-            switch_path = self.config_paths['configs_dir'] / fabric_name / role / f"{switch_name}.yaml"
-            if not switch_path.exists():
-                print(f"Switch configuration not found: {switch_path}")
+            # Load and validate switch configuration
+            switch_config = self._load_switch_config(fabric_name, role, switch_name)
+            if not switch_config:
                 return False
             
-            switch_config = load_yaml_file(str(switch_path))
-            if 'Interface' not in switch_config:
-                print("No interfaces found to process")
-                return True
-            
-            # Create network lookup for this fabric
-            network_lookup = {
-                net.get('VLAN ID'): net.get('Network Name')
-                for net in self.networks 
-                if net.get('Fabric') == fabric_name and net.get('VLAN ID')
-            }
-            
-            api_func = getattr(network_api, f"{operation}_network")
-            success = True
-            processed_count = 0
+            # Create network lookup
+            network_lookup = self._build_network_lookup(fabric_name)
             
             # Process all interfaces
-            for interface_config in switch_config['Interface']:
-                for interface_name, interface_data in interface_config.items():
-                    policy = interface_data.get('policy')
-                    
-                    if policy == 'int_access_host':
-                        access_vlan = interface_data.get('Access Vlan')
-                        if access_vlan:
-                            try:
-                                vlan_id = int(access_vlan)
-                                if vlan_id in network_lookup:
-                                    network_name = network_lookup[vlan_id]
-                                    if api_func(fabric_name, network_name, switch_name, [interface_name]):
-                                        print(f"Success: {operation.capitalize()}ed {network_name} {'to' if operation == 'attach' else 'from'} {interface_name} (ACCESS)")
-                                        processed_count += 1
-                                    else:
-                                        print(f"Failed to {operation} {network_name} {'to' if operation == 'attach' else 'from'} {interface_name}")
-                                        success = False
-                            except ValueError:
-                                print(f"Invalid VLAN ID '{access_vlan}' for interface {interface_name}")
-                    
-                    elif policy == 'int_trunk_host':
-                        trunk_vlans = interface_data.get('Trunk Allowed Vlans')
-                        if trunk_vlans and not (isinstance(trunk_vlans, str) and 
-                                              (trunk_vlans.strip() == '' or 'controlled by policy' in trunk_vlans.lower())):
-                            try:
-                                vlan_ids = [int(vlan.strip()) for vlan in str(trunk_vlans).split(',') 
-                                           if vlan.strip() and vlan.strip().isdigit()]
-                                
-                                for vlan_id in vlan_ids:
-                                    if vlan_id in network_lookup:
-                                        network_name = network_lookup[vlan_id]
-                                        if api_func(fabric_name, network_name, switch_name, [interface_name]):
-                                            print(f"Success: {operation.capitalize()}ed {network_name} {'to' if operation == 'attach' else 'from'} {interface_name} (TRUNK)")
-                                            processed_count += 1
-                                        else:
-                                            print(f"Failed to {operation} {network_name} {'to' if operation == 'attach' else 'from'} {interface_name}")
-                                            success = False
-                            except ValueError as e:
-                                print(f"Error parsing trunk VLANs for {interface_name}: {e}")
-            
-            status = "Success" if success else "Failed"
-            print(f"{status}: {operation.capitalize()}ed {processed_count} network interfaces for {switch_name}")
-            return success
+            return self._process_all_interfaces(switch_config, network_lookup, operation, fabric_name)
             
         except Exception as e:
-            print(f"Error {operation}ing networks: {e}")
+            print(f"[Network] Error {operation}ing networks: {e}")
             return False
+    
+    def _load_switch_config(self, fabric_name: str, role: str, switch_name: str) -> Optional[Dict[str, Any]]:
+        """Load and validate switch configuration."""
+        switch_path = self.switch_config_paths['configs_dir'] / fabric_name / role / f"{switch_name}.yaml"
+        if not switch_path.exists():
+            print(f"[Network] Switch configuration not found: {switch_path}")
+            return None
+        
+        switch_config = load_yaml_file(str(switch_path))
+        if not switch_config:
+            return None
+        
+        if 'Interface' not in switch_config:
+            print("[Network] No interfaces found to process")
+            return switch_config  # Return empty config but still valid
+        
+        if not switch_config.get('Serial Number'):
+            print(f"[Network] Error: Serial Number not found in switch configuration")
+            return None
+        
+        return switch_config
+    
+    def _build_network_lookup(self, fabric_name: str) -> Dict[int, Dict[str, Any]]:
+        """Build network lookup table for the fabric."""
+        return {
+            net.get('VLAN ID'): {
+                'network_name': net.get('Network Name'),
+                'vlan_id': net.get('VLAN ID')
+            }
+            for net in self.networks 
+            if net.get('Fabric') == fabric_name and net.get('VLAN ID')
+        }
+    
+    def _process_all_interfaces(self, switch_config: Dict[str, Any], network_lookup: Dict[int, Dict[str, Any]], 
+                               operation: str, fabric_name: str) -> bool:
+        """Process all interfaces in the switch configuration."""
+        if 'Interface' not in switch_config:
+            return True  # No interfaces to process is considered success
+        
+        serial_number = switch_config.get('Serial Number')
+        overall_success = True
+        
+        for interface_config in switch_config['Interface']:
+            for interface_name, interface_data in interface_config.items():
+                success = self._process_single_interface(
+                    interface_name, interface_data, network_lookup, 
+                    operation, fabric_name, serial_number
+                )
+                if not success:
+                    overall_success = False
+        
+        return overall_success
+    
+    def _process_single_interface(self, interface_name: str, interface_data: Dict[str, Any], 
+                                 network_lookup: Dict[int, Dict[str, Any]], operation: str, 
+                                 fabric_name: str, serial_number: str) -> bool:
+        """Process a single interface based on its policy."""
+        policy = interface_data.get('policy')
+        
+        if policy == 'int_access_host':
+            return self._process_access_interface(
+                interface_name, interface_data, network_lookup, 
+                operation, fabric_name, serial_number
+            )
+        elif policy == 'int_trunk_host':
+            return self._process_trunk_interface(
+                interface_name, interface_data, network_lookup, 
+                operation, fabric_name, serial_number
+            )
+        
+        return True  # Unknown policy types are skipped but not considered failure
+    
+    def _process_access_interface(self, interface_name: str, interface_data: Dict[str, Any], 
+                                 network_lookup: Dict[int, Dict[str, Any]], operation: str, 
+                                 fabric_name: str, serial_number: str) -> bool:
+        """Process access interface network attachment."""
+        access_vlan = interface_data.get('Access Vlan')
+        if not access_vlan:
+            return True  # No VLAN configured is not an error
+        
+        try:
+            vlan_id = int(access_vlan)
+            network_info = network_lookup.get(vlan_id)
+            if not network_info:
+                return True  # Network not found in lookup is not an error
+            
+            network_name = network_info['network_name']
+            
+            if operation == 'attach':
+                result = self.network_api.attach_network(
+                    fabric_name, 
+                    network_name, 
+                    serial_number, 
+                    interface_name, 
+                    vlan_id
+                )
+            else:  # detach
+                result = self.network_api.detach_network(
+                    fabric_name, 
+                    network_name, 
+                    serial_number, 
+                    interface_name, 
+                    vlan_id
+                )
+            
+            if result:
+                print(f"[Network] Successfully {operation}ed network {network_name} (VLAN {vlan_id}) "
+                      f"to interface {interface_name}")
+            else:
+                print(f"[Network] Failed to {operation} network {network_name} (VLAN {vlan_id}) "
+                      f"to interface {interface_name}")
+            
+            return result
+        except ValueError:
+            print(f"[Network] Invalid VLAN ID '{access_vlan}' for interface {interface_name}")
+            return False
+    
+    def _process_trunk_interface(self, interface_name: str, interface_data: Dict[str, Any], 
+                                network_lookup: Dict[int, Dict[str, Any]], operation: str, 
+                                fabric_name: str, serial_number: str) -> bool:
+        """Process trunk interface network attachments."""
+        trunk_vlans = interface_data.get('Trunk Allowed Vlans')
+        if not trunk_vlans or self._is_controlled_by_policy(trunk_vlans):
+            return True  # No VLANs or policy-controlled is not an error
+        
+        try:
+            vlan_ids = self._parse_trunk_vlans(trunk_vlans)
+            return self._attach_trunk_vlans(
+                vlan_ids, interface_name, network_lookup, 
+                operation, fabric_name, serial_number
+            )
+        except ValueError as e:
+            print(f"[Network] Error parsing trunk VLANs for {interface_name}: {e}")
+            return False
+    
+    def _is_controlled_by_policy(self, trunk_vlans) -> bool:
+        """Check if trunk VLANs are controlled by policy."""
+        return (isinstance(trunk_vlans, str) and 
+                (trunk_vlans.strip() == '' or 'controlled by policy' in trunk_vlans.lower()))
+    
+    def _parse_trunk_vlans(self, trunk_vlans) -> List[int]:
+        """Parse trunk VLAN string into list of VLAN IDs."""
+        return [int(vlan.strip()) for vlan in str(trunk_vlans).split(',') 
+                if vlan.strip() and vlan.strip().isdigit()]
+    
+    def _attach_trunk_vlans(self, vlan_ids: List[int], interface_name: str, 
+                           network_lookup: Dict[int, Dict[str, Any]], operation: str,
+                           fabric_name: str, serial_number: str) -> bool:
+        """Attach/detach multiple VLANs to/from a trunk interface."""
+        for vlan_id in vlan_ids:
+            if vlan_id not in network_lookup:
+                print(f"[Network] Warning: Network for VLAN {vlan_id} not found in fabric {fabric_name}")
+                continue
+            
+            network_info = network_lookup[vlan_id]
+            network_name = network_info['network_name']
+            
+            try:
+                if operation == "attach":
+                    result = self.network_api.attach_network(
+                        fabric_name, network_name, serial_number, interface_name, vlan_id
+                    )
+                else:  # detach
+                    result = self.network_api.detach_network(
+                        fabric_name, network_name, serial_number, interface_name, vlan_id
+                    )
+                
+                if result:
+                    print(f"[Network] Successfully {operation}ed network {network_name} (VLAN {vlan_id}) "
+                          f"to interface {interface_name}")
+                else:
+                    print(f"[Network] Failed to {operation} network {network_name} (VLAN {vlan_id}) "
+                          f"to interface {interface_name}")
+                    return False
+            except Exception as e:
+                print(f"[Network] Error during {operation} operation for VLAN {vlan_id}: {e}")
+                return False
+        
+        return True
