@@ -66,6 +66,8 @@ Examples:
     
     # Set-role command
     setrole_parser = subparsers.add_parser('set-role', help='Set switch role')
+    setrole_parser.add_argument('fabric_name', help='Name of the fabric')
+    setrole_parser.add_argument('role', help='Role of the switch (leaf, spine, border, etc.)')
     setrole_parser.add_argument('switch_name', help='Name of the switch')
     
     # Change-ip command
@@ -128,7 +130,11 @@ Examples:
             )
         elif args.command == 'set-role':
             # Set switch role
-            success = switch_manager.set_switch_role_by_name(args.switch_name)
+            success = switch_manager.set_switch_role(
+                args.fabric_name,
+                args.role,
+                args.switch_name
+            )
         elif args.command == 'change-ip':
             # Change switch IP
             success = switch_manager.change_switch_ip(

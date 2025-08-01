@@ -13,13 +13,12 @@ This module provides a clean, unified interface for all switch operations with:
 import os
 from typing import Dict, Any, Optional
 from pathlib import Path
-from dataclasses import dataclass
 import paramiko
 import time
 
 import api.switch as switch_api
 import api.policy as policy_api
-from modules.config_utils import load_yaml_file
+from modules.config_utils import load_yaml_file, read_freeform_config
 from config.config_factory import config_factory
 
 # Valid switch roles enum
@@ -34,28 +33,6 @@ VALID_SWITCH_ROLES = {
     "edge router",
     "tor"
 }
-
-@dataclass
-class SwitchConfig:
-    """Switch configuration data structure."""
-    fabric_name: str
-    sys_name: str
-    serial_number: str
-    ip_address: str
-    platform: str
-    version: str
-    device_index: str
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for API calls."""
-        return {
-            "sysName": self.sys_name,
-            "serialNumber": self.serial_number,
-            "ipaddr": self.ip_address,
-            "platform": self.platform,
-            "deviceIndex": self.device_index,
-            "version": self.version
-        }
 
 class SwitchManager:
     """Unified switch operations manager with YAML configuration support."""
@@ -75,41 +52,16 @@ class SwitchManager:
             return False
         return True
     
-    def _get_switch_config_path(self, fabric_name: str, role: str, switch_name: str) -> Path:
-        """Get switch configuration file path."""
-        return self.config_base_path / fabric_name / role / f"{switch_name}.yaml"
-    
     def _load_switch_config(self, fabric_name: str, role: str, switch_name: str) -> Optional[Dict[str, Any]]:
         """Load switch configuration from YAML file."""
-        config_path = self._get_switch_config_path(fabric_name, role, switch_name)
+        config_path = self.config_base_path / fabric_name / role / f"{switch_name}.yaml"
         
         if not config_path.exists():
             print(f"Switch configuration not found: {config_path}")
             return None
         
-        print(f"Loading config: {config_path.name}")
+        print(f"[*] Loading config: {config_path}")
         return load_yaml_file(str(config_path))
-    
-    def _find_switch_config(self, switch_name: str) -> Optional[tuple[str, str, Dict[str, Any]]]:
-        """Find switch configuration by name across all fabrics and roles."""
-        # Search through all fabric directories in 3_node
-        for fabric_dir in self.config_base_path.iterdir():
-            if not fabric_dir.is_dir():
-                continue
-            
-            # Search through all role directories (leaf, spine, border_gateway, etc.)
-            for role_dir in fabric_dir.iterdir():
-                if not role_dir.is_dir():
-                    continue
-                
-                # Look for the switch YAML file
-                switch_file = role_dir / f"{switch_name}.yaml"
-                if switch_file.exists():
-                    config_data = load_yaml_file(str(switch_file))
-                    if config_data:
-                        return fabric_dir.name, role_dir.name, config_data
-        
-        return None
     
     def _extract_model_name(self, platform: str) -> str:
         """Extract model name from platform string."""
@@ -119,205 +71,141 @@ class SwitchManager:
         return platform
     
     def _build_switch_config(self, fabric_name: str, role: str, switch_name: str, 
-                           switch_data: Dict[str, Any]) -> SwitchConfig:
-        """Build SwitchConfig from YAML data."""
+                           switch_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Build switch config dictionary from YAML data."""
+        # Extract required fields from switch_data
         ip_address = switch_data.get("IP Address", "")
         serial_number = switch_data.get("Serial Number", "")
         platform = switch_data.get("Platform", "")
         version = switch_data.get("Version", "9.3(15)")  # Default version if not specified
         
-        # Extract model name for device index
+        # Apply transformations
         model_name = self._extract_model_name(platform)
         device_index = f"{switch_name}-{model_name}({serial_number})"
         
-        return SwitchConfig(
-            fabric_name=fabric_name,
-            sys_name=switch_name,
-            serial_number=serial_number,
-            ip_address=ip_address,
-            platform=platform,
-            version=version,
-            device_index=device_index
-        )
-    
-    def _build_discovery_payload(self, switch_config: SwitchConfig, preserve_config: bool = False) -> Dict[str, Any]:
-        """Build discovery payload for API."""
+        # Build and return the config structure
         return {
-            "seedIP": switch_config.ip_address,
+            "fabric_name": fabric_name,
+            "sys_name": switch_name,
+            "serial_number": serial_number,
+            "ip_address": ip_address,
+            "platform": platform,
+            "version": version,
+            "device_index": device_index,
+            # API format fields
+            "sysName": switch_name,
+            "serialNumber": serial_number,
+            "ipaddr": ip_address,
+            "deviceIndex": device_index
+        }
+    
+    def _build_discovery_payload(self, switch_config: Dict[str, Any], preserve_config: bool = False) -> Dict[str, Any]:
+        """Build discovery payload for API."""
+        # Extract required fields from switch_config
+        seed_ip = switch_config["ip_address"]
+        switch_api_data = {
+            "sysName": switch_config["sys_name"],
+            "serialNumber": switch_config["serial_number"],
+            "ipaddr": switch_config["ip_address"],
+            "platform": switch_config["platform"],
+            "deviceIndex": switch_config["device_index"],
+            "version": switch_config["version"]
+        }
+        
+        # Build and return the payload structure
+        return {
+            "seedIP": seed_ip,
             "username": "admin",
             "password": "",  # Will be filled from environment
             "maxHops": 0,
             "preserveConfig": preserve_config,
-            "switches": [switch_config.to_dict()],
+            "switches": [switch_api_data],
             "platform": "null"
         }
     
     def discover_switch(self, fabric_name: str, role: str, switch_name: str, preserve_config: bool = False) -> bool:
         """Discover switch based on YAML configuration."""
-        try:
-            print(f"[Switch] Discovering switch: {switch_name} in fabric: {fabric_name}, role: {role}")
-            # Load switch configuration
-            switch_data = self._load_switch_config(fabric_name, role, switch_name)
-            if not switch_data:
-                return False
-            
-            # Build switch configuration
-            switch_config = self._build_switch_config(fabric_name, role, switch_name, switch_data)
-            
-            # Generate discovery payload
-            payload = self._build_discovery_payload(switch_config, preserve_config)
-            
-            # Call API to discover switch
-            return switch_api.discover_switch_from_payload(fabric_name, payload)
-            
-        except Exception as e:
-            print(f"Error discovering switch: {e}")
+        print(f"[Switch] Discovering switch {switch_name} in fabric {fabric_name} with role {role}")
+        
+        switch_data = self._load_switch_config(fabric_name, role, switch_name)
+        if not switch_data:
             return False
+        
+        switch_config = self._build_switch_config(fabric_name, role, switch_name, switch_data)
+        payload = self._build_discovery_payload(switch_config, preserve_config)
+        
+        return switch_api.discover_switch_from_payload(fabric_name, payload)
     
     def delete_switch(self, fabric_name: str, role: str, switch_name: str) -> bool:
         """Delete switch based on YAML configuration."""
-        try:
-            print(f"[Switch] Deleting switch: {switch_name} in fabric: {fabric_name}, role: {role}")
-            # Load switch configuration to get serial number
-            switch_data = self._load_switch_config(fabric_name, role, switch_name)
-            if not switch_data:
-                return False
-            
-            serial_number = switch_data.get("Serial Number")
-            if not serial_number:
-                print(f"Error: Serial Number not found in {switch_name} configuration")
-                return False
-            
-            print(f"Deleting switch: {switch_name} ({serial_number})")
-            
-            # Call API to delete switch
-            switch_api.delete_switch(fabric_name, serial_number)
-            print(f"Successfully deleted switch {switch_name}")
-            return True
-            
-        except Exception as e:
-            print(f"Error deleting switch: {e}")
+        print(f"[Switch] Deleting switch {switch_name} from fabric {fabric_name}")
+        
+        switch_data = self._load_switch_config(fabric_name, role, switch_name)
+        if not switch_data:
             return False
+        
+        serial_number = switch_data.get("Serial Number")
+        if not serial_number:
+            print(f"[Switch] Error: Serial Number not found in {switch_name} configuration")
+            return False
+        
+        print(f"[Switch] Deleting switch {switch_name} with serial {serial_number}")
+        return switch_api.delete_switch(fabric_name, serial_number)
     
     def set_switch_role(self, fabric_name: str, role: str, switch_name: str) -> bool:
         """Set switch role based on YAML configuration."""
-        try:
-            print(f"[Switch] Setting role for switch: {switch_name} in fabric: {fabric_name}, role: {role}")
-            # Load switch configuration to get serial number and role
-            switch_data = self._load_switch_config(fabric_name, role, switch_name)
-            if not switch_data:
-                return False
-            
-            serial_number = switch_data.get("Serial Number")
-            if not serial_number:
-                print(f"Error: Serial Number not found in {switch_name} configuration")
-                return False
-            
-            switch_role = switch_data.get("Role")
-            if not switch_role:
-                print(f"Error: Role not found in {switch_name} configuration")
-                return False
-            
-            # Validate the switch role
-            if not self._validate_switch_role(switch_role):
-                return False
-            
-            # Convert role to lowercase for API
-            switch_role_lower = switch_role.lower().strip()
-            
-            print(f"Setting role for switch: {switch_name} ({serial_number}) to '{switch_role_lower}'")
-            
-            # Call API to set switch role
-            switch_api.set_switch_role(serial_number, switch_role_lower)
-            print(f"Successfully set role for switch {switch_name}")
-            return True
-            
-        except Exception as e:
-            print(f"Error setting switch role: {e}")
+        print(f"[Switch] Setting role for switch {switch_name} in fabric {fabric_name}")
+        
+        switch_data = self._load_switch_config(fabric_name, role, switch_name)
+        if not switch_data:
             return False
-    
-    def set_switch_role_by_name(self, switch_name: str) -> bool:
-        """Set switch role by searching for switch name across all configurations."""
-        try:
-            print(f"Setting role for switch: {switch_name}")
-            # Find switch configuration across all fabrics and roles
-            result = self._find_switch_config(switch_name)
-            if not result:
-                print(f"Switch configuration not found for: {switch_name}")
-                return False
-            
-            fabric_name, role_dir, switch_data = result
-            
-            serial_number = switch_data.get("Serial Number")
-            if not serial_number:
-                print(f"Error: Serial Number not found in {switch_name} configuration")
-                return False
-            
-            switch_role = switch_data.get("Role")
-            if not switch_role:
-                print(f"Error: Role not found in {switch_name} configuration")
-                return False
-            
-            # Validate the switch role
-            if not self._validate_switch_role(switch_role):
-                return False
-            
-            # Convert role to lowercase for API
-            switch_role_lower = switch_role.lower().strip()
-            
-            print(f"Found switch: {switch_name} in fabric {fabric_name}/{role_dir}")
-            print(f"Setting role for switch: {switch_name} ({serial_number}) to '{switch_role_lower}'")
-            
-            # Call API to set switch role
-            switch_api.set_switch_role(serial_number, switch_role_lower)
-            print(f"Successfully set role for switch {switch_name}")
-            return True
-            
-        except Exception as e:
-            print(f"Error setting switch role: {e}")
+        
+        serial_number = switch_data.get("Serial Number")
+        switch_role = switch_data.get("Role")
+        
+        if not serial_number:
+            print(f"[Switch] Error: Serial Number not found in {switch_name} configuration")
             return False
+        
+        if not switch_role:
+            print(f"[Switch] Error: Role not found in {switch_name} configuration")
+            return False
+        
+        if not self._validate_switch_role(switch_role):
+            print(f"[Switch] Error: Invalid role '{switch_role}' for switch {switch_name}")
+            return False
+        
+        switch_role_lower = switch_role.lower().strip()
+        print(f"[Switch] Setting role for switch {switch_name} to {switch_role_lower}")
+        
+        return switch_api.set_switch_role(serial_number, switch_role_lower)
     
     def change_switch_ip(self, fabric_name: str, role: str, switch_name: str, 
                         original_ip: str, new_ip: str) -> bool:
         """Change switch management IP through SSH and update NDFC."""
-        try:
-            print(f"[Switch] Changing IP for switch: {switch_name} in fabric: {fabric_name}, role: {role}, from {original_ip} to {new_ip}")
-            # Load switch configuration
-            switch_data = self._load_switch_config(fabric_name, role, switch_name)
-            if not switch_data:
-                return False
-            
-            serial_number = switch_data.get("Serial Number")
-            if not serial_number:
-                print(f"Error: Serial Number not found in {switch_name} configuration")
-                return False
-            
-            # Parse IP addresses
-            original_ip_only = original_ip.split('/')[0]
-            new_ip_with_mask = new_ip
-            new_ip_only = new_ip.split('/')[0]
-            
-            print(f"Changing IP for switch: {switch_name} ({serial_number})")
-            print(f"From: {original_ip} To: {new_ip}")
-            
-            # Step 1: SSH to switch and change management IP
-            print("Step 1: Connecting to switch via SSH")
-            if not self._ssh_change_management_ip(original_ip_only, new_ip_with_mask):
-                return False
-            
-            # Step 2: Update discovery IP in NDFC
-            print("Step 2: Updating discovery IP in NDFC")
-            switch_api.change_discovery_ip(fabric_name, serial_number, new_ip_only)
-            
-            # Step 3: Rediscover device
-            print("Step 3: Rediscovering device")
-            switch_api.rediscover_device(fabric_name, serial_number)
-            
-            return True
-            
-        except Exception as e:
-            print(f"Error changing switch IP: {e}")
+        print(f"[Switch] Changing IP for switch {switch_name} from {original_ip} to {new_ip}")
+        
+        switch_data = self._load_switch_config(fabric_name, role, switch_name)
+        if not switch_data:
             return False
+        
+        serial_number = switch_data.get("Serial Number")
+        if not serial_number:
+            print(f"[Switch] Error: Serial Number not found in {switch_name} configuration")
+            return False
+        
+        original_ip_only = original_ip.split('/')[0]
+        new_ip_with_mask = new_ip
+        new_ip_only = new_ip.split('/')[0]
+        
+        if not self._ssh_change_management_ip(original_ip_only, new_ip_with_mask):
+            return False
+        
+        switch_api.change_discovery_ip(fabric_name, serial_number, new_ip_only)
+        switch_api.rediscover_device(fabric_name, serial_number)
+        
+        print(f"[Switch] Successfully changed IP for switch {switch_name}")
+        return True
     
     def _ssh_change_management_ip(self, original_ip: str, new_ip_with_mask: str) -> bool:
         """SSH to switch and change management IP address."""
@@ -339,20 +227,20 @@ class SwitchManager:
             ssh = paramiko.SSHClient()
             ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             
-            print(f"Connecting to {original_ip}")
+            print(f"[*] Connecting to {original_ip}")
             ssh.connect(original_ip, username="admin", password=password, timeout=30)
             
             # Execute IP change command
             command = f"configure terminal ; interface mgmt0 ; ip address {new_ip_with_mask} ; exit ; exit"
-            print(f"Executing: ip address {new_ip_with_mask}")
-            
+            print(f"[*] Executing: ip address {new_ip_with_mask}")
+
             stdin, stdout, stderr = ssh.exec_command(command)
             
             # Wait for command execution
             time.sleep(2)
             
             ssh.close()
-            print("IP address changed successfully")
+            print("[+] IP address changed successfully")
             return True
             
         except Exception as e:
@@ -361,160 +249,120 @@ class SwitchManager:
     
     def set_switch_freeform(self, fabric_name: str, role: str, switch_name: str) -> bool:
         """Create a freeform policy for switch based on YAML configuration."""
-        try:
-            print(f"[Switch] Creating freeform policy for switch: {switch_name} in fabric: {fabric_name}, role: {role}")
-            # Load switch configuration
-            switch_data = self._load_switch_config(fabric_name, role, switch_name)
-            if not switch_data:
-                return False
-            
-            serial_number = switch_data.get("Serial Number")
-            if not serial_number:
-                print(f"Error: Serial Number not found in {switch_name} configuration")
-                return False
-            
-            freeform_config_path = switch_data.get("Switch Freeform Config")
-            if not freeform_config_path:
-                print(f"Error: Switch Freeform Config not found in {switch_name} configuration")
-                return False
-            
-            print(f"Creating freeform policy for switch: {switch_name} ({serial_number})")
-            print(f"Freeform config file: {freeform_config_path}")
-            
-            # Delete existing policies for this switch first
-            print(f"Checking for existing policies for switch {switch_name}...")
-            if not policy_api.delete_existing_policies_for_switch(switch_name, serial_number):
-                print(f"Warning: Failed to delete some existing policies for {switch_name}")
-            
-            # Parse freeform configuration file
-            cli_commands = self._parse_freeform_config(fabric_name, role, freeform_config_path)
-            if not cli_commands:
-                return False
-            
-            print(f"Parsed {len(cli_commands.splitlines())} command lines")
-            
-            # Create policy with random ID until successful
-            policy_id = policy_api.create_policy_with_random_id(
-                switch_name=switch_name,
-                serial_number=serial_number,
-                fabric_name=fabric_name,
-                freeform_config=cli_commands
-            )
-            
-            if not policy_id:
-                print(f"Failed to create policy for switch {switch_name}")
-                return False
-            
-            # Get the created policy and save it with new filename format
-            print(f"Retrieving and saving policy {policy_id}")
-            # Extract numeric ID from POLICY-123456 format
-            numeric_id = policy_id.split('-')[1]
-            return policy_api.get_policy_by_id(numeric_id, switch_name=switch_name)
-            
-        except Exception as e:
-            print(f"Error creating freeform policy: {e}")
+        print(f"[Switch] Creating freeform policy for switch {switch_name}")
+        
+        switch_data = self._load_switch_config(fabric_name, role, switch_name)
+        if not switch_data:
             return False
+        
+        serial_number = switch_data.get("Serial Number")
+        if not serial_number:
+            print(f"[Switch] Error: Serial Number not found in {switch_name} configuration")
+            return False
+        
+        freeform_config_path = switch_data.get("Switch Freeform Config")
+        if not freeform_config_path:
+            print(f"[Switch] Error: Switch Freeform Config not found in {switch_name} configuration")
+            return False
+        
+        print(f"[Switch] Using freeform config file: {freeform_config_path}")
+        
+        policy_api.delete_existing_policies_for_switch(switch_name, serial_number)
+        
+        cli_commands = self._parse_freeform_config(fabric_name, role, freeform_config_path)
+        if not cli_commands:
+            return False
+        
+        policy_id = policy_api.create_policy_with_random_id(
+            switch_name, serial_number, fabric_name, cli_commands
+        )
+
+        if not policy_id:
+            print(f"Failed to create policy for switch {switch_name}")
+            return False
+
+        print(f"[*] Retrieving and saving policy {policy_id}")
+        numeric_id = policy_id.split('-')[1]
+        return policy_api.get_policy_by_id(numeric_id, switch_name=switch_name)
     
     def _parse_freeform_config(self, fabric_name: str, role: str, freeform_config_path: str) -> Optional[str]:
         """Parse freeform configuration file and return CLI commands."""
-        try:
-            # Build the full path to the freeform config file
-            # The path is relative to the switch YAML file location
-            switch_dir = self.config_base_path / fabric_name / role
-            config_file_path = switch_dir / freeform_config_path
-            
-            if not config_file_path.exists():
-                print(f"Freeform config file not found: {config_file_path}")
-                return None
-            
-            print(f"Reading freeform config: {config_file_path.name}")
-            
-            # Read the configuration file
-            with open(config_file_path, 'r', encoding='utf-8') as f:
-                cli_commands = f.read().strip()
-            
-            if not cli_commands:
-                print("Warning: Freeform config file is empty")
-                return None
-            
-            return cli_commands
-            
-        except Exception as e:
-            print(f"Error parsing freeform config: {e}")
+        # Build the full path to the freeform config file
+        # The path is relative to the switch YAML file location
+        switch_dir = self.config_base_path / fabric_name / role
+        config_file_path = switch_dir / freeform_config_path
+        
+        print(f"[Switch] Reading freeform config: {config_file_path.name}")
+        
+        # Use config_utils function to read the freeform config
+        cli_commands = read_freeform_config(str(config_file_path))
+        
+        if not cli_commands:
+            print(f"[Switch] Warning: No freeform config found or file is empty")
             return None
+        
+        return cli_commands
+    
+    def _get_switch_password(self) -> Optional[str]:
+        """Get switch password from environment."""
+        from dotenv import load_dotenv
+        script_dir = Path(__file__).resolve().parents[2]
+        env_path = script_dir / "api" / ".env"
+        load_dotenv(env_path)
+        password = os.getenv("SWITCH_PASSWORD")
+        
+        if not password:
+            print("Error: SWITCH_PASSWORD not found in environment")
+            print(f"Please check .env file at: {env_path}")
+        
+        return password
     
     def change_switch_hostname(self, fabric_name: str, role: str, switch_name: str, new_hostname: str) -> bool:
         """Change the hostname of a switch by updating the host_11_1 policy."""
-        try:
-            print(f"[Switch] Changing hostname for switch: {switch_name} in fabric: {fabric_name}, role: {role}, to '{new_hostname}'")
-            # Load switch configuration to get serial number
-            switch_data = self._load_switch_config(fabric_name, role, switch_name)
-            if not switch_data:
-                return False
-            
-            serial_number = switch_data.get("Serial Number")
-            if not serial_number:
-                print(f"Error: Serial Number not found in {switch_name} configuration")
-                return False
-            
-            print(f"Changing hostname for switch: {switch_name} ({serial_number}) to '{new_hostname}'")
-            
-            # Step 1: Get all policies for this switch
-            print("Getting all policies for the switch...")
-            policies = policy_api.get_policies_by_serial_number(serial_number)
-            if not policies:
-                print(f"No policies found for switch {switch_name}")
-                return False
-            
-            # Step 2: Find the host_11_1 policy that is not deleted
-            hostname_policy = None
-            for policy in policies:
-                if (policy.get("templateName") == "host_11_1" and 
-                    policy.get("deleted") == False):
-                    hostname_policy = policy
-                    break
-            
-            if not hostname_policy:
-                print(f"Error: host_11_1 policy not found for switch {switch_name}")
-                print("Available policies:")
-                for policy in policies:
-                    print(f"  - {policy.get('templateName')} (deleted: {policy.get('deleted')})")
-                return False
-            
-            policy_id = hostname_policy.get("policyId")
-            print(f"Found hostname policy: {policy_id}")
-            
-            # Step 3: Update the nvPairs with new hostname
-            hostname_policy["nvPairs"]["SWITCH_NAME"] = new_hostname
-            
-            # Step 4: Update the policy via API
-            print(f"Updating policy {policy_id} with new hostname...")
-            success = policy_api.update_policy(policy_id, hostname_policy)
-            
-            return success
-            
-        except Exception as e:
-            print(f"Error changing hostname: {e}")
+        print(f"[Switch] Changing hostname for switch {switch_name} to {new_hostname}")
+        
+        switch_data = self._load_switch_config(fabric_name, role, switch_name)
+        if not switch_data:
             return False
+        
+        serial_number = switch_data.get("Serial Number")
+        if not serial_number:
+            print(f"[Switch] Error: Serial Number not found in {switch_name} configuration")
+            return False
+        
+        policies = policy_api.get_policies_by_serial_number(serial_number)
+        if not policies:
+            print(f"[Switch] No policies found for switch {switch_name}")
+            return False
+        
+        hostname_policy = None
+        for policy in policies:
+            if policy.get("templateName") == "host_11_1" and not policy.get("deleted"):
+                hostname_policy = policy
+                break
+        
+        if not hostname_policy:
+            print(f"[Switch] Error: host_11_1 policy not found for switch {switch_name}")
+            return False
+        
+        policy_id = hostname_policy.get("policyId")
+        hostname_policy["nvPairs"]["SWITCH_NAME"] = new_hostname
+        
+        print(f"[Switch] Updating hostname policy {policy_id}")
+        return policy_api.update_policy(policy_id, hostname_policy)
         
     def rediscover_switch(self, fabric_name: str, role: str, switch_name: str) -> bool:
         """Rediscover a switch by its name."""
-        try:
-            # Load switch configuration to get serial number
-            switch_data = self._load_switch_config(fabric_name, role, switch_name)
-            if not switch_data:
-                return False
-            
-            serial_number = switch_data.get("Serial Number")
-            if not serial_number:
-                print(f"Error: Serial Number not found in {switch_name} configuration")
-                return False
-            
-            print(f"Rediscovering switch: {switch_name} ({serial_number})")
-            
-            # Call API to rediscover switch
-            return switch_api.rediscover_device(fabric_name, serial_number)
-            
-        except Exception as e:
-            print(f"Error rediscovering switch: {e}")
+        print(f"[Switch] Rediscovering switch {switch_name}")
+        
+        switch_data = self._load_switch_config(fabric_name, role, switch_name)
+        if not switch_data:
             return False
+        
+        serial_number = switch_data.get("Serial Number")
+        if not serial_number:
+            print(f"[Switch] Error: Serial Number not found in {switch_name} configuration")
+            return False
+        
+        print(f"[Switch] Rediscovering switch {switch_name} with serial {serial_number}")
+        return switch_api.rediscover_device(fabric_name, serial_number)

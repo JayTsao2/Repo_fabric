@@ -206,22 +206,22 @@ python interface_cli.py --help
 # 在 scripts/cisco/12.2.2/ 目錄下執行
 python switch_cli.py discover <fabric_name> <role> <switch_name> [--preserve]   # 發現交換器
 python switch_cli.py delete <fabric_name> <role> <switch_name>                  # 刪除交換器
-python switch_cli.py set-role <switch_name>                                     # 設定交換器角色
+python switch_cli.py set-role <fabric_name> <role> <switch_name>                # 設定交換器角色
 python switch_cli.py change-ip <fabric_name> <role> <switch_name> <original-ip>/<mask> <new-ip>/<mask>  # 變更管理 IP
-python switch_cli.py set-freeform <fabric_name> <role> <switch_name>           # 執行 freeform 配置
-python switch_cli.py hostname <fabric_name> <role> <switch_name> <new_hostname>  # 變更交換器主機名稱
-python switch_cli.py create-vpc <fabric_name>                                  # 建立 VPC 配對並設定政策
-python switch_cli.py delete-vpc <fabric_name> <switch_name>                    # 刪除指定交換器的 VPC 配對
+python switch_cli.py set-freeform <fabric_name> <role> <switch_name>            # 執行 freeform 配置
+python switch_cli.py hostname <fabric_name> <role> <switch_name> <new_hostname> # 變更交換器主機名稱
+python switch_cli.py create-vpc <fabric_name>                                   # 建立 VPC 配對並設定政策
+python switch_cli.py delete-vpc <fabric_name> <switch_name>                     # 刪除指定交換器的 VPC 配對
 
 # 範例
-python switch_cli.py discover Site1 leaf Site1-L1 --preserve             # 發現交換器並保留配置
-python switch_cli.py delete Site1 leaf Site1-L1                          # 從 fabric 移除交換器
-python switch_cli.py set-role Site1-L1                                        # 設定 Site1-L1 的角色
+python switch_cli.py discover Site1 leaf Site1-L1 --preserve                    # 發現交換器並保留配置
+python switch_cli.py delete Site1 leaf Site1-L1                                 # 從 fabric 移除交換器
+python switch_cli.py set-role Site1 leaf Site1-L1                               # 設定 Site1-L1 的角色
 python switch_cli.py change-ip Site1 leaf Site1-L1 10.192.195.73/24 10.192.195.74/24  # 變更管理 IP
-python switch_cli.py set-freeform Site1 border_gateway Site1-BGW2  # 執行 freeform 配置
-python switch_cli.py hostname Site1 leaf Site1-L1 Site1-L1-NEW           # 變更主機名稱
-python switch_cli.py create-vpc Site1                                         # 建立 Site1 fabric 所有 VPC 配對
-python switch_cli.py delete-vpc Site1 Site1-L1                               # 刪除 Site1-L1 交換器的 VPC 配對
+python switch_cli.py set-freeform Site1 border_gateway Site1-BGW2               # 執行 freeform 配置
+python switch_cli.py hostname Site1 leaf Site1-L1 Site1-L1-NEW                  # 變更主機名稱
+python switch_cli.py create-vpc Site1                                           # 建立 Site1 fabric 所有 VPC 配對
+python switch_cli.py delete-vpc Site1 Site1-L1                                  # 刪除 Site1-L1 交換器的 VPC 配對
 
 # 顯示幫助資訊
 python switch_cli.py --help
@@ -261,7 +261,6 @@ python switch_cli.py <command> --help
 - `discover_switch(fabric_name: str, role: str, switch_name: str, preserve_config: bool = False)` - 發現交換器
 - `delete_switch(fabric_name: str, role: str, switch_name: str)` - 刪除交換器
 - `set_switch_role(fabric_name: str, role: str, switch_name: str)` - 設定交換器角色
-- `set_switch_role_by_name(switch_name: str)` - 根據交換器名稱設定角色
 - `change_switch_ip(fabric_name: str, role: str, switch_name: str, original_ip_with_mask: str, new_ip_with_mask: str)` - 變更交換器管理 IP
 - `set_switch_freeform(fabric_name: str, role: str, switch_name: str)` - 執行 freeform 配置
     - 注意: 這個會將 Policy 的 JSON 檔案存下來，以便之後能夠透過 API 讀取並執行
