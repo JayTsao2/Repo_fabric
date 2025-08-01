@@ -93,9 +93,9 @@ class FabricManager:
         Returns:
             Optional[Dict[str, Any]]: Pending configuration data or None if failed
         """
-        print(f"Getting pending configuration for fabric: {fabric_name}")
-        fabric_api.get_pending_config(fabric_name)
-    
+        print(f"[Fabric] Getting pending configuration for fabric: {fabric_name}")
+        return fabric_api.get_pending_config(fabric_name)
+
     def deploy_fabric(self, fabric_name: str) -> bool:
         """
         Deploy fabric configuration.
