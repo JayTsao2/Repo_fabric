@@ -1,48 +1,48 @@
 # 資料夾用途說明
 
-* **`/scripts/cisco/12.2.2/api`**
+* **`/api`**
     * 用途: Cisco NDFC 12.2.2 版本的 API 操作模組。
     
-* **`/scripts/cisco/12.2.2/modules`**
+* **`/modules`**
     * 用途: 模組化功能組織，包含 fabric、VRF、network、interface、switch 等模組。
     
-    * **`/scripts/cisco/12.2.2/modules/fabric`**
+    * **`/modules/fabric`**
         * 用途: Fabric 管理模組，包含建立、更新、刪除功能以及統一管理介面 (FabricManager)。
         
-    * **`/scripts/cisco/12.2.2/modules/vrf`**
+    * **`/modules/vrf`**
         * 用途: VRF 管理模組，包含建立、更新、刪除、附加、分離功能以及統一管理介面 (VRFManager)。
         
-    * **`/scripts/cisco/12.2.2/modules/network`**
+    * **`/modules/network`**
         * 用途: Network 管理模組，提供統一的網路 CRUD 操作與交換器附加功能。
         
-    * **`/scripts/cisco/12.2.2/modules/interface`**
+    * **`/modules/interface`**
         * 用途: Interface 管理模組，提供 YAML 驅動的介面配置更新功能。
         
-    * **`/scripts/cisco/12.2.2/modules/switch`**
+    * **`/modules/switch`**
         * 用途: Switch 管理模組，提供交換器發現、刪除、角色設定、IP 變更等功能。
     
-    * **`/scripts/cisco/12.2.2/modules/vpc`**
+    * **`/modules/vpc`**
         * 用途: VPC 管理模組，提供 VPC 配對建立、刪除、政策配置等功能。
     
-    * **`/scripts/cisco/12.2.2/modules/config_utils.py`**
+    * **`/modules/config_utils.py`**
         * 用途: 配置工具函數模組，提供 YAML 載入與驗證功能。
     
-* **`/scripts/cisco/12.2.2/resources`**
+* **`/resources`**
     * 用途: 配置檔案、模板、欄位映射等資源檔案。
     
-* **`/scripts/cisco/12.2.2/fabric_cli.py`**
+* **`/fabric_cli.py`**
     * 用途: Fabric 管理命令列介面工具，使用 FabricManager 提供統一的操作介面。
     
-* **`/scripts/cisco/12.2.2/vrf_cli.py`**
+* **`/vrf_cli.py`**
     * 用途: VRF 管理命令列介面工具，使用 VRFManager 提供統一的操作介面。
     
-* **`/scripts/cisco/12.2.2/network_cli.py`**
+* **`/network_cli.py`**
     * 用途: Network 管理命令列介面工具。
     
-* **`/scripts/cisco/12.2.2/interface_cli.py`**
+* **`/interface_cli.py`**
     * 用途: Interface 管理命令列介面工具。
 
-* **`/scripts/cisco/12.2.2/switch_cli.py`**
+* **`/switch_cli.py`**
     * 用途: Switch 管理命令列介面工具。
 
 # 用法:
@@ -81,6 +81,8 @@ SWITCH_PASSWORD=<your_switch_password>
 - `parsePendingConfig(data, filename)` - 解析待部署配置
 - `deploy_switch_config(fabric, serial_number)` - 部署交換器配置
 - `set_switch_role(serial_number, role)` - 設定交換器角色
+
+## [VPC](api/vpc.py)
 - `create_vpc_pair(peer_one_id, peer_two_id, use_virtual_peerlink=False)` - 建立 VPC 配對
 - `delete_vpc_pair(serial_number)` - 刪除 VPC 配對
 - `delete_vpc_policy(vpc_name, serial_numbers)` - 刪除 VPC 政策
@@ -136,11 +138,11 @@ SWITCH_PASSWORD=<your_switch_password>
 
 # CLI Tools
 
-## [Fabric CLI](scripts/cisco/12.2.2/fabric_cli.py)
+## [Fabric CLI](fabric_cli.py)
 
 **使用方式 (Usage):**
 ```bash
-# 在 scripts/cisco/12.2.2/ 目錄下執行
+# 在 /scripts/cisco/12.2.2/ 目錄下執行
 python fabric_cli.py create <fabric_name>      # 建立特定 fabric
 python fabric_cli.py update <fabric_name>      # 更新特定 fabric
 python fabric_cli.py delete <fabric_name>      # 刪除特定 fabric (需確認)
@@ -154,11 +156,11 @@ python fabric_cli.py remove-msd <parent> <child> # 從 MSD 移除子 fabric
 python fabric_cli.py --help
 ```
 
-## [VRF CLI](scripts/cisco/12.2.2/vrf_cli.py)
+## [VRF CLI](vrf_cli.py)
 
 **使用方式 (Usage):**
 ```bash
-# 在 scripts/cisco/12.2.2/ 目錄下執行
+# 在 /scripts/cisco/12.2.2/ 目錄下執行
 python vrf_cli.py create <fabric_name> <vrf_name>     # 建立特定 VRF
 python vrf_cli.py update <fabric_name> <vrf_name>     # 更新特定 VRF
 python vrf_cli.py delete <fabric_name> <vrf_name>     # 刪除特定 VRF
@@ -175,11 +177,11 @@ python vrf_cli.py detach Site1 leaf Site1-L1    # 從指定 leaf 交換器分離
 python vrf_cli.py --help
 ```
 
-## [Network CLI](scripts/cisco/12.2.2/network_cli.py)
+## [Network CLI](network_cli.py)
 
 **使用方式 (Usage):**
 ```bash
-# 在 scripts/cisco/12.2.2/ 目錄下執行
+# 在 /scripts/cisco/12.2.2/ 目錄下執行
 python network_cli.py create <fabric_name> <network_name>     # 建立特定 Network
 python network_cli.py update <fabric_name> <network_name>     # 更新特定 Network
 python network_cli.py delete <fabric_name> <network_name>     # 刪除特定 Network
@@ -196,10 +198,10 @@ python network_cli.py --help
 ```
 
 
-## [Interface CLI](scripts/cisco/12.2.2/interface_cli.py)
+## [Interface CLI](interface_cli.py)
 **使用方式 (Usage):**
 ```bash
-# 在 scripts/cisco/12.2.2/ 目錄下執行
+# 在 /scripts/cisco/12.2.2/ 目錄下執行
 python interface_cli.py <fabric_name> <role> <switch_name>   # 更新指定交換器的所有介面
 
 # 範例
@@ -209,11 +211,11 @@ python interface_cli.py Site1 leaf Site1-L1            # 更新 Site1-L1 交換�
 python interface_cli.py --help
 ```
 
-## [Switch CLI](scripts/cisco/12.2.2/switch_cli.py)
+## [Switch CLI](switch_cli.py)
 
 **使用方式 (Usage):**
 ```bash
-# 在 scripts/cisco/12.2.2/ 目錄下執行
+# 在 /scripts/cisco/12.2.2/ 目錄下執行
 python switch_cli.py discover <fabric_name> <role> <switch_name> [--preserve]   # 發現交換器
 python switch_cli.py delete <fabric_name> <role> <switch_name>                  # 刪除交換器
 python switch_cli.py set-role <fabric_name> <role> <switch_name>                # 設定交換器角色
