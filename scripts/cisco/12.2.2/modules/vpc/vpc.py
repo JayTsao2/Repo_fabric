@@ -7,7 +7,7 @@ This module provides VPC management functionality including:
 - Parsing VPC YAML configuration files
 """
 
-import api.switch as switch_api
+import api.vpc as vpc_api
 from modules.config_utils import load_yaml_file
 from config.config_factory import config_factory
 
@@ -67,7 +67,7 @@ class VPCManager:
                 # Step 1: Create VPC pair via API
                 vpc_pair_created = False
                 try:
-                    if switch_api.create_vpc_pair(peer_one_id, peer_two_id):
+                    if vpc_api.create_vpc_pair(peer_one_id, peer_two_id):
                         vpc_pair_created = True
                     else:
                         print(f"❌ Failed to create VPC pair for {vpc_file.name}")
@@ -127,7 +127,7 @@ class VPCManager:
                     
                     # Set VPC policy via API
                     try:
-                        if switch_api.set_vpc_policy(policy_payload):
+                        if vpc_api.set_vpc_policy(policy_payload):
                             print(f"✅ Successfully set VPC policy for {vpc_file.name}")
                         else:
                             print(f"⚠️ VPC policy creation failed for {vpc_file.name}, but VPC pair was created")
@@ -229,7 +229,7 @@ class VPCManager:
                 # Step 1: Delete VPC policy first
                 print(f"Step 1: Deleting VPC policy for {vpc_name}...")
                 try:
-                    policy_deleted = switch_api.delete_vpc_policy(vpc_name, serial_numbers)
+                    policy_deleted = vpc_api.delete_vpc_policy(vpc_name, serial_numbers)
                     if policy_deleted:
                         print(f"✅ Successfully deleted VPC policy for {vpc_name}")
                     else:
@@ -241,7 +241,7 @@ class VPCManager:
                 # Step 2: Delete VPC pair
                 print(f"Step 2: Deleting VPC pair with serial number {target_serial}...")
                 try:
-                    if switch_api.delete_vpc_pair(target_serial):
+                    if vpc_api.delete_vpc_pair(target_serial):
                         print(f"✅ Successfully deleted VPC pair for {vpc_file.name}")
                         success_count += 1
                     else:
