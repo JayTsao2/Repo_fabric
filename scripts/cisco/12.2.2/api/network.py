@@ -87,7 +87,7 @@ def create_network(fabric_name: str, network_payload: Dict[str, Any], template_p
     
     url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric_name}/networks")
     r = requests.post(url, headers=headers, json=payload, verify=False)
-    return check_status_code(r)
+    return check_status_code(r, operation_name="Create Network")
 
 def update_network(fabric_name: str, network_payload: Dict[str, Any], template_payload: Dict[str, Any]) -> bool:
     """
@@ -114,7 +114,7 @@ def update_network(fabric_name: str, network_payload: Dict[str, Any], template_p
     network_name = network_payload.get('networkName')
     url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric_name}/networks/{network_name}")
     r = requests.put(url, headers=headers, json=payload, verify=False)
-    return check_status_code(r)
+    return check_status_code(r, operation_name="Update Network")
 
 def delete_network(fabric_name: str, network_name: str) -> bool:
     """
@@ -130,7 +130,7 @@ def delete_network(fabric_name: str, network_name: str) -> bool:
     headers = get_api_key_header()
     url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric_name}/networks/{network_name}")
     r = requests.delete(url, headers=headers, verify=False)
-    return check_status_code(r)
+    return check_status_code(r, operation_name="Delete Network")
 
 def get_network_attachment(fabric, network_dir="networks", networkname=""):
     url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric}/networks/{networkname}/attachments")
@@ -180,7 +180,7 @@ def attach_network(fabric_name: str, network_name: str, serial_number: str, swit
     
     url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric_name}/networks/{network_name}/attachments")
     r = requests.post(url, headers=headers, json=payload, verify=False)
-    return check_status_code(r)
+    return check_status_code(r, operation_name="Attach Network")
 
 def detach_network(fabric_name: str, network_name: str, serial_number: str, detach_switch_ports: str, vlan: int) -> bool:
     """
@@ -212,7 +212,7 @@ def detach_network(fabric_name: str, network_name: str, serial_number: str, deta
     
     url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric_name}/networks/{network_name}/attachments")
     r = requests.post(url, headers=headers, json=payload, verify=False)
-    return check_status_code(r)
+    return check_status_code(r, operation_name="Detach Network")
 
 def preview_networks(fabric, network_names):
     headers = get_api_key_header()
@@ -225,7 +225,7 @@ def preview_networks(fabric, network_names):
     }
     
     r = requests.get(url, headers=headers, params=query_params, verify=False)
-    return check_status_code(r)
+    return check_status_code(r, operation_name="Preview Networks")
 
 def deploy_networks(fabric, network_names):
     headers = get_api_key_header()
@@ -238,4 +238,4 @@ def deploy_networks(fabric, network_names):
     }
     
     r = requests.post(url, headers=headers, json=payload, verify=False)
-    return check_status_code(r)
+    return check_status_code(r, operation_name="Deploy Networks")

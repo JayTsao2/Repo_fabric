@@ -23,6 +23,7 @@ class VPCManager:
     def create_vpc_pairs(self, fabric_name: str) -> bool:
         """Create VPC pairs and set policies for all VPC configurations in the specified fabric."""
         try:
+            print(f"[VPC] Creating VPC pairs for fabric: {fabric_name}")
             # Build path to VPC configurations
             vpc_dir = self.config_base_path / fabric_name / "vpc"
             
@@ -41,7 +42,7 @@ class VPCManager:
             
             success_count = 0
             for vpc_file in vpc_files:
-                print(f"\nProcessing VPC configuration: {vpc_file.name}")
+                print(f"Processing VPC configuration: {vpc_file.name}")
                 
                 # Load VPC configuration
                 vpc_data = load_yaml_file(vpc_file)
@@ -149,6 +150,7 @@ class VPCManager:
     def delete_vpc_pairs(self, fabric_name: str, switch_name: str) -> bool:
         """Delete VPC pairs for a specific switch in the specified fabric."""
         try:
+            print(f"[VPC] Deleting VPC pairs for switch: {switch_name} in fabric: {fabric_name}")
             # Build path to VPC configurations
             vpc_dir = self.config_base_path / fabric_name / "vpc"
             

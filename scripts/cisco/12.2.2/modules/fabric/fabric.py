@@ -40,13 +40,8 @@ class FabricManager:
         Returns:
             bool: True if successful, False otherwise
         """
-        try:
-            print(f"Creating fabric: {fabric_name}")
-            return self.operations.create_fabric(fabric_name)
-            
-        except Exception as e:
-            print(f"❌ Error creating fabric {fabric_name}: {e}")
-            return False
+        print(f"[Fabric] Creating fabric: {fabric_name}")
+        return self.operations.create_fabric(fabric_name)
     
     def update_fabric(self, fabric_name: str) -> bool:
         """
@@ -58,13 +53,8 @@ class FabricManager:
         Returns:
             bool: True if successful, False otherwise
         """
-        try:
-            print(f"Updating fabric: {fabric_name}")
-            return self.operations.update_fabric(fabric_name)
-            
-        except Exception as e:
-            print(f"❌ Error updating fabric {fabric_name}: {e}")
-            return False
+        print(f"[Fabric] Updating fabric: {fabric_name}")
+        return self.operations.update_fabric(fabric_name)
     
     def delete_fabric(self, fabric_name: str) -> bool:
         """
@@ -76,12 +66,8 @@ class FabricManager:
         Returns:
             bool: True if successful, False otherwise
         """
-        try:
-            print(f"Deleting fabric: {fabric_name}")
-            return fabric_api.delete_fabric(fabric_name)
-        except Exception as e:
-            print(f"❌ Error deleting fabric {fabric_name}: {e}")
-            return False
+        print(f"[Fabric] Deleting fabric: {fabric_name}")
+        return fabric_api.delete_fabric(fabric_name)
     
     # Configuration Operations
     def recalculate_config(self, fabric_name: str) -> bool:
@@ -94,13 +80,8 @@ class FabricManager:
         Returns:
             bool: True if successful, False otherwise
         """
-        try:
-            print(f"Recalculating configuration for fabric: {fabric_name}")
-            return fabric_api.recalculate_config(fabric_name)
-            
-        except Exception as e:
-            print(f"❌ Error recalculating fabric {fabric_name}: {e}")
-            return False
+        print(f"[Fabric] Recalculating configuration for fabric: {fabric_name}")
+        return fabric_api.recalculate_config(fabric_name)
     
     def get_pending_config(self, fabric_name: str) -> Optional[Dict[str, Any]]:
         """
@@ -112,14 +93,8 @@ class FabricManager:
         Returns:
             Optional[Dict[str, Any]]: Pending configuration data or None if failed
         """
-        try:
-            print(f"Getting pending configuration for fabric: {fabric_name}")
-            fabric_api.get_pending_config(fabric_name)
-            return
-            
-        except Exception as e:
-            print(f"❌ Error getting pending config for fabric {fabric_name}: {e}")
-            return None
+        print(f"Getting pending configuration for fabric: {fabric_name}")
+        fabric_api.get_pending_config(fabric_name)
     
     def deploy_fabric(self, fabric_name: str) -> bool:
         """
@@ -131,13 +106,8 @@ class FabricManager:
         Returns:
             bool: True if successful, False otherwise
         """
-        try:
-            print(f"Deploying configuration for fabric: {fabric_name}")
-            return fabric_api.deploy_fabric_config(fabric_name)
-            
-        except Exception as e:
-            print(f"❌ Error deploying fabric {fabric_name}: {e}")
-            return False
+        print(f"[Fabric] Deploying configuration for fabric: {fabric_name}")
+        return fabric_api.deploy_fabric_config(fabric_name)
     
     # Multi-Site Domain Operations
     def add_to_msd(self, parent_fabric: str, child_fabric: str) -> bool:
@@ -151,13 +121,8 @@ class FabricManager:
         Returns:
             bool: True if successful, False otherwise
         """
-        try:
-            print(f"Adding fabric '{child_fabric}' to MSD '{parent_fabric}'")
-            return fabric_api.add_MSD(parent_fabric, child_fabric)
-            
-        except Exception as e:
-            print(f"❌ Error adding fabric to MSD: {e}")
-            return False
+        print(f"[Fabric] Adding fabric {child_fabric} to MSD {parent_fabric}")
+        return fabric_api.add_MSD(parent_fabric, child_fabric)
     
     def remove_from_msd(self, parent_fabric: str, child_fabric: str, force: bool = False) -> bool:
         """
@@ -171,10 +136,5 @@ class FabricManager:
         Returns:
             bool: True if successful, False otherwise
         """
-        try:
-            print(f"Removing fabric '{child_fabric}' from MSD '{parent_fabric}'")
-            return fabric_api.remove_MSD(parent_fabric, child_fabric)
-            
-        except Exception as e:
-            print(f"❌ Error removing fabric from MSD: {e}")
-            return False
+        print(f"[Fabric] Removing fabric {child_fabric} from MSD {parent_fabric}")
+        return fabric_api.remove_MSD(parent_fabric, child_fabric)

@@ -155,6 +155,7 @@ class SwitchManager:
     def discover_switch(self, fabric_name: str, role: str, switch_name: str, preserve_config: bool = False) -> bool:
         """Discover switch based on YAML configuration."""
         try:
+            print(f"[Switch] Discovering switch: {switch_name} in fabric: {fabric_name}, role: {role}")
             # Load switch configuration
             switch_data = self._load_switch_config(fabric_name, role, switch_name)
             if not switch_data:
@@ -166,15 +167,8 @@ class SwitchManager:
             # Generate discovery payload
             payload = self._build_discovery_payload(switch_config, preserve_config)
             
-            print(f"Discovering switch: {switch_name} ({switch_config.serial_number})")
-            
             # Call API to discover switch
-            success = switch_api.discover_switch_from_payload(fabric_name, payload)
-            
-            if success:
-                print(f"Successfully discovered switch {switch_name}")
-            
-            return success
+            return switch_api.discover_switch_from_payload(fabric_name, payload)
             
         except Exception as e:
             print(f"Error discovering switch: {e}")
@@ -183,6 +177,7 @@ class SwitchManager:
     def delete_switch(self, fabric_name: str, role: str, switch_name: str) -> bool:
         """Delete switch based on YAML configuration."""
         try:
+            print(f"[Switch] Deleting switch: {switch_name} in fabric: {fabric_name}, role: {role}")
             # Load switch configuration to get serial number
             switch_data = self._load_switch_config(fabric_name, role, switch_name)
             if not switch_data:
@@ -207,6 +202,7 @@ class SwitchManager:
     def set_switch_role(self, fabric_name: str, role: str, switch_name: str) -> bool:
         """Set switch role based on YAML configuration."""
         try:
+            print(f"[Switch] Setting role for switch: {switch_name} in fabric: {fabric_name}, role: {role}")
             # Load switch configuration to get serial number and role
             switch_data = self._load_switch_config(fabric_name, role, switch_name)
             if not switch_data:
@@ -243,6 +239,7 @@ class SwitchManager:
     def set_switch_role_by_name(self, switch_name: str) -> bool:
         """Set switch role by searching for switch name across all configurations."""
         try:
+            print(f"Setting role for switch: {switch_name}")
             # Find switch configuration across all fabrics and roles
             result = self._find_switch_config(switch_name)
             if not result:
@@ -284,6 +281,7 @@ class SwitchManager:
                         original_ip: str, new_ip: str) -> bool:
         """Change switch management IP through SSH and update NDFC."""
         try:
+            print(f"[Switch] Changing IP for switch: {switch_name} in fabric: {fabric_name}, role: {role}, from {original_ip} to {new_ip}")
             # Load switch configuration
             switch_data = self._load_switch_config(fabric_name, role, switch_name)
             if not switch_data:
@@ -315,7 +313,6 @@ class SwitchManager:
             print("Step 3: Rediscovering device")
             switch_api.rediscover_device(fabric_name, serial_number)
             
-            print(f"Successfully changed IP for switch {switch_name}")
             return True
             
         except Exception as e:
@@ -365,6 +362,7 @@ class SwitchManager:
     def set_switch_freeform(self, fabric_name: str, role: str, switch_name: str) -> bool:
         """Create a freeform policy for switch based on YAML configuration."""
         try:
+            print(f"[Switch] Creating freeform policy for switch: {switch_name} in fabric: {fabric_name}, role: {role}")
             # Load switch configuration
             switch_data = self._load_switch_config(fabric_name, role, switch_name)
             if not switch_data:
@@ -448,6 +446,7 @@ class SwitchManager:
     def change_switch_hostname(self, fabric_name: str, role: str, switch_name: str, new_hostname: str) -> bool:
         """Change the hostname of a switch by updating the host_11_1 policy."""
         try:
+            print(f"[Switch] Changing hostname for switch: {switch_name} in fabric: {fabric_name}, role: {role}, to '{new_hostname}'")
             # Load switch configuration to get serial number
             switch_data = self._load_switch_config(fabric_name, role, switch_name)
             if not switch_data:

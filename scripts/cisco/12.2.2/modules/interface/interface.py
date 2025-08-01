@@ -166,6 +166,7 @@ class InterfaceManager:
     def update_switch_interfaces(self, fabric_name: str, role: str, switch_name: str) -> bool:
         """Update all interfaces for a switch based on YAML configuration."""
         try:
+            print(f"[Interface] Updating interfaces for switch: {switch_name} in fabric: {fabric_name}, role: {role}")
             switch_config = self._load_switch_config(fabric_name, role, switch_name)
             if not switch_config:
                 return False

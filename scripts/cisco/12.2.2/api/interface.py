@@ -5,7 +5,7 @@ urllib3.disable_warnings(InsecureRequestWarning)
 from .utils import *
 import json
 import os
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List
 
 def update_interface(fabric_name: str, policy: str, interfaces_payload: List[Dict[str, Any]]) -> bool:
     """
@@ -27,15 +27,8 @@ def update_interface(fabric_name: str, policy: str, interfaces_payload: List[Dic
         "interfaces": interfaces_payload
     }
     
-    try:
-        r = requests.put(url, headers=headers, json=payload, verify=False)
-        check_status_code(r)
-        print(f"Updated {len(interfaces_payload)} interface(s) with policy {policy}")
-        return True
-        
-    except Exception as e:
-        print(f"Error updating interfaces: {e}")
-        return False
+    r = requests.put(url, headers=headers, json=payload, verify=False)
+    check_status_code(r, operation_name="Update Interfaces")
 
 def get_interfaces(serial_number: str = None, if_name: str = None, template_name: str = None, 
                   interface_dir: str = "interfaces", save_by_policy: bool = True) -> List[Dict[str, Any]]:
@@ -136,4 +129,4 @@ def update_admin_status(payload: List[Dict[str, Any]]) -> bool:
     headers = get_api_key_header()
     
     r = requests.post(url, headers=headers, json=payload, verify=False)
-    return check_status_code(r)
+    return check_status_code(r, operation_name="Update Admin Status")

@@ -204,6 +204,7 @@ class NetworkManager:
     def create_network(self, fabric_name: str, network_name: str) -> bool:
         """Create a network using YAML configuration."""
         try:
+            print(f"[Network] Creating network: {network_name} in fabric: {fabric_name}")
             payload, template_config = self._build_complete_payload(fabric_name, network_name)
             return network_api.create_network(fabric_name, payload, template_config)
         except Exception as e:
@@ -213,6 +214,7 @@ class NetworkManager:
     def update_network(self, fabric_name: str, network_name: str) -> bool:
         """Update a network using YAML configuration."""
         try:
+            print(f"[Network] Updating network: {network_name} in fabric: {fabric_name}")
             payload, template_config = self._build_complete_payload(fabric_name, network_name)
             return network_api.update_network(fabric_name, payload, template_config)
         except Exception as e:
@@ -222,6 +224,7 @@ class NetworkManager:
     def delete_network(self, fabric_name: str, network_name: str) -> bool:
         """Delete a network."""
         try:
+            print(f"[Network] Deleting network: {network_name} in fabric: {fabric_name}")
             return network_api.delete_network(fabric_name, network_name)
         except Exception as e:
             print(f"Error deleting network: {e}")
@@ -231,10 +234,12 @@ class NetworkManager:
     
     def attach_networks(self, fabric_name: str, role: str, switch_name: str) -> bool:
         """Attach networks to switch interfaces based on YAML configuration."""
+        print(f"[Network] Attaching networks to switch: {switch_name} in fabric: {fabric_name}, role: {role}")
         return self._process_switch_networks(fabric_name, role, switch_name, 'attach')
     
     def detach_networks(self, fabric_name: str, role: str, switch_name: str) -> bool:
         """Detach networks from switch interfaces based on YAML configuration."""
+        print(f"[Network] Detaching networks from switch: {switch_name} in fabric: {fabric_name}, role: {role}")
         return self._process_switch_networks(fabric_name, role, switch_name, 'detach')
     
     def _process_switch_networks(self, fabric_name: str, role: str, switch_name: str, operation: str) -> bool:
