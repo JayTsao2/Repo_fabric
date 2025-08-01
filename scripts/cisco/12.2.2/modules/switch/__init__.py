@@ -9,7 +9,7 @@ Provides YAML-based switch management for Cisco NDFC:
 """
 
 # Import the SwitchManager and related components from switch.py
-from .switch import SwitchManager, SwitchConfig, VALID_SWITCH_ROLES
+from .switch import SwitchManager, VALID_SWITCH_ROLES
 
 # --- Expose the classes and constants for easy access ---
-__all__ = ['SwitchManager', 'SwitchConfig', 'VALID_SWITCH_ROLES']
+__all__ = ['SwitchManager', 'VALID_SWITCH_ROLES']
