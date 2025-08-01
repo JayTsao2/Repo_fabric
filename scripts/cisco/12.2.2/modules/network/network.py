@@ -169,7 +169,7 @@ class NetworkManager:
         
         return payload
 
-    def _build_complete_payload(self, fabric_name: str, network_name: str) -> Tuple[Dict[str, Any], str]:
+    def _build_complete_payload(self, fabric_name: str, network_name: str) -> Tuple[Dict[str, Any], Dict[str, Any]]:
         """Build complete network payload for API operations."""
         self._validate_resources()
         
@@ -183,11 +183,9 @@ class NetworkManager:
         # Build template config using dictionary approach
         template_config = self._build_network_template_config(fabric_name, network_name, network)
         
-        # Convert template config to JSON string
-        template_config_json = json.dumps(template_config)
-        payload["networkTemplateConfig"] = template_config_json
-        
-        return payload, template_config_json
+        # Return both payload and template config as dictionaries
+        # The API layer will handle JSON encoding
+        return payload, template_config
     
     # --- Network CRUD Operations ---
     
