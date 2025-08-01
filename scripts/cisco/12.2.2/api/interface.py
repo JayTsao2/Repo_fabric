@@ -28,7 +28,7 @@ def update_interface(fabric_name: str, policy: str, interfaces_payload: List[Dic
     }
     
     r = requests.put(url, headers=headers, json=payload, verify=False)
-    check_status_code(r, operation_name="Update Interfaces")
+    check_status_code(r, operation_name=f"Update Interface {interfaces_payload[0].get('ifName', 'Unknown')}")
 
 def get_interfaces(serial_number: str = None, if_name: str = None, template_name: str = None, 
                   interface_dir: str = "interfaces", save_by_policy: bool = True) -> List[Dict[str, Any]]:
