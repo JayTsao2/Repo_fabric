@@ -357,14 +357,28 @@ class NetworkManager:
         elif policy == 'int_trunk_host':
             # Process trunk interface
             trunk_vlans = interface_data.get('Trunk Allowed Vlans')
-            
-            # If no VLANs specified, stop
             if not trunk_vlans:
-                return True
+                trunk_vlans = "all"
+            print(f"[Network] Processing trunk VLANs for {interface_name}: {trunk_vlans}")
+            
             try:
-                # Parse trunk VLAN string into list of VLAN IDs
-                vlan_ids = [int(vlan.strip()) for vlan in str(trunk_vlans).split(',') 
-                           if vlan.strip() and vlan.strip().isdigit()]
+                # Handle "all" case - attach to all available networks
+                if str(trunk_vlans).strip().lower() == 'all':
+                    print(f"[Network] Attaching interface {interface_name} to ALL networks in fabric {fabric_name}")
+                    vlan_ids = list(network_lookup.keys())
+                    if not vlan_ids:
+                        print(f"[Network] No networks found in fabric {fabric_name}")
+                        return True
+                else:
+                    # Parse specific VLAN IDs
+                    vlan_ids = [int(vlan.strip()) for vlan in str(trunk_vlans).split(',') 
+                               if vlan.strip() and vlan.strip().isdigit()]
+                
+                if not vlan_ids:
+                    print(f"[Network] No valid VLAN IDs found for interface {interface_name}")
+                    return True
+                
+                print(f"[Network] Will process VLANs: {vlan_ids}")
                 
                 # Process each VLAN
                 for vlan_id in vlan_ids:
