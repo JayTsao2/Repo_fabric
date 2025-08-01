@@ -497,3 +497,25 @@ class SwitchManager:
         except Exception as e:
             print(f"Error changing hostname: {e}")
             return False
+        
+    def rediscover_switch(self, fabric_name: str, role: str, switch_name: str) -> bool:
+        """Rediscover a switch by its name."""
+        try:
+            # Load switch configuration to get serial number
+            switch_data = self._load_switch_config(fabric_name, role, switch_name)
+            if not switch_data:
+                return False
+            
+            serial_number = switch_data.get("Serial Number")
+            if not serial_number:
+                print(f"Error: Serial Number not found in {switch_name} configuration")
+                return False
+            
+            print(f"Rediscovering switch: {switch_name} ({serial_number})")
+            
+            # Call API to rediscover switch
+            return switch_api.rediscover_device(fabric_name, serial_number)
+            
+        except Exception as e:
+            print(f"Error rediscovering switch: {e}")
+            return False

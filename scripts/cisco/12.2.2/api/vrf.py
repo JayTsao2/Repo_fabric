@@ -59,7 +59,6 @@ def create_vrf(fabric_name: str, vrf_payload: Dict[str, Any], template_payload: 
         vrf_payload["vrfTemplateConfig"] = json.dumps(template_payload)
         
         url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric_name}/vrfs")
-        
         r = requests.post(url, headers=headers, json=vrf_payload, verify=False)
         return check_status_code(r)
     except Exception as e:
