@@ -44,6 +44,16 @@
 
 * **`/scripts/cisco/12.2.2/switch_cli.py`**
     * 用途: Switch 管理命令列介面工具。
+
+# 用法:
+- 記得要將 `.env.example` 檔案名稱改變成 `.env`，並填入裡面的東西
+```txt
+NDFC_API_KEY=<your_api_key>
+LOGIN_USERNAME=<your_NDFC_username>
+LOGIN_PASSWORD=<your_NDFC_password>
+SWITCH_PASSWORD=<your_switch_password>
+```
+
 # API Interfaces
 
 ## [Fabric](api/fabric.py)
