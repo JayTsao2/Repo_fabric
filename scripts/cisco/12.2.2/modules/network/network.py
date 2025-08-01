@@ -214,189 +214,128 @@ class NetworkManager:
     def attach_networks(self, fabric_name: str, role: str, switch_name: str) -> bool:
         """Attach networks to switch interfaces based on YAML configuration."""
         print(f"[Network] Attaching networks to switch: {switch_name} in fabric: {fabric_name}, role: {role}")
-        return self._process_switch_networks(fabric_name, role, switch_name, 'attach')
+        
+        try:
+            # Load and validate switch configuration
+            switch_path = self.switch_config_paths['configs_dir'] / fabric_name / role / f"{switch_name}.yaml"
+            if not switch_path.exists():
+                print(f"[Network] Switch configuration not found: {switch_path}")
+                return False
+            
+            switch_config = load_yaml_file(str(switch_path))
+            if not switch_config:
+                return False
+            
+            if not switch_config.get('Serial Number'):
+                print(f"[Network] Error: Serial Number not found in switch configuration")
+                return False
+            
+            if 'Interface' not in switch_config:
+                print("[Network] No interfaces found to process")
+                return True  # No interfaces to process is considered success
+            
+            # Build network lookup table for the fabric
+            network_lookup = {
+                net.get('VLAN ID'): {
+                    'network_name': net.get('Network Name'),
+                    'vlan_id': net.get('VLAN ID')
+                }
+                for net in self.networks 
+                if net.get('Fabric') == fabric_name and net.get('VLAN ID')
+            }
+            
+            serial_number = switch_config.get('Serial Number')
+            overall_success = True
+            
+            # Process all interfaces
+            for interface_config in switch_config['Interface']:
+                for interface_name, interface_data in interface_config.items():
+                    success = self._process_interface(
+                        interface_name, interface_data, network_lookup, 
+                        'attach', fabric_name, serial_number
+                    )
+                    if not success:
+                        overall_success = False
+            
+            return overall_success
+            
+        except Exception as e:
+            print(f"[Network] Error attaching networks: {e}")
+            return False
     
     def detach_networks(self, fabric_name: str, role: str, switch_name: str) -> bool:
         """Detach networks from switch interfaces based on YAML configuration."""
         print(f"[Network] Detaching networks from switch: {switch_name} in fabric: {fabric_name}, role: {role}")
-        return self._process_switch_networks(fabric_name, role, switch_name, 'detach')
-    
-    def _process_switch_networks(self, fabric_name: str, role: str, switch_name: str, operation: str) -> bool:
-        """Process network attach/detach operations for a switch."""
+        
         try:
             # Load and validate switch configuration
-            switch_config = self._load_switch_config(fabric_name, role, switch_name)
+            switch_path = self.switch_config_paths['configs_dir'] / fabric_name / role / f"{switch_name}.yaml"
+            if not switch_path.exists():
+                print(f"[Network] Switch configuration not found: {switch_path}")
+                return False
+            
+            switch_config = load_yaml_file(str(switch_path))
             if not switch_config:
                 return False
             
-            # Create network lookup
-            network_lookup = self._build_network_lookup(fabric_name)
+            if not switch_config.get('Serial Number'):
+                print(f"[Network] Error: Serial Number not found in switch configuration")
+                return False
+            
+            if 'Interface' not in switch_config:
+                print("[Network] No interfaces found to process")
+                return True  # No interfaces to process is considered success
+            
+            # Build network lookup table for the fabric
+            network_lookup = {
+                net.get('VLAN ID'): {
+                    'network_name': net.get('Network Name'),
+                    'vlan_id': net.get('VLAN ID')
+                }
+                for net in self.networks 
+                if net.get('Fabric') == fabric_name and net.get('VLAN ID')
+            }
+            
+            serial_number = switch_config.get('Serial Number')
+            overall_success = True
             
             # Process all interfaces
-            return self._process_all_interfaces(switch_config, network_lookup, operation, fabric_name)
+            for interface_config in switch_config['Interface']:
+                for interface_name, interface_data in interface_config.items():
+                    success = self._process_interface(
+                        interface_name, interface_data, network_lookup, 
+                        'detach', fabric_name, serial_number
+                    )
+                    if not success:
+                        overall_success = False
+            
+            return overall_success
             
         except Exception as e:
-            print(f"[Network] Error {operation}ing networks: {e}")
+            print(f"[Network] Error detaching networks: {e}")
             return False
     
-    def _load_switch_config(self, fabric_name: str, role: str, switch_name: str) -> Optional[Dict[str, Any]]:
-        """Load and validate switch configuration."""
-        switch_path = self.switch_config_paths['configs_dir'] / fabric_name / role / f"{switch_name}.yaml"
-        if not switch_path.exists():
-            print(f"[Network] Switch configuration not found: {switch_path}")
-            return None
-        
-        switch_config = load_yaml_file(str(switch_path))
-        if not switch_config:
-            return None
-        
-        if 'Interface' not in switch_config:
-            print("[Network] No interfaces found to process")
-            return switch_config  # Return empty config but still valid
-        
-        if not switch_config.get('Serial Number'):
-            print(f"[Network] Error: Serial Number not found in switch configuration")
-            return None
-        
-        return switch_config
-    
-    def _build_network_lookup(self, fabric_name: str) -> Dict[int, Dict[str, Any]]:
-        """Build network lookup table for the fabric."""
-        return {
-            net.get('VLAN ID'): {
-                'network_name': net.get('Network Name'),
-                'vlan_id': net.get('VLAN ID')
-            }
-            for net in self.networks 
-            if net.get('Fabric') == fabric_name and net.get('VLAN ID')
-        }
-    
-    def _process_all_interfaces(self, switch_config: Dict[str, Any], network_lookup: Dict[int, Dict[str, Any]], 
-                               operation: str, fabric_name: str) -> bool:
-        """Process all interfaces in the switch configuration."""
-        if 'Interface' not in switch_config:
-            return True  # No interfaces to process is considered success
-        
-        serial_number = switch_config.get('Serial Number')
-        overall_success = True
-        
-        for interface_config in switch_config['Interface']:
-            for interface_name, interface_data in interface_config.items():
-                success = self._process_single_interface(
-                    interface_name, interface_data, network_lookup, 
-                    operation, fabric_name, serial_number
-                )
-                if not success:
-                    overall_success = False
-        
-        return overall_success
-    
-    def _process_single_interface(self, interface_name: str, interface_data: Dict[str, Any], 
-                                 network_lookup: Dict[int, Dict[str, Any]], operation: str, 
-                                 fabric_name: str, serial_number: str) -> bool:
+    def _process_interface(self, interface_name: str, interface_data: Dict[str, Any], 
+                          network_lookup: Dict[int, Dict[str, Any]], operation: str, 
+                          fabric_name: str, serial_number: str) -> bool:
         """Process a single interface based on its policy."""
         policy = interface_data.get('policy')
         
         if policy == 'int_access_host':
-            return self._process_access_interface(
-                interface_name, interface_data, network_lookup, 
-                operation, fabric_name, serial_number
-            )
-        elif policy == 'int_trunk_host':
-            return self._process_trunk_interface(
-                interface_name, interface_data, network_lookup, 
-                operation, fabric_name, serial_number
-            )
-        
-        return True  # Unknown policy types are skipped but not considered failure
-    
-    def _process_access_interface(self, interface_name: str, interface_data: Dict[str, Any], 
-                                 network_lookup: Dict[int, Dict[str, Any]], operation: str, 
-                                 fabric_name: str, serial_number: str) -> bool:
-        """Process access interface network attachment."""
-        access_vlan = interface_data.get('Access Vlan')
-        if not access_vlan:
-            return True  # No VLAN configured is not an error
-        
-        try:
-            vlan_id = int(access_vlan)
-            network_info = network_lookup.get(vlan_id)
-            if not network_info:
-                return True  # Network not found in lookup is not an error
-            
-            network_name = network_info['network_name']
-            
-            if operation == 'attach':
-                result = self.network_api.attach_network(
-                    fabric_name, 
-                    network_name, 
-                    serial_number, 
-                    interface_name, 
-                    vlan_id
-                )
-            else:  # detach
-                result = self.network_api.detach_network(
-                    fabric_name, 
-                    network_name, 
-                    serial_number, 
-                    interface_name, 
-                    vlan_id
-                )
-            
-            if result:
-                print(f"[Network] Successfully {operation}ed network {network_name} (VLAN {vlan_id}) "
-                      f"to interface {interface_name}")
-            else:
-                print(f"[Network] Failed to {operation} network {network_name} (VLAN {vlan_id}) "
-                      f"to interface {interface_name}")
-            
-            return result
-        except ValueError:
-            print(f"[Network] Invalid VLAN ID '{access_vlan}' for interface {interface_name}")
-            return False
-    
-    def _process_trunk_interface(self, interface_name: str, interface_data: Dict[str, Any], 
-                                network_lookup: Dict[int, Dict[str, Any]], operation: str, 
-                                fabric_name: str, serial_number: str) -> bool:
-        """Process trunk interface network attachments."""
-        trunk_vlans = interface_data.get('Trunk Allowed Vlans')
-        if not trunk_vlans or self._is_controlled_by_policy(trunk_vlans):
-            return True  # No VLANs or policy-controlled is not an error
-        
-        try:
-            vlan_ids = self._parse_trunk_vlans(trunk_vlans)
-            return self._attach_trunk_vlans(
-                vlan_ids, interface_name, network_lookup, 
-                operation, fabric_name, serial_number
-            )
-        except ValueError as e:
-            print(f"[Network] Error parsing trunk VLANs for {interface_name}: {e}")
-            return False
-    
-    def _is_controlled_by_policy(self, trunk_vlans) -> bool:
-        """Check if trunk VLANs are controlled by policy."""
-        return (isinstance(trunk_vlans, str) and 
-                (trunk_vlans.strip() == '' or 'controlled by policy' in trunk_vlans.lower()))
-    
-    def _parse_trunk_vlans(self, trunk_vlans) -> List[int]:
-        """Parse trunk VLAN string into list of VLAN IDs."""
-        return [int(vlan.strip()) for vlan in str(trunk_vlans).split(',') 
-                if vlan.strip() and vlan.strip().isdigit()]
-    
-    def _attach_trunk_vlans(self, vlan_ids: List[int], interface_name: str, 
-                           network_lookup: Dict[int, Dict[str, Any]], operation: str,
-                           fabric_name: str, serial_number: str) -> bool:
-        """Attach/detach multiple VLANs to/from a trunk interface."""
-        for vlan_id in vlan_ids:
-            if vlan_id not in network_lookup:
-                print(f"[Network] Warning: Network for VLAN {vlan_id} not found in fabric {fabric_name}")
-                continue
-            
-            network_info = network_lookup[vlan_id]
-            network_name = network_info['network_name']
+            # Process access interface
+            access_vlan = interface_data.get('Access Vlan')
+            if not access_vlan:
+                return True  # No VLAN configured is not an error
             
             try:
-                if operation == "attach":
+                vlan_id = int(access_vlan)
+                network_info = network_lookup.get(vlan_id)
+                if not network_info:
+                    return True  # Network not found in lookup is not an error
+                
+                network_name = network_info['network_name']
+                
+                if operation == 'attach':
                     result = self.network_api.attach_network(
                         fabric_name, network_name, serial_number, interface_name, vlan_id
                     )
@@ -411,9 +350,57 @@ class NetworkManager:
                 else:
                     print(f"[Network] Failed to {operation} network {network_name} (VLAN {vlan_id}) "
                           f"to interface {interface_name}")
-                    return False
-            except Exception as e:
-                print(f"[Network] Error during {operation} operation for VLAN {vlan_id}: {e}")
+                
+                return result
+            except ValueError:
+                print(f"[Network] Invalid VLAN ID '{access_vlan}' for interface {interface_name}")
                 return False
         
-        return True
+        elif policy == 'int_trunk_host':
+            # Process trunk interface
+            trunk_vlans = interface_data.get('Trunk Allowed Vlans')
+            
+            # If no VLANs specified, stop
+            if not trunk_vlans:
+                return True
+            try:
+                # Parse trunk VLAN string into list of VLAN IDs
+                vlan_ids = [int(vlan.strip()) for vlan in str(trunk_vlans).split(',') 
+                           if vlan.strip() and vlan.strip().isdigit()]
+                
+                # Process each VLAN
+                for vlan_id in vlan_ids:
+                    if vlan_id not in network_lookup:
+                        print(f"[Network] Warning: Network for VLAN {vlan_id} not found in fabric {fabric_name}")
+                        continue
+                    
+                    network_info = network_lookup[vlan_id]
+                    network_name = network_info['network_name']
+                    
+                    try:
+                        if operation == "attach":
+                            result = self.network_api.attach_network(
+                                fabric_name, network_name, serial_number, interface_name, vlan_id
+                            )
+                        else:  # detach
+                            result = self.network_api.detach_network(
+                                fabric_name, network_name, serial_number, interface_name, vlan_id
+                            )
+                        
+                        if result:
+                            print(f"[Network] Successfully {operation}ed network {network_name} (VLAN {vlan_id}) "
+                                  f"to interface {interface_name}")
+                        else:
+                            print(f"[Network] Failed to {operation} network {network_name} (VLAN {vlan_id}) "
+                                  f"to interface {interface_name}")
+                            return False
+                    except Exception as e:
+                        print(f"[Network] Error during {operation} operation for VLAN {vlan_id}: {e}")
+                        return False
+                
+                return True
+            except ValueError as e:
+                print(f"[Network] Error parsing trunk VLANs for {interface_name}: {e}")
+                return False
+        
+        return True  # Unknown policy types are skipped but not considered failure
