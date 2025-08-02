@@ -11,6 +11,7 @@ Usage:
     python switch_cli.py set-role {switch}
     python switch_cli.py change-ip {fabric} {role} {switch} {original-ip}/{mask} {new-ip}/{mask}
     python switch_cli.py set-freeform {fabric} {role} {switch}
+    python switch_cli.py hostname {fabric} {role} {switch} {new-hostname}
     python switch_cli.py create-vpc {fabric}
     python switch_cli.py delete-vpc {fabric} {switchname}
     
@@ -42,6 +43,7 @@ Examples:
   python switch_cli.py set-role <switch_name>                                    # Set switch role
   python switch_cli.py change-ip <fabric_name> <role> <switch_name> <original_ip>/<mask> <new_ip>/<mask>  # Change switch IP
   python switch_cli.py set-freeform <fabric_name> <role> <switch_name>           # Set freeform policy
+  python switch_cli.py hostname <fabric_name> <role> <switch_name> <new_hostname>  # Change switch hostname
   python switch_cli.py create-vpc <fabric_name>                                  # Create VPC pairs
   python switch_cli.py delete-vpc <fabric_name> <switch_name>                    # Delete VPC pairs
         """
@@ -64,6 +66,8 @@ Examples:
     
     # Set-role command
     setrole_parser = subparsers.add_parser('set-role', help='Set switch role')
+    setrole_parser.add_argument('fabric_name', help='Name of the fabric')
+    setrole_parser.add_argument('role', help='Role of the switch (leaf, spine, border, etc.)')
     setrole_parser.add_argument('switch_name', help='Name of the switch')
     
     # Change-ip command
@@ -79,6 +83,13 @@ Examples:
     setfreeform_parser.add_argument('fabric_name', help='Name of the fabric')
     setfreeform_parser.add_argument('role', help='Role of the switch (leaf, spine, border, etc.)')
     setfreeform_parser.add_argument('switch_name', help='Name of the switch')
+    
+    # Hostname command
+    hostname_parser = subparsers.add_parser('hostname', help='Change switch hostname')
+    hostname_parser.add_argument('fabric_name', help='Name of the fabric')
+    hostname_parser.add_argument('role', help='Role of the switch (leaf, spine, border, etc.)')
+    hostname_parser.add_argument('switch_name', help='Name of the switch')
+    hostname_parser.add_argument('new_hostname', help='New hostname for the switch')
     
     # Create VPC command
     createvpc_parser = subparsers.add_parser('create-vpc', help='Create VPC pairs and set policies for switches in a fabric')
@@ -119,7 +130,11 @@ Examples:
             )
         elif args.command == 'set-role':
             # Set switch role
-            success = switch_manager.set_switch_role_by_name(args.switch_name)
+            success = switch_manager.set_switch_role(
+                args.fabric_name,
+                args.role,
+                args.switch_name
+            )
         elif args.command == 'change-ip':
             # Change switch IP
             success = switch_manager.change_switch_ip(
@@ -135,6 +150,14 @@ Examples:
                 args.fabric_name,
                 args.role,
                 args.switch_name
+            )
+        elif args.command == 'hostname':
+            # Change switch hostname
+            success = switch_manager.change_switch_hostname(
+                args.fabric_name,
+                args.role,
+                args.switch_name,
+                args.new_hostname
             )
         elif args.command == 'create-vpc':
             # Create VPC pairs

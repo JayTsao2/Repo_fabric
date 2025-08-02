@@ -5,7 +5,7 @@ urllib3.disable_warnings(InsecureRequestWarning)
 from .utils import *
 import json
 import os
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List
 
 def update_interface(fabric_name: str, policy: str, interfaces_payload: List[Dict[str, Any]]) -> bool:
     """
@@ -27,15 +27,8 @@ def update_interface(fabric_name: str, policy: str, interfaces_payload: List[Dic
         "interfaces": interfaces_payload
     }
     
-    try:
-        r = requests.put(url, headers=headers, json=payload, verify=False)
-        check_status_code(r)
-        print(f"✅ Updated {len(interfaces_payload)} interface(s) with policy {policy}")
-        return True
-        
-    except Exception as e:
-        print(f"❌ Error updating interfaces: {e}")
-        return False
+    r = requests.put(url, headers=headers, json=payload, verify=False)
+    return check_status_code(r, operation_name=f"Update Interfaces")
 
 def get_interfaces(serial_number: str = None, if_name: str = None, template_name: str = None, 
                   interface_dir: str = "interfaces", save_by_policy: bool = True) -> List[Dict[str, Any]]:
@@ -121,3 +114,19 @@ def _save_all_interfaces(interfaces_data: List[Dict], interface_dir: str, serial
     
     with open(filepath, 'w', encoding='utf-8') as f:
         json.dump(interfaces_data, f, indent=2, ensure_ascii=False)
+
+def update_admin_status(payload: List[Dict[str, Any]]) -> bool:
+    """
+    Update interface admin status (enable/disable) for interfaces without policies.
+    
+    Args:
+        interfaces: List of interfaces with admin status configuration
+        
+    Returns:
+        True if successful, False otherwise
+    """
+    url = get_url("/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/interface/adminstatus")
+    headers = get_api_key_header()
+    
+    r = requests.post(url, headers=headers, json=payload, verify=False)
+    return check_status_code(r, operation_name="Update Admin Status")

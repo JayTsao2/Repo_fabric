@@ -59,12 +59,8 @@ def create_vrf(fabric_name: str, vrf_payload: Dict[str, Any], template_payload: 
         vrf_payload["vrfTemplateConfig"] = json.dumps(template_payload)
         
         url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric_name}/vrfs")
-        
         r = requests.post(url, headers=headers, json=vrf_payload, verify=False)
-        check_status_code(r)
-        
-        return True
-        
+        return check_status_code(r)
     except Exception as e:
         print(f"Error creating VRF {vrf_payload.get('vrfName', 'unknown')}: {e}")
         return False
@@ -92,9 +88,7 @@ def update_vrf(fabric_name: str, vrf_name: str, vrf_payload: Dict[str, Any], tem
         url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric_name}/vrfs/{vrf_name}")
         
         r = requests.put(url, headers=headers, json=vrf_payload, verify=False)
-        check_status_code(r)
-        
-        return True
+        return check_status_code(r)
         
     except Exception as e:
         print(f"Error updating VRF {vrf_name}: {e}")
@@ -116,9 +110,7 @@ def delete_vrf(fabric_name: str, vrf_name: str) -> bool:
         headers = get_api_key_header()
         
         r = requests.delete(url, headers=headers, verify=False)
-        check_status_code(r)
-        
-        return True
+        return check_status_code(r)
         
     except Exception as e:
         print(f"Error deleting VRF {vrf_name}: {e}")
@@ -143,10 +135,8 @@ def update_vrf_attachment(fabric_name: str, attachment_payload: Dict[str, Any]) 
         url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric_name}/vrfs/attachments")
         
         r = requests.post(url, headers=headers, json=attachment_payload, verify=False)
-        check_status_code(r)
-        
-        return True
-        
+        return check_status_code(r)
+
     except Exception as e:
         print(f"Error updating VRF attachment: {e}")
         return False
@@ -178,10 +168,7 @@ def attach_vrf_to_switches(fabric_name: str, vrf_name: str, attachment_payload: 
         url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric_name}/vrfs/attachments")
         
         r = requests.post(url, headers=headers, json=attachment_payload, verify=False)
-        check_status_code(r)
-        
-        print(f"✅ VRF {vrf_name} successfully attached to switches")
-        return True
+        return check_status_code(r)
         
     except Exception as e:
         print(f"❌ Error attaching VRF {vrf_name} to switches: {e}")
@@ -214,22 +201,8 @@ def detach_vrf_from_switches(fabric_name: str, vrf_name: str, attachment_payload
         url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric_name}/vrfs/attachments")
         
         r = requests.post(url, headers=headers, json=attachment_payload, verify=False)
-        check_status_code(r)
-        
-        print(f"✅ VRF {vrf_name} successfully detached from switches")
-        return True
+        return check_status_code(r)
         
     except Exception as e:
         print(f"❌ Error detaching VRF {vrf_name} from switches: {e}")
         return False
-
-# Legacy functions for backward compatibility
-
-if __name__ == "__main__":
-    # get_VRFs(fabric="Site1-Greenfield", vrf_dir="vrfs", vrf_template_config_dir="vrfs/vrf_templates", vrf_filter="vrfId==50000", range=0)
-    # get_VRFs(fabric="Site1-TSMC", vrf_dir="vrfs", vrf_template_config_dir="vrfs/vrf_templates", vrf_filter="", range=0)
-    # create_VRF(filename="vrfs/Site1-TSMC_50000_bluevrf.json", vrf_template_config_file="vrfs/vrf_templates/Site1-TSMC_50000_bluevrf.json")
-    # update_VRF(filename="vrfs/Site1-TSMC_50000_bluevrf.json", vrf_template_config_file="vrfs/vrf_templates/Site1-TSMC_50000_bluevrf.json")
-    # delete_VRF(fabric="Site1-TSMC", vrf_name="bluevrf")
-    # get_VRF_attachment(fabric="Site1-TSMC", vrf_dir="vrfs", vrfname="", filter="", range="0-9")
-    pass

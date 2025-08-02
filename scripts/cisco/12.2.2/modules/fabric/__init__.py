@@ -11,23 +11,20 @@ It handles configuration merging, field mapping, and API payload generation
 for Cisco NDFC fabric management.
 """
 
-import os
 import sys
 from typing import List, Dict, Any, Tuple, Optional
 from pathlib import Path
 from dataclasses import dataclass
 from enum import Enum
 
-# Update import path to go back to parent directory for api and modules
-sys.path.append(str(Path(__file__).parent.parent.absolute()))
-import api.fabric as fabric_api
 from modules.config_utils import (
     load_yaml_file, merge_configs, 
     read_freeform_config, apply_field_mapping, 
     get_nested_value,
     validate_file_exists, 
-    validate_configuration_files, flatten_config
+    flatten_config
 )
+from config.config_factory import config_factory
 
 # --- Constants and Enums ---
 
@@ -62,6 +59,7 @@ class FreeformPaths:
     spine: str = ""
     banner: str = ""
     fabric: str = ""
+    intra_links: str = ""
 
 # --- Utility Classes ---
 
@@ -69,29 +67,28 @@ class FabricBuilder:
     """Main class for building network fabrics."""
     
     def __init__(self):
-        """Initialize the FabricBuilder with project paths."""
-        # Adjust path calculation for modules subdirectory
-        self.script_dir = Path(__file__).parent.parent.parent.absolute()
-        self.project_root = self.script_dir.parents[2]
-        self.resources_dir = self.script_dir / "resources"
+        """Initialize the FabricBuilder with centralized path configuration."""
+        pass
     
     def get_fabric_config(self, fabric_type: FabricType, name: str) -> FabricConfig:
         """Get configuration paths for a specific fabric type."""
+        fabric_paths = config_factory.get_fabric_paths()
+        
         base_configs = {
             FabricType.VXLAN_EVPN: FabricConfig(
-                config_path=str(self.project_root / "network_configs" / "1_vxlan_evpn" / "fabric" / f"{name}.yaml"),
-                defaults_path=str(self.resources_dir / "corp_defaults" / "cisco_vxlan.yaml"),
-                field_mapping_path=str(self.resources_dir / "_field_mapping" / "cisco_vxlan.yaml")
+                config_path=str(fabric_paths['configs'] / f"{name}.yaml"),
+                defaults_path=str(fabric_paths['defaults'].parent / "cisco_vxlan.yaml"),
+                field_mapping_path=str(fabric_paths['field_mapping'].parent / "cisco_vxlan.yaml")
             ),
             FabricType.MULTI_SITE_DOMAIN: FabricConfig(
-                config_path=str(self.project_root / "network_configs" / "1_vxlan_evpn" / "multisite_deployment" / f"{name}.yaml"),
-                defaults_path=str(self.resources_dir / "corp_defaults" / "cisco_multi-site.yaml"),
-                field_mapping_path=str(self.resources_dir / "_field_mapping" / "cisco_multi-site.yaml")
+                config_path=str(fabric_paths['multisite'] / f"{name}.yaml"),
+                defaults_path=str(fabric_paths['defaults'].parent / "cisco_multi-site.yaml"),
+                field_mapping_path=str(fabric_paths['field_mapping'].parent / "cisco_multi-site.yaml")
             ),
             FabricType.INTER_SITE_NETWORK: FabricConfig(
-                config_path=str(self.project_root / "network_configs" / "1_vxlan_evpn" / "inter-site_network" / f"{name}.yaml"),
-                defaults_path=str(self.resources_dir / "corp_defaults" / "cisco_inter-site.yaml"),
-                field_mapping_path=str(self.resources_dir / "_field_mapping" / "cisco_inter-site.yaml")
+                config_path=str(fabric_paths['inter_site'] / f"{name}.yaml"),
+                defaults_path=str(fabric_paths['defaults'].parent / "cisco_inter-site.yaml"),
+                field_mapping_path=str(fabric_paths['field_mapping'].parent / "cisco_inter-site.yaml")
             )
         }
         return base_configs[fabric_type]
@@ -188,12 +185,15 @@ class PayloadGenerator:
             if freeform_paths.spine and validate_file_exists(freeform_paths.spine):
                 payload_data["EXTRA_CONF_SPINE"] = read_freeform_config(freeform_paths.spine)
             
+            if freeform_paths.intra_links and validate_file_exists(freeform_paths.intra_links):
+                payload_data["EXTRA_CONF_INTRA_LINKS"] = read_freeform_config(freeform_paths.intra_links)
+            
             if freeform_paths.aaa and validate_file_exists(freeform_paths.aaa):
                 payload_data["AAA_SERVER_CONF"] = read_freeform_config(freeform_paths.aaa)
                 
             if freeform_paths.banner and validate_file_exists(freeform_paths.banner):
-                payload_data["BANNER"] = read_freeform_config(freeform_paths.banner)
-        
+                payload_data["BANNER"] = "`" + read_freeform_config(freeform_paths.banner) + "`"
+
         elif template_name == FabricType.INTER_SITE_NETWORK.value:
             if freeform_paths.fabric and validate_file_exists(freeform_paths.fabric):
                 payload_data["FABRIC_FREEFORM"] = read_freeform_config(freeform_paths.fabric)
@@ -211,26 +211,69 @@ class BaseFabricMethods:
     def get_freeform_paths(self, fabric_name: str, fabric_type: FabricType) -> FreeformPaths:
         """Get freeform configuration file paths for a fabric."""
         freeform_paths = FreeformPaths()
-        resources_freeform_dir = self.builder.resources_dir / "freeform"
+        fabric_paths = config_factory.get_fabric_paths()
+        resources_freeform_dir = fabric_paths['freeform']
         
         if fabric_type == FabricType.VXLAN_EVPN:
+            # Load fabric configuration to get custom freeform paths
+            fabric_config_path = self.builder.get_fabric_config(fabric_type, fabric_name).config_path
+            fabric_config = load_yaml_file(fabric_config_path)
+            
             # Check for fabric-specific freeform configs first
-            fabric_freeform_dir = (self.builder.project_root / "network_configs" / 
-                                 "1_vxlan_evpn" / "fabric" / f"{fabric_name}_FreeForm")
+            fabric_freeform_dir = fabric_paths['configs'] / f"{fabric_name}_FreeForm"
             
             # Default paths
             freeform_paths.aaa = str(resources_freeform_dir / "AAA Freeform Config.sh")
             freeform_paths.leaf = str(resources_freeform_dir / "Leaf Freeform Config.sh")
             freeform_paths.spine = str(resources_freeform_dir / "Spine Freeform Config.sh")
             freeform_paths.banner = str(resources_freeform_dir / "Banner.sh")
+            freeform_paths.intra_links = str(resources_freeform_dir / "Intra-fabric Links Additional Config.sh")
             
-            # Override with fabric-specific configs if they exist
+            # Override with paths from fabric configuration YAML if specified
+            if fabric_config:
+                # Check for AAA Freeform Config in Manageability section first
+                manageability_config = fabric_config.get('Manageability', {})
+                aaa_config = manageability_config.get('AAA Freeform Config', {})
+                if isinstance(aaa_config, dict) and 'Freeform' in aaa_config:
+                    aaa_path = aaa_config['Freeform']
+                    freeform_paths.aaa = str(fabric_freeform_dir / f"{aaa_path}.sh")
+                
+                # Then check Advanced section
+                advanced_config = fabric_config.get('Advanced', {})
+                
+                # Check for AAA Freeform Config in Advanced (fallback)
+                if not freeform_paths.aaa or freeform_paths.aaa == str(resources_freeform_dir / "AAA Freeform Config.sh"):
+                    aaa_advanced_config = advanced_config.get('AAA Freeform Config', {})
+                    if isinstance(aaa_advanced_config, dict) and 'Freeform' in aaa_advanced_config:
+                        aaa_path = aaa_advanced_config['Freeform']
+                        freeform_paths.aaa = str(fabric_freeform_dir / f"{aaa_path}.sh")
+                
+                # Check for Leaf Freeform Config
+                leaf_config = advanced_config.get('Leaf Freeform Config', {})
+                if isinstance(leaf_config, dict) and 'Freeform' in leaf_config:
+                    leaf_path = leaf_config['Freeform']
+                    freeform_paths.leaf = str(fabric_freeform_dir / f"{leaf_path}.sh")
+                
+                # Check for Spine Freeform Config
+                spine_config = advanced_config.get('Spine Freeform Config', {})
+                if isinstance(spine_config, dict) and 'Freeform' in spine_config:
+                    spine_path = spine_config['Freeform']
+                    freeform_paths.spine = str(fabric_freeform_dir / f"{spine_path}.sh")
+                
+                # Check for Intra-fabric Links Additional Config
+                intra_config = advanced_config.get('Intra-fabric Links Additional Config', {})
+                if isinstance(intra_config, dict) and 'Freeform' in intra_config:
+                    intra_path = intra_config['Freeform']
+                    freeform_paths.intra_links = str(fabric_freeform_dir / f"{intra_path}.sh")
+            
+            # Override with fabric-specific configs if they exist in the FreeForm directory
             if fabric_freeform_dir.exists():
                 for config_type, filename in [
                     ("aaa", "AAA Freeform Config.sh"),
                     ("leaf", "Leaf Freeform Config.sh"),
                     ("spine", "Spine Freeform Config.sh"),
-                    ("banner", "Banner.sh")
+                    ("banner", "Banner.sh"),
+                    ("intra_links", "Intra-fabric Links Additional Config.sh")
                 ]:
                     fabric_specific_path = fabric_freeform_dir / filename
                     if fabric_specific_path.exists():
@@ -264,11 +307,14 @@ class BaseFabricMethods:
         Returns:
             FabricType or None if type cannot be determined
         """
+        # Get fabric paths from centralized config
+        fabric_paths = config_factory.get_fabric_paths()
+        
         # Try each possible fabric type configuration path
         possible_paths = [
-            (FabricType.VXLAN_EVPN, str(self.builder.project_root / "network_configs" / "1_vxlan_evpn" / "fabric" / f"{fabric_name}.yaml")),
-            (FabricType.MULTI_SITE_DOMAIN, str(self.builder.project_root / "network_configs" / "1_vxlan_evpn" / "multisite_deployment" / f"{fabric_name}.yaml")),
-            (FabricType.INTER_SITE_NETWORK, str(self.builder.project_root / "network_configs" / "1_vxlan_evpn" / "inter-site_network" / f"{fabric_name}.yaml"))
+            (FabricType.VXLAN_EVPN, str(fabric_paths['configs'] / f"{fabric_name}.yaml")),
+            (FabricType.MULTI_SITE_DOMAIN, str(fabric_paths['multisite'] / f"{fabric_name}.yaml")),
+            (FabricType.INTER_SITE_NETWORK, str(fabric_paths['inter_site'] / f"{fabric_name}.yaml"))
         ]
         
         for fabric_type, config_path in possible_paths:
@@ -299,4 +345,4 @@ __all__ = [
 ]
 
 # Import the FabricManager for easy access
-from .fabric_manager import FabricManager
+from .fabric import FabricManager

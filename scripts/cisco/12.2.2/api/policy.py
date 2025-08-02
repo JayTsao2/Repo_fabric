@@ -35,10 +35,7 @@ def create_policy(payload):
     
     url = get_url("/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/policies")
     r = requests.post(url, headers=headers, json=payload, verify=False)
-    check_status_code(r)
-    print(f"Status Code: {r.status_code}")
-    print(f"Message: {r.text}")
-    return r.status_code == 200
+    return check_status_code(r, operation_name="Create Policy")
 
 def find_existing_policies_for_switch(switch_name, serial_number, policy_dir="policies"):
     """Find existing policy files for a given switch by parsing filenames."""
@@ -138,23 +135,44 @@ def create_policy_with_random_id(switch_name, serial_number, fabric_name, freefo
         
         try:
             if create_policy(payload):
-                print(f"✅ Successfully created policy {policy_id_str}")
+                print(f"[+] Successfully created policy {policy_id_str}")
                 return policy_id_str
         except Exception as e:
-            print(f"Failed to create policy {policy_id_str}: {e}")
+            print(f"[-] Failed to create policy {policy_id_str}: {e}")
             
         # Wait a bit before trying again
         time.sleep(0.5)
     
-    print(f"❌ Failed to create policy after {max_attempts} attempts")
+    print(f"[-] Failed to create policy after {max_attempts} attempts")
     return None
+
+def get_policies_by_serial_number(serial_number):
+    """Get all policies for a switch by serial number."""
+    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/policies/switches/{serial_number}")
+    headers = get_api_key_header()
+    r = requests.get(url, headers=headers, verify=False)
+    
+    if not check_status_code(r, operation_name="Get Policies by Serial Number"):
+        return None
+    
+    return r.json()
+
+def update_policy(policy_id, payload):
+    """Update an existing policy using the provided payload."""
+    headers = get_api_key_header()
+    headers['Content-Type'] = 'application/json'
+    
+    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/policies/{policy_id}")
+    r = requests.put(url, headers=headers, json=payload, verify=False)
+
+    return check_status_code(r, operation_name="Update Policy")
 
 def get_policy_by_id(id, policy_dir="policies", switch_name=None):
     """Get policy by ID and save with new filename format if switch_name provided."""
     url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/policies/{id}")
     headers = get_api_key_header()
     r = requests.get(url, headers=headers, verify=False)
-    check_status_code(r)
+    check_status_code(r, operation_name="Get Policy by ID")
     if not os.path.exists(policy_dir):
         os.makedirs(policy_dir)
 
@@ -165,12 +183,4 @@ def delete_policy(id):
     url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/policies/POLICY-{id}")
     headers = get_api_key_header()
     r = requests.delete(url, headers=headers, verify=False)
-    check_status_code(r)
-    print(f"Status Code: {r.status_code}")
-    print(f"Message: {r.text}")
-
-if __name__ == "__main__":
-    # Example usage
-    # get_policy_by_id("188990", "policies")
-    # delete_policy("210860")
-    pass
+    return check_status_code(r, operation_name="Delete Policy")

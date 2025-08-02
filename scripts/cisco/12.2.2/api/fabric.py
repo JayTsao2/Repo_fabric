@@ -12,13 +12,15 @@ def get_fabrics():
     headers = get_api_key_header()
 
     r = requests.get(url=url, headers=headers, verify=False)
-    check_status_code(r)
+    success = check_status_code(r)
     
-    fabrics = r.json()
-    with open("fabrics.json", "w") as f:
-        json.dump(fabrics, f, indent=4)
-    
-    return fabrics
+    if success:
+        fabrics = r.json()
+        with open("fabrics.json", "w") as f:
+            json.dump(fabrics, f, indent=4)
+        return fabrics
+    else:
+        return None
 
 def get_fabric(fabric_name: str, fabric_dir: str = "fabrics") -> Optional[Dict[str, Any]]:
     """Get specific fabric configuration from NDFC."""
@@ -27,7 +29,10 @@ def get_fabric(fabric_name: str, fabric_dir: str = "fabrics") -> Optional[Dict[s
     headers = get_api_key_header()
 
     r = requests.get(url=url, headers=headers, verify=False)
-    check_status_code(r)
+    success = check_status_code(r)
+    
+    if not success:
+        return None
     
     try: 
         data = r.json()
@@ -48,10 +53,8 @@ def delete_fabric(fabric_name: str) -> bool:
 
     headers = get_api_key_header()
     r = requests.delete(url=url, headers=headers, verify=False)
-    check_status_code(r)
-    # print(f"Status Code: {r.status_code}")
-    # print(f"Message: {r.text}")
-    return r.status_code < 400
+
+    return check_status_code(r, operation_name="Delete Fabric")
 
 def create_fabric(fabric_name: str, template_name: str, payload_data: Dict[str, Any]) -> bool:
     """
@@ -65,25 +68,18 @@ def create_fabric(fabric_name: str, template_name: str, payload_data: Dict[str, 
     Returns:
         bool: True if successful, False otherwise
     """
-    try:
-        # Clean payload by removing invalid fields
-        invalid_fields = ["USE_LINK_LOCAL", "ISIS_OVERLOAD_ENABLE", "ISIS_P2P_ENABLE", 
-                         "PNP_ENABLE_INTERNAL", "DOMAIN_NAME_INTERNAL"]
-        cleaned_payload = {k: v for k, v in payload_data.items() if k not in invalid_fields}
-        
-        url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric_name}/{template_name}")
-        headers = get_api_key_header()
-        headers['Content-Type'] = 'application/json'
-        
-        r = requests.post(url, headers=headers, data=json.dumps(cleaned_payload), verify=False)
-        check_status_code(r)
+    # Clean payload by removing invalid fields
+    invalid_fields = ["USE_LINK_LOCAL", "ISIS_OVERLOAD_ENABLE", "ISIS_P2P_ENABLE", 
+                    "PNP_ENABLE_INTERNAL", "DOMAIN_NAME_INTERNAL"]
+    cleaned_payload = {k: v for k, v in payload_data.items() if k not in invalid_fields}
+    
+    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric_name}/{template_name}")
+    headers = get_api_key_header()
+    headers['Content-Type'] = 'application/json'
+    
+    r = requests.post(url, headers=headers, data=json.dumps(cleaned_payload), verify=False)
 
-        # print(f"Fabric {fabric_name} has been successfully created!")
-        return True
-        
-    except Exception as e:
-        print(f"Error creating fabric {fabric_name}: {e}")
-        return False
+    return check_status_code(r, operation_name="Create Fabric")
 
 def update_fabric(fabric_name: str, template_name: str, payload_data: Dict[str, Any]) -> bool:
     """
@@ -97,45 +93,34 @@ def update_fabric(fabric_name: str, template_name: str, payload_data: Dict[str, 
     Returns:
         bool: True if successful, False otherwise
     """
-    try:
-        # Clean payload by removing invalid fields
-        invalid_fields = ["USE_LINK_LOCAL", "ISIS_OVERLOAD_ENABLE", "ISIS_P2P_ENABLE", 
-                         "PNP_ENABLE_INTERNAL", "DOMAIN_NAME_INTERNAL"]
-        cleaned_payload = {k: v for k, v in payload_data.items() if k not in invalid_fields}
-        
-        url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric_name}/{template_name}")
-        headers = get_api_key_header()
-        headers['Content-Type'] = 'application/json'
-        
-        r = requests.put(url, headers=headers, data=json.dumps(cleaned_payload), verify=False)
-        check_status_code(r)
+    # Clean payload by removing invalid fields
+    invalid_fields = ["USE_LINK_LOCAL", "ISIS_OVERLOAD_ENABLE", "ISIS_P2P_ENABLE", 
+                        "PNP_ENABLE_INTERNAL", "DOMAIN_NAME_INTERNAL"]
+    cleaned_payload = {k: v for k, v in payload_data.items() if k not in invalid_fields}
+    
+    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric_name}/{template_name}")
+    headers = get_api_key_header()
+    headers['Content-Type'] = 'application/json'
+    
+    r = requests.put(url, headers=headers, data=json.dumps(cleaned_payload), verify=False)
 
-        # print(f"Fabric {fabric_name} has been successfully updated!")
-        return True
-        
-    except Exception as e:
-        print(f"Error updating fabric {fabric_name}: {e}")
-        return False
+    return check_status_code(r, operation_name="Update Fabric")
 
 def recalculate_config(fabric_name: str) -> bool:
     """Recalculate fabric configuration."""
     url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric_name}/config-save")
     headers = get_api_key_header()
     r = requests.post(url, headers=headers, verify=False)
-    check_status_code(r)
-    # print(f"Status Code: {r.status_code}")
-    # print(f"Message: {r.text}")
-    return r.status_code < 400
+
+    return check_status_code(r, operation_name="Recalculate Config")
 
 def deploy_fabric_config(fabric_name: str) -> bool:
     """Deploy fabric configuration."""
     url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric_name}/config-deploy")
     headers = get_api_key_header()
     r = requests.post(url, headers=headers, verify=False)
-    check_status_code(r)
-    # print(f"Status Code: {r.status_code}")
-    # print(f"Message: {r.text}")
-    return r.status_code < 400
+
+    return check_status_code(r, operation_name="Deploy Fabric Config")
 
 def get_pending_config(fabric_name: str) -> Optional[Dict[str, Any]]:
     """Get pending configuration for a fabric and save in formatted text file."""
@@ -143,18 +128,13 @@ def get_pending_config(fabric_name: str) -> Optional[Dict[str, Any]]:
     headers = get_api_key_header()
     
     r = requests.get(url=url, headers=headers, verify=False)
-    check_status_code(r)
+    
+    if not check_status_code(r):
+        return None
     
     try:
         data = r.json()
         
-        # Save original JSON for reference (commented out for production)
-        # json_filename = "pending.json"
-        # with open(json_filename, "w") as f:
-        #     json.dump(data, f, indent=4)
-        # print(f"Pending configuration JSON for fabric {fabric_name} saved to {json_filename}")
-        
-        # Parse and create formatted text file
         txt_filename = "pending.txt"
         with open(txt_filename, "w") as f:
             for switch_data in data:
@@ -182,10 +162,7 @@ def add_MSD(parent_fabric_name: str, child_fabric_name: str) -> bool:
         "sourceFabric": child_fabric_name
     }
     r = requests.post(url, headers=headers, json=payload, verify=False)
-    check_status_code(r)
-    # print(f"Status Code: {r.status_code}")
-    # print(f"Message: {r.text}")
-    return r.status_code < 400
+    return check_status_code(r, operation_name="Add MSD")
 
 def remove_MSD(parent_fabric_name: str, child_fabric_name: str) -> bool:
     """Remove a child fabric from a Multi-Site Domain."""
@@ -196,17 +173,4 @@ def remove_MSD(parent_fabric_name: str, child_fabric_name: str) -> bool:
         "sourceFabric": child_fabric_name
     }
     r = requests.post(url, headers=headers, json=payload, verify=False)
-    check_status_code(r)
-    # print(f"Status Code: {r.status_code}")
-    # print(f"Message: {r.text}")
-    return r.status_code < 400
-
-if __name__ == "__main__":
-    # Example usage
-    # get_fabrics()
-    get_fabric("Site3-Test", "fabrics")
-    # delete_fabric("MSD-Test")
-    # recalculate_config("Site1")
-    # deploy_fabric_config("Site1")
-    # add_MSD("MSD-Test", "Site3-test")
-    # remove_MSD("MSD-1", "Site3-test")
+    return check_status_code(r, operation_name="Remove MSD")

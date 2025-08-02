@@ -8,16 +8,20 @@ This module handles VRF attachment and detachment operations:
 - Switch discovery and payload building
 """
 
+import sys
+from pathlib import Path
 from typing import Dict, Any, List, Optional
-from modules.common_utils import setup_module_path, MessageFormatter, create_main_function_wrapper
-setup_module_path(__file__)
 
 import api.vrf as vrf_api
 from modules.config_utils import load_yaml_file
-from . import BaseVRFMethods
+from . import VRFBuilder, VRFPayloadGenerator
 
-class VRFAttachment(BaseVRFMethods):
+class VRFAttachment:
     """Handles VRF attachment and detachment operations."""
+    
+    def __init__(self):
+        self.builder = VRFBuilder()
+        self.payload_generator = VRFPayloadGenerator()
     
     def manage_vrf_by_switch(self, fabric_name: str, switch_role: str, switch_name: str, operation: str = "attach") -> bool:
         """
@@ -32,11 +36,8 @@ class VRFAttachment(BaseVRFMethods):
         Returns:
             bool: True if successful, False otherwise
         """
+        vrf_name = None  # Initialize to avoid UnboundLocalError
         try:
-            action = "Attaching" if operation == "attach" else "Detaching"
-            preposition = "to" if operation == "attach" else "from"
-            print(f"\n=== {action} VRF {preposition} switch: {switch_name} ===")
-            
             # Load switch configuration and find VRF
             switch_config, serial_number = self._load_switch_config(fabric_name, switch_role, switch_name)
             if not switch_config:
@@ -46,12 +47,12 @@ class VRFAttachment(BaseVRFMethods):
             if not vrf_name:
                 return False
             
-            print(f"Found VRF {vrf_name} in {switch_name} ({serial_number}) in {fabric_name}")
+            print(f"  - VRF '{vrf_name}' configured on {switch_name} ({serial_number})")
             
             # Get VRF details and build payload
             vrf_details = self._find_vrf_by_name(vrf_name, fabric_name)
             if not vrf_details:
-                print(f"❌ No VRF found with name '{vrf_name}' in fabric '{fabric_name}'")
+                print(f"No VRF found with name '{vrf_name}' in fabric '{fabric_name}'")
                 return False
             
             vlan_id = vrf_details.get("VLAN ID")
@@ -69,16 +70,11 @@ class VRFAttachment(BaseVRFMethods):
             
             success = (vrf_api.attach_vrf_to_switches(fabric_name, vrf_name, payload) if operation == "attach" 
                       else vrf_api.detach_vrf_from_switches(fabric_name, vrf_name, payload))
-            
-            if success:
-                MessageFormatter.success(f"VRF {operation.title()}", f"{vrf_name} (VLAN {vlan_id}) {preposition} {switch_name}", "")
-            else:
-                MessageFormatter.failure(f"VRF {operation.title()}", f"{vrf_name} (VLAN {vlan_id}) {preposition} {switch_name}", "")
-            
             return success
                 
         except Exception as e:
-            MessageFormatter.error(f"VRF {operation}", f"{switch_name}", e, "")
+            vrf_display = vrf_name if vrf_name else "unknown VRF"
+            print(f"Error {operation}ing {vrf_display} on switch {switch_name}: {e}")
             return False
 
     def _find_vrf_by_name(self, vrf_name: str, fabric_name: str) -> Optional[Dict[str, Any]]:
@@ -134,20 +130,22 @@ class VRFAttachment(BaseVRFMethods):
 
     def _load_switch_config(self, fabric_name: str, switch_role: str, switch_name: str) -> tuple:
         """Load switch configuration and return config and serial number."""
-        switch_path = self.builder.project_root / "network_configs" / "3_node" / fabric_name / switch_role / f"{switch_name}.yaml"
+        from config.config_factory import config_factory
+        switch_paths = config_factory.create_switch_config()
+        switch_path = switch_paths['configs_dir'] / fabric_name / switch_role / f"{switch_name}.yaml"
         
         if not switch_path.exists():
-            print(f"❌ Switch configuration not found: {switch_path}")
+            print(f"Switch configuration not found: {switch_path}")
             return None, None
         
         switch_config = load_yaml_file(str(switch_path))
         if not switch_config:
-            print(f"❌ Failed to load switch configuration: {switch_path}")
+            print(f"Failed to load switch configuration: {switch_path}")
             return None, None
         
         serial_number = switch_config.get('Serial Number', '')
         if not serial_number:
-            print(f"❌ No serial number found in switch configuration: {switch_name}")
+            print(f"No serial number found in switch configuration: {switch_name}")
             return None, None
         
         return switch_config, serial_number
@@ -157,7 +155,7 @@ class VRFAttachment(BaseVRFMethods):
         interfaces = switch_config.get("Interface", [])
         
         if not isinstance(interfaces, list):
-            print(f"❌ Invalid interface format in switch '{switch_name}'")
+            print(f"Invalid interface format in switch '{switch_name}'")
             return None
         
         for interface_item in interfaces:
@@ -172,37 +170,8 @@ class VRFAttachment(BaseVRFMethods):
                 if (interface_config.get("policy") == "int_routed_host" and 
                     interface_config.get("Interface VRF")):
                     vrf_name = interface_config.get("Interface VRF")
-                    print(f"📋 Found interface {interface_name} with policy 'int_routed_host' and VRF '{vrf_name}'")
+                    print(f"  - Found routed interface {interface_name} using VRF '{vrf_name}'")
                     return vrf_name
         
-        print(f"❌ No interface with 'int_routed_host' policy and VRF found in switch '{switch_name}'")
+        print(f"No routed interfaces with VRF configuration found in switch '{switch_name}'")
         return None
-
-def main():
-    """
-    Main function for VRF attachment operations.
-    """
-    vrf_attachment = VRFAttachment()
-    
-    print("🔗  VRF Attachment - Network VRF Attachment Tool")
-    print("=" * 60)
-    
-    # Configuration - Update these values as needed
-    fabric_to_use = "Site3-Test"
-    switch_role = "leaf"
-    switch_name = "Site1-L3"
-    
-    # --- Attach VRF by Switch ---
-    
-    # Attach VRF to specific switch
-    success = vrf_attachment.manage_vrf_by_switch(fabric_to_use, switch_role, switch_name, "attach")
-    if not success:
-        print(f"Failed to attach VRF to switch '{switch_name}'")
-        return 1
-    
-    print("\n🎉 VRF attachment process completed successfully!")
-    return 0
-
-if __name__ == "__main__":
-    main_wrapper = create_main_function_wrapper("VRF Attachment", main)
-    main_wrapper()

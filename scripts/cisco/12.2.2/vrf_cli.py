@@ -8,7 +8,7 @@ Uses VRFManager for clean, consistent VRF management.
 Example usage:
     python vrf_cli.py create <fabric_name> <vrf_name>
     python vrf_cli.py update <fabric_name> <vrf_name>
-    python vrf_cli.py delete <vrf_name>
+    python vrf_cli.py delete <fabric_name> <vrf_name>
     python vrf_cli.py attach <fabric_name> <switch_role> <switch_name>
     python vrf_cli.py detach <fabric_name> <switch_role> <switch_name>
 """
@@ -32,7 +32,7 @@ def main():
 Examples:
   python vrf_cli.py create <fabric_name> <vrf_name>          # Create a VRF in specified fabric
   python vrf_cli.py update <fabric_name> <vrf_name>          # Update a VRF in specified fabric
-  python vrf_cli.py delete <vrf_name>                        # Delete a VRF
+  python vrf_cli.py delete <fabric_name> <vrf_name>          # Delete a VRF from specified fabric
   python vrf_cli.py attach <fabric_name> <switch_role> <switch_name>  # Attach VRF to a specific switch
   python vrf_cli.py detach <fabric_name> <switch_role> <switch_name>  # Detach VRF from a specific switch
         """
@@ -52,6 +52,7 @@ Examples:
     
     # Delete VRF command
     delete_parser = subparsers.add_parser('delete', help='Delete a VRF')
+    delete_parser.add_argument('fabric_name', help='Name of the fabric to delete VRF from')
     delete_parser.add_argument('vrf_name', help='Name of the VRF to delete')
     
     # Attach VRF command
@@ -79,13 +80,13 @@ Examples:
         success = False
         
         if args.command == 'create':
-            success = vrf_manager.create_vrf(args.vrf_name, args.fabric_name)
+            success = vrf_manager.create_vrf(args.fabric_name, args.vrf_name)
             
         elif args.command == 'update':
-            success = vrf_manager.update_vrf(args.vrf_name, args.fabric_name)
+            success = vrf_manager.update_vrf(args.fabric_name, args.vrf_name)
             
         elif args.command == 'delete':
-            success = vrf_manager.delete_vrf(args.vrf_name)
+            success = vrf_manager.delete_vrf(args.fabric_name, args.vrf_name)
             
         elif args.command == 'attach':
             success = vrf_manager.attach_vrf(args.fabric_name, args.switch_role, args.switch_name)

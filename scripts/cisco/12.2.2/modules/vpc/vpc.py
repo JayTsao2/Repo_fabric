@@ -7,37 +7,23 @@ This module provides VPC management functionality including:
 - Parsing VPC YAML configuration files
 """
 
-from pathlib import Path
-import sys
-
-# Setup import paths
-sys.path.append(str(Path(__file__).parent.parent.absolute()))
-import api.switch as switch_api
+import api.vpc as vpc_api
 from modules.config_utils import load_yaml_file
+from config.config_factory import config_factory
 
 
 class VPCManager:
     """Manager class for VPC operations."""
     
-    def __init__(self, config_base_path="network_configs/3_node"):
-        """
-        Initialize VPC Manager.
-        
-        Args:
-            config_base_path: Base path to network configurations
-        """
-        # Convert to Path object and make it relative to the repo root
-        if isinstance(config_base_path, str):
-            # Go up to the repo root from scripts/cisco/12.2.2/modules/vpc/
-            # This means going up 5 levels: vpc -> modules -> 12.2.2 -> cisco -> scripts -> repo_root
-            repo_root = Path(__file__).parent.parent.parent.parent.parent.parent
-            self.config_base_path = repo_root / config_base_path
-        else:
-            self.config_base_path = config_base_path
+    def __init__(self):
+        """Initialize VPC Manager with centralized configuration paths."""
+        self.config_paths = config_factory.create_vpc_config()
+        self.config_base_path = self.config_paths['configs_dir']
 
     def create_vpc_pairs(self, fabric_name: str) -> bool:
         """Create VPC pairs and set policies for all VPC configurations in the specified fabric."""
         try:
+            print(f"[VPC] Creating VPC pairs for fabric: {fabric_name}")
             # Build path to VPC configurations
             vpc_dir = self.config_base_path / fabric_name / "vpc"
             
@@ -56,7 +42,7 @@ class VPCManager:
             
             success_count = 0
             for vpc_file in vpc_files:
-                print(f"\nProcessing VPC configuration: {vpc_file.name}")
+                print(f"Processing VPC configuration: {vpc_file.name}")
                 
                 # Load VPC configuration
                 vpc_data = load_yaml_file(vpc_file)
@@ -81,8 +67,7 @@ class VPCManager:
                 # Step 1: Create VPC pair via API
                 vpc_pair_created = False
                 try:
-                    if switch_api.create_vpc_pair(peer_one_id, peer_two_id):
-                        print(f"✅ Successfully created VPC pair for {vpc_file.name}")
+                    if vpc_api.create_vpc_pair(peer_one_id, peer_two_id):
                         vpc_pair_created = True
                     else:
                         print(f"❌ Failed to create VPC pair for {vpc_file.name}")
@@ -142,7 +127,7 @@ class VPCManager:
                     
                     # Set VPC policy via API
                     try:
-                        if switch_api.set_vpc_policy(policy_payload):
+                        if vpc_api.set_vpc_policy(policy_payload):
                             print(f"✅ Successfully set VPC policy for {vpc_file.name}")
                         else:
                             print(f"⚠️ VPC policy creation failed for {vpc_file.name}, but VPC pair was created")
@@ -165,6 +150,7 @@ class VPCManager:
     def delete_vpc_pairs(self, fabric_name: str, switch_name: str) -> bool:
         """Delete VPC pairs for a specific switch in the specified fabric."""
         try:
+            print(f"[VPC] Deleting VPC pairs for switch: {switch_name} in fabric: {fabric_name}")
             # Build path to VPC configurations
             vpc_dir = self.config_base_path / fabric_name / "vpc"
             
@@ -243,7 +229,7 @@ class VPCManager:
                 # Step 1: Delete VPC policy first
                 print(f"Step 1: Deleting VPC policy for {vpc_name}...")
                 try:
-                    policy_deleted = switch_api.delete_vpc_policy(vpc_name, serial_numbers)
+                    policy_deleted = vpc_api.delete_vpc_policy(vpc_name, serial_numbers)
                     if policy_deleted:
                         print(f"✅ Successfully deleted VPC policy for {vpc_name}")
                     else:
@@ -255,7 +241,7 @@ class VPCManager:
                 # Step 2: Delete VPC pair
                 print(f"Step 2: Deleting VPC pair with serial number {target_serial}...")
                 try:
-                    if switch_api.delete_vpc_pair(target_serial):
+                    if vpc_api.delete_vpc_pair(target_serial):
                         print(f"✅ Successfully deleted VPC pair for {vpc_file.name}")
                         success_count += 1
                     else:

@@ -11,22 +11,17 @@ It handles configuration merging, field mapping, and API payload generation
 for Cisco NDFC VRF management.
 """
 
-import os
 import sys
 from typing import List, Dict, Any, Tuple, Optional
 from pathlib import Path
 from dataclasses import dataclass
 from enum import Enum
 
-# Update import path to go back to parent directory for api and modules
-sys.path.append(str(Path(__file__).parent.parent.absolute()))
-import api.vrf as vrf_api
 from modules.config_utils import (
     load_yaml_file, merge_configs, 
-    apply_field_mapping, get_nested_value,
-    validate_file_exists, 
-    validate_configuration_files, flatten_config
+    apply_field_mapping, flatten_config
 )
+from config.config_factory import config_factory
 
 # --- Constants and Enums ---
 
@@ -55,20 +50,12 @@ class VRFBuilder:
     """Main class for building and managing VRFs."""
     
     def __init__(self):
-        """Initialize the VRFBuilder with project paths."""
-        # Adjust path calculation for modules subdirectory
-        self.script_dir = Path(__file__).parent.parent.parent.absolute()
-        self.project_root = self.script_dir.parents[2]
-        self.resources_dir = self.script_dir / "resources"
-        self.vrf_configs_dir = self.project_root / "network_configs" / "5_segment"
+        """Initialize the VRFBuilder with centralized path configuration."""
+        pass
     
     def get_vrf_config(self) -> VRFConfig:
         """Get configuration paths for VRF management."""
-        return VRFConfig(
-            config_path=str(self.vrf_configs_dir / "vrf.yaml"),
-            defaults_path=str(self.resources_dir / "corp_defaults" / "vrf.yaml"),
-            field_mapping_path=str(self.resources_dir / "_field_mapping" / "vrf.yaml")
-        )
+        return config_factory.create_vrf_config()
 
 class VRFPayloadGenerator:
     """Handles the generation of API payloads for VRF operations."""
@@ -203,27 +190,19 @@ class VRFPayloadGenerator:
         
         return template_payload
 
-class BaseVRFMethods:
-    """Base class with shared methods for VRF operations."""
-    
-    def __init__(self):
-        self.builder = VRFBuilder()
-        self.payload_generator = VRFPayloadGenerator()
-
 # Export the main classes and types
 __all__ = [
     'VRFTemplate', 
     'VRFConfig', 
     'VRFAttachmentConfig',
     'VRFBuilder', 
-    'VRFPayloadGenerator', 
-    'BaseVRFMethods'
+    'VRFPayloadGenerator'
 ]
 
 # Import VRFManager at module level to avoid circular imports
 def _get_vrf_manager():
     """Lazy import of VRFManager to avoid circular import issues."""
-    from .vrf_manager import VRFManager
+    from .vrf import VRFManager
     return VRFManager
 
 # Add VRFManager to __all__ and provide access
