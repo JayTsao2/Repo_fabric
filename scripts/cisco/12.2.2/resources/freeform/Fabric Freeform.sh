@@ -1,6 +1,5 @@
 feature telnet
 feature lldp
-feature bfd
 clock timezone Taiwan 8 0
 no ip domain-lookup
 ip domain-name tsmc.com.tw

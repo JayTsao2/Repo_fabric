@@ -15,5 +15,5 @@ Policy:
     Enable BPDU Guard: "false"
     Enable Port Type Fast: False
 
-    Peer-1 Trunk Allowed Vlans: 20
-    Peer-2 Trunk Allowed Vlans: 20
+    Peer-1 Trunk Allowed Vlans: all # all or Number
+    Peer-2 Trunk Allowed Vlans: all # all or Number

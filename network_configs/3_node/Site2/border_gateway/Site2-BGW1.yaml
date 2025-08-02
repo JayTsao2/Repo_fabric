@@ -1,4 +1,5 @@
 ---
+Change Mode: Normal # Normal <> maintenance 
 IP Address: 10.192.195.87
 IP Netmask Length: 24 # For management interface
 Role: border gateway
