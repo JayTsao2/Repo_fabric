@@ -7,7 +7,23 @@ Serial Number: 9W4GBLXU5CR
 Platform: N9K-C9300v # For switch discovery
 Version: 9.3(15) # For switch discovery
 
+Switch Freeform Config: FreeForm\Route_Leak
+Switch Freeform Config: FreeForm\Shared_VRF_Z01
+
 Interface:
+
+  - Port-channel501:
+      policy: int_port_channel_trunk_host
+      Port Channel Member Interfaces: e1/17-20
+      Port Channel Mode: active
+      Enable BPDU Guard: False
+      Enable Port Type Fast: False
+      MTU: jumbo
+      SPEED: Auto
+      Trunk Allowed Vlans: all
+      Port Channel Description:
+      Enable Port Channel: True
+      Freeform Config: 
 
   - Ethernet1/1:
       Interface Description: Site1-S1
@@ -19,115 +35,113 @@ Interface:
 
   - Ethernet1/3:
       Interface Description: Site1-S3
-      Enable Interface: False
-
-  - Ethernet1/4:
-      policy: int_routed_host
-      Interface VRF: bluevrf
-      Interface IP: 10.192.1.1
-      IP Netmask Length: 24
-      Interface Description: 
-      MTU: 9100
-      SPEED: Auto
-      Enable Interface: True
-
-  - Ethernet1/5:
-      policy: int_routed_host
-      Interface VRF: bluevrf
-      Interface IP: 10.192.2.1
-      IP Netmask Length: 24
-      Interface Description: 
-      MTU: 9100
-      SPEED: Auto
-      Enable Interface: True
-
-  - Ethernet1/6:
-      policy: int_routed_host
-      Interface VRF: bluevrf
-      Interface IP: 10.192.3.1
-      IP Netmask Length: 24
-      Interface Description: 
-      MTU: 9100
-      SPEED: Auto
-      Enable Interface: True
-
-  - Ethernet1/7:
-      policy: int_access_host
-      Access Vlan: 20
-      Interface Description:
-      MTU: jumbo
-      SPEED: Auto
       Enable Interface: True
 
   - Ethernet1/8:
       policy: int_access_host
-      Access Vlan: 2300
+      Access Vlan: 1118
       Interface Description:
       MTU: jumbo
       SPEED: Auto
       Enable Interface: True
+      Freeform Config: 
 
   - Ethernet1/9:
       policy: int_access_host
-      Access Vlan: 2301
+      Access Vlan: 2023
       Interface Description:
       MTU: jumbo
       SPEED: Auto
       Enable Interface: True
+      Freeform Config: 
 
   - Ethernet1/10:
-      policy: int_trunk_host
-      Trunk Allowed Vlans: 20,2300,2301
+      policy: int_access_host
+      Access Vlan: 2253
       Interface Description:
       MTU: jumbo
       SPEED: Auto
       Enable Interface: True
+      Freeform Config: 
 
   - Ethernet1/11:
-      policy: int_trunk_host
-      Trunk Allowed Vlans: all # Blank (controlled by policy)
+      policy: int_access_host
+      Access Vlan: 1120
       Interface Description:
       MTU: jumbo
       SPEED: Auto
       Enable Interface: True
+      Freeform Config: 
 
   - Ethernet1/12:
-      policy: int_trunk_host
-      Trunk Allowed Vlans: all # Blank (controlled by policy)
+      policy: int_access_host
+      Access Vlan: 1121
       Interface Description:
       MTU: jumbo
       SPEED: Auto
       Enable Interface: True
+      Freeform Config: 
 
   - Ethernet1/13:
-      policy: int_routed_host
-      Interface VRF: Z02
-      Interface IP: 
-      IP Netmask Length: 
-      Interface Description: 
-      MTU: 9100
+      policy: int_trunk_host
+      Trunk Allowed Vlans: all
+      Interface Description:
+      MTU: jumbo
       SPEED: Auto
       Enable Interface: True
-      Freeform Config: Site1-L1_FreeForm\Site1-L1_Eth_1_13.sh
+      Freeform Config: 
 
   - Ethernet1/14:
-      policy: int_routed_host
-      Interface VRF: Z02
-      Interface IP: 
-      IP Netmask Length: 
-      Interface Description: 
-      MTU: 9100
+      policy: int_trunk_host
+      Trunk Allowed Vlans: all
+      Interface Description:
+      MTU: jumbo
       SPEED: Auto
       Enable Interface: True
-      Freeform Config: Site1-L1_FreeForm\Site1-L1_Eth_1_14.sh
+      Freeform Config: 
 
   - Ethernet1/15:
       policy: int_routed_host
-      Interface VRF: Z02
+      Interface VRF: Z01
       Interface IP: 
       IP Netmask Length: 
       Interface Description: 
       MTU: 9100
       SPEED: Auto
       Enable Interface: True
-      Freeform Config: Site1-L1_FreeForm\Site1-L1_Eth_1_15.sh
+      Freeform Config: FreeForm\L3_Link_Local
+
+  - Ethernet1/16:
+      policy: int_routed_host
+      Interface VRF: Z01
+      Interface IP: 
+      IP Netmask Length: 
+      Interface Description: 
+      MTU: 9100
+      SPEED: Auto
+      Enable Interface: True
+      Freeform Config: FreeForm\L3_Link_Local
+
+  - Ethernet1/17:
+      Interface Description: Port-channel501
+      Enable Interface: True
+
+  - Ethernet1/18: 
+      Interface Description: Port-channel501
+      Enable Interface: True
+
+  - Ethernet1/19:
+      Interface Description: Port-channel501
+      Enable Interface: True
+
+  - Ethernet1/20:
+      Interface Description: Port-channel501
+      Enable Interface: True
+
+  - Ethernet1/23:
+      Interface Description: Site1-L2
+      Enable Interface: True
+
+  - Ethernet1/24:
+      Interface Description: Site1-L2
+      Enable Interface: True

@@ -7,9 +7,27 @@ Serial Number: 99EUUY917LX
 Platform: N9K-C9300v # For switch discovery
 Version: 9.3(15) # For switch discovery
 
+Switch Freeform Config: FreeForm\Route_Leak
+Switch Freeform Config: FreeForm\VPC11
+
 Interface:
-  - Ethernet1/5:
-      policy: int_access_host
-      Access Vlan: 2300
-      Interface Description:
+
+  - Ethernet1/1:
+      Interface Description: Site2-S1
+      Enable Interface: True
+
+  - Ethernet1/2:
+      Interface Description: Site2-S2
+      Enable Interface: True
+
+  - Ethernet1/3:
+      Interface Description: Site2-S3
+      Enable Interface: True
+
+  - Ethernet1/23:
+      Interface Description: Site2-L1
+      Enable Interface: True
+
+  - Ethernet1/24:
+      Interface Description: Site2-L1
       Enable Interface: True
