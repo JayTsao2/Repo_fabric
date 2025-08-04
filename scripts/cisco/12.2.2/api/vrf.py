@@ -4,7 +4,7 @@ import urllib3
 urllib3.disable_warnings(InsecureRequestWarning)
 from .utils import *
 import json
-from typing import Dict, Any, List
+from typing import Dict, Any
 
 def get_VRFs(fabric, vrf_dir="vrfs", vrf_template_config_dir="vrf_template_config_dirs", vrf_filter="", range=0):
     # range = show the vrfs from 0 to {range}
@@ -138,66 +138,4 @@ def update_vrf_attachment(fabric_name: str, attachment_payload: Dict[str, Any]) 
 
     except Exception as e:
         print(f"Error updating VRF attachment: {e}")
-        return False
-
-def attach_vrf_to_switches(fabric_name: str, vrf_name: str, attachment_payload: List[Dict[str, Any]]) -> bool:
-    """
-    Attach VRF to switches by setting deployment=true in the attachment configuration.
-    
-    Args:
-        fabric_name: Name of the fabric
-        vrf_name: Name of the VRF to attach
-        attachment_payload: VRF attachment configuration payload (array format)
-        
-    Returns:
-        bool: True if successful, False otherwise
-    """
-    try:
-        headers = get_api_key_header()
-        headers['Content-Type'] = 'application/json'
-        
-        # Ensure deployment is set to true for attachment
-        for vrf_attachment in attachment_payload:
-            if "lanAttachList" in vrf_attachment:
-                for attach_item in vrf_attachment["lanAttachList"]:
-                    attach_item["deployment"] = True
-        
-        url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric_name}/vrfs/attachments")
-        
-        r = requests.post(url, headers=headers, json=attachment_payload, verify=False)
-        return check_status_code(r, operation_name=f"Attach VRF {vrf_name} to switches")
-
-    except Exception as e:
-        print(f" Error attaching VRF {vrf_name} to switches: {e}")
-        return False
-
-def detach_vrf_from_switches(fabric_name: str, vrf_name: str, attachment_payload: List[Dict[str, Any]]) -> bool:
-    """
-    Detach VRF from switches by setting deployment=false in the attachment configuration.
-    
-    Args:
-        fabric_name: Name of the fabric
-        vrf_name: Name of the VRF to detach
-        attachment_payload: VRF attachment configuration payload (array format)
-        
-    Returns:
-        bool: True if successful, False otherwise
-    """
-    try:
-        headers = get_api_key_header()
-        headers['Content-Type'] = 'application/json'
-        
-        # Ensure deployment is set to false for detachment
-        for vrf_attachment in attachment_payload:
-            if "lanAttachList" in vrf_attachment:
-                for attach_item in vrf_attachment["lanAttachList"]:
-                    attach_item["deployment"] = False
-        
-        url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric_name}/vrfs/attachments")
-        
-        r = requests.post(url, headers=headers, json=attachment_payload, verify=False)
-        return check_status_code(r, operation_name=f"Detach VRF {vrf_name} from switches")
-        
-    except Exception as e:
-        print(f"Error detaching VRF {vrf_name} from switches: {e}")
         return False

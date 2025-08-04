@@ -8,8 +8,6 @@ This module handles VRF attachment and detachment operations:
 - Switch discovery and payload building
 """
 
-import sys
-from pathlib import Path
 from typing import Dict, Any, List, Optional
 
 import api.vrf as vrf_api
@@ -66,9 +64,10 @@ class VRFAttachment:
             deployment = operation == "attach"
             payload = self._build_vrf_payload(vrf_name, vlan_id, switch_info, fabric_name, deployment)
             
-            success = (vrf_api.attach_vrf_to_switches(fabric_name, vrf_name, payload) if operation == "attach" 
-                      else vrf_api.detach_vrf_from_switches(fabric_name, vrf_name, payload))
-            return success
+            return vrf_api.update_vrf_attachment(
+                fabric_name=fabric_name,
+                attachment_payload=payload,
+            )
                 
         except Exception as e:
             vrf_display = vrf_name if vrf_name else "unknown VRF"
