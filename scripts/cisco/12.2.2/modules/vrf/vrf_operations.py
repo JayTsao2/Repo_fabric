@@ -55,17 +55,10 @@ class VRFOperations:
                 return False
             
             # Generate payloads
-            main_payload, template_payload, config_fabric_name = self.payload_generator.prepare_vrf_payload(config, vrf_name)
-            if not main_payload or not template_payload or not config_fabric_name:
+            main_payload, template_payload = self.payload_generator.prepare_vrf_payload(config, fabric_name, vrf_name)
+            if not main_payload or not template_payload:
                 print(f"Failed to generate payload for VRF {operation}")
-                return False
-            
-            # Validate fabric consistency
-            if config_fabric_name != fabric_name:
-                print(f"Fabric mismatch: Expected '{fabric_name}', but VRF config specifies '{config_fabric_name}'")
-                return False
-            
-            # Choose the appropriate API function based on operation
+                return False            # Choose the appropriate API function based on operation
             if operation == "create":
                 success = vrf_api.create_vrf(
                     fabric_name=fabric_name,

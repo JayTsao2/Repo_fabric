@@ -61,11 +61,11 @@ class VRFPayloadGenerator:
     """Handles the generation of API payloads for VRF operations."""
     
     @staticmethod
-    def prepare_vrf_payload(config: VRFConfig, vrf_name: str) -> Tuple[Optional[Dict[str, Any]], Optional[Dict[str, Any]], Optional[str]]:
-        """Prepare the API payload for creating/updating a VRF.
+    def prepare_vrf_payload(config: VRFConfig, fabric_name: str, vrf_name: str) -> Tuple[Optional[Dict[str, Any]], Optional[Dict[str, Any]]]:
+        """Prepare the API payload for creating/updating a VRF using provided fabric name.
         
         Returns:
-            Tuple of (main_payload, template_payload, fabric_name)
+            Tuple of (main_payload, template_payload)
         """
         
         # Load configurations
@@ -75,18 +75,15 @@ class VRFPayloadGenerator:
 
         if not all([vrf_config_list, defaults_config, field_mapping]):
             print("Could not load required VRF configurations or mappings. Exiting.")
-            return None, None, None
+            return None, None
 
         # Find the specific VRF in the list
         vrf_config = VRFPayloadGenerator._find_vrf_config(vrf_config_list, vrf_name)
         if not vrf_config:
-            return None, None, None
+            return None, None
 
-        # Extract fabric name from the VRF configuration
-        fabric_name = vrf_config.get("Fabric")
-        if not fabric_name:
-            print(f"No fabric specified for VRF '{vrf_name}' in configuration.")
-            return None, None, None
+        # Use the provided fabric_name instead of extracting from config
+        # This allows flexibility in which fabric to target regardless of YAML config
 
         # Merge configurations
         final_config = VRFPayloadGenerator._merge_all_configs(defaults_config, vrf_config)
@@ -101,7 +98,7 @@ class VRFPayloadGenerator:
         # Build template config payload from YAML configurations
         template_payload = VRFPayloadGenerator._build_template_payload(mapped_config, vrf_config)
         
-        return main_payload, template_payload, fabric_name
+        return main_payload, template_payload
 
     @staticmethod
     def _find_vrf_config(vrf_config_list: Dict[str, Any], vrf_name: str) -> Optional[Dict[str, Any]]:

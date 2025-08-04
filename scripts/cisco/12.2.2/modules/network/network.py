@@ -64,11 +64,11 @@ class NetworkManager:
             print(f"Error loading network configuration: {e}")
             self._networks = []
     
-    def _get_network(self, fabric_name: str, network_name: str) -> Optional[Dict[str, Any]]:
-        """Find network by fabric and name."""
+    def _get_network(self, network_name: str) -> Optional[Dict[str, Any]]:
+        """Find network by name regardless of fabric."""
         return next(
             (net for net in self.networks 
-             if net.get('Fabric') == fabric_name and net.get('Network Name') == network_name),
+             if net.get('Network Name') == network_name),
             None
         )
     
@@ -173,9 +173,9 @@ class NetworkManager:
         """Build complete network payload for API operations."""
         self._validate_resources()
         
-        network = self._get_network(fabric_name, network_name)
+        network = self._get_network(network_name)
         if not network:
-            raise ValueError(f"Network '{network_name}' not found in fabric '{fabric_name}'")
+            raise ValueError(f"Network '{network_name}' not found in configuration")
         
         # Build network payload using dictionary approach
         payload = self._build_network_payload(fabric_name, network_name, network)
@@ -232,14 +232,14 @@ class NetworkManager:
                 print("[Network] No interfaces found to process")
                 return True  # No interfaces to process is considered success
             
-            # Build network lookup table for the fabric
+            # Build network lookup table for all networks (fabric-agnostic)
             network_lookup = {
                 net.get('VLAN ID'): {
                     'network_name': net.get('Network Name'),
                     'vlan_id': net.get('VLAN ID')
                 }
                 for net in self.networks 
-                if net.get('Fabric') == fabric_name and net.get('VLAN ID')
+                if net.get('VLAN ID')
             }
             
             serial_number = switch_config.get('Serial Number')
@@ -284,14 +284,14 @@ class NetworkManager:
                 print("[Network] No interfaces found to process")
                 return True  # No interfaces to process is considered success
             
-            # Build network lookup table for the fabric
+            # Build network lookup table for all networks (fabric-agnostic)
             network_lookup = {
                 net.get('VLAN ID'): {
                     'network_name': net.get('Network Name'),
                     'vlan_id': net.get('VLAN ID')
                 }
                 for net in self.networks 
-                if net.get('Fabric') == fabric_name and net.get('VLAN ID')
+                if net.get('VLAN ID')
             }
             
             serial_number = switch_config.get('Serial Number')

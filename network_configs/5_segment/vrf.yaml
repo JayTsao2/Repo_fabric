@@ -1,7 +1,6 @@
 ---
 VRF:
-- Fabric: Site3-Test
-  VRF Name: bluevrf
+- VRF Name: bluevrf
   VRF ID: 50000
   VLAN ID: 2000
 
@@ -10,8 +9,7 @@ VRF:
     VRF Interface Description: bluevrf
     VRF Description: bluevrf
     
-- Fabric: Site3-Test
-  VRF Name: bluevrf2
+- VRF Name: bluevrf2
   VRF ID: 50001
   VLAN ID: 2001
 
