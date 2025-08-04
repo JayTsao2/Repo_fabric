@@ -16,10 +16,10 @@ Manageability:
   Syslog Server IPs: 10.228.90.42,10.228.90.43, 10.11.116.100, 10.11.117.100
 
   AAA Freeform Config: 
-    Freeform: Site3-Test_FreeForm/AAA Freeform Config
+    Freeform: Site3-Test_FreeForm/AAA Freeform Config.sh
 
 Advanced:
   Leaf Freeform Config:
-    Freeform: Site3-Test_FreeForm/Leaf Freeform Config
+    Freeform: Site3-Test_FreeForm/Leaf Freeform Config.sh
   Spine Freeform Config: 
-    Freeform: Site3-Test_FreeForm/Spine Freeform Config
+    Freeform: Site3-Test_FreeForm/Spine Freeform Config.sh

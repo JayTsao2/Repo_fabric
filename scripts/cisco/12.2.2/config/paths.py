@@ -59,7 +59,7 @@ class ProjectPaths:
     def get_fabric_paths(self) -> Dict[str, Path]:
         """Get all fabric-related paths."""
         return {
-            'configs': self.fabric_configs_dir,
+            'fabric': self.fabric_configs_dir,
             'defaults': self.defaults_dir / "fabric.yaml",
             'field_mapping': self.field_mapping_dir / "fabric.yaml",
             'freeform': self.freeform_dir,

@@ -6,8 +6,6 @@ Provides configuration objects for different modules.
 Centralizes configuration creation and management.
 """
 
-from pathlib import Path
-from typing import Any, Dict
 from .paths import project_paths
 
 class ConfigFactory:

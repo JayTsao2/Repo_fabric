@@ -48,7 +48,7 @@ class FabricManager:
         """Get configuration paths for a specific fabric type and name."""
         base_configs = {
             FabricType.VXLAN_EVPN: {
-                'config_path': str(self.fabric_paths['configs'] / f"{fabric_name}.yaml"),
+                'config_path': str(self.fabric_paths['fabric'] / f"{fabric_name}.yaml"),
                 'defaults_path': str(self.fabric_paths['defaults'].parent / "cisco_vxlan.yaml"),
                 'field_mapping_path': str(self.fabric_paths['field_mapping'].parent / "cisco_vxlan.yaml")
             },
@@ -69,7 +69,7 @@ class FabricManager:
         """Determine the fabric type by reading the YAML configuration file."""
         # Try each possible fabric type configuration path
         possible_paths = [
-            (FabricType.VXLAN_EVPN, str(self.fabric_paths['configs'] / f"{fabric_name}.yaml")),
+            (FabricType.VXLAN_EVPN, str(self.fabric_paths['fabric'] / f"{fabric_name}.yaml")),
             (FabricType.MULTI_SITE_DOMAIN, str(self.fabric_paths['multisite'] / f"{fabric_name}.yaml")),
             (FabricType.INTER_SITE_NETWORK, str(self.fabric_paths['inter_site'] / f"{fabric_name}.yaml"))
         ]
@@ -128,59 +128,33 @@ class FabricManager:
         resources_freeform_dir = self.fabric_paths['freeform']
         
         if fabric_type == FabricType.VXLAN_EVPN:
-            # Check for fabric-specific freeform configs first
-            fabric_freeform_dir = self.fabric_paths['configs'] / f"{fabric_name}_FreeForm"
-            
-            # Initialize paths - only banner has default, others are None if not found
-            default_paths = {
-                'aaa': None,
-                'leaf': None,
-                'spine': None,
-                'banner': str(resources_freeform_dir / "Banner.sh"),  # Only banner has default
-                'intra_links': None
+            # Initialize paths - only banner has default, others are YAML-only
+            freeform_paths = {
+                'banner': str(resources_freeform_dir / "Banner.sh"),  # Default banner path
             }
-            
-            # Override with paths from fabric configuration YAML if specified
+            fabric_path = self.fabric_paths['fabric']
+            # Read freeform paths from fabric configuration YAML
             if fabric_config:
                 # Check Manageability section for AAA config
                 manageability_config = fabric_config.get('Manageability', {})
                 aaa_config = manageability_config.get('AAA Freeform Config', {})
                 if isinstance(aaa_config, dict) and 'Freeform' in aaa_config:
-                    default_paths['aaa'] = aaa_config['Freeform']
-                
+                    freeform_paths['aaa'] = str(fabric_path / aaa_config['Freeform'])
+
                 # Check Advanced section
                 advanced_config = fabric_config.get('Advanced', {})
-                
-                # Check for AAA Freeform Config in Advanced (fallback)
-                if aaa_config := advanced_config.get('AAA Freeform Config', {}):
-                    if isinstance(aaa_config, dict) and 'Freeform' in aaa_config:
-                        default_paths['aaa'] = aaa_config['Freeform']
                 
                 # Check for other freeform configs
                 for config_key, path_key in [
                     ('Leaf Freeform Config', 'leaf'),
                     ('Spine Freeform Config', 'spine'),
-                    ('Intra-fabric Links Additional Config', 'intra_links')
+                    ('Intra-fabric Links Additional Config', 'intra_links'),
+                    ('Banner', 'banner')
                 ]:
                     config = advanced_config.get(config_key, {})
                     if isinstance(config, dict) and 'Freeform' in config:
-                        default_paths[path_key] = config['Freeform']
-            
-            # Override with fabric-specific configs if they exist
-            if fabric_freeform_dir.exists():
-                for config_type, filename in [
-                    ("aaa", "AAA Freeform Config.sh"),
-                    ("leaf", "Leaf Freeform Config.sh"),
-                    ("spine", "Spine Freeform Config.sh"),
-                    ("banner", "Banner.sh"),
-                    ("intra_links", "Intra-fabric Links Additional Config.sh")
-                ]:
-                    fabric_specific_path = fabric_freeform_dir / filename
-                    if fabric_specific_path.exists():
-                        default_paths[config_type] = str(fabric_specific_path)
-            
-            freeform_paths = default_paths
-            
+                        freeform_paths[path_key] = str(fabric_path / config['Freeform'])
+
         elif fabric_type == FabricType.INTER_SITE_NETWORK:
             # Load from defaults configuration
             defaults_path = self._get_fabric_config_path(fabric_type, fabric_name)['defaults_path']
