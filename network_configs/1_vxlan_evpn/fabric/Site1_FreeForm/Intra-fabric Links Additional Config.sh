@@ -1,11 +1,11 @@
 feature telnet
-feature bfd
 clock timezone Taiwan 8 0
 no ip domain-lookup
 ip domain-name tsmc.com.tw
 
 ip access-list NETWORK_ADMIN
   10 remark TW Admin Zone
+  11 permit ip 10.192.195.0/24 any
   20 permit ip 10.66.0.0/16 any
   30 permit ip 10.67.0.0/16 any
   40 permit ip 10.68.0.0/16 any
@@ -56,6 +56,7 @@ ip access-list NETWORK_ADMIN
   970 deny tcp any any eq telnet log
   980 deny tcp any any eq 22 log
   990 permit ip any any
+
 snmp-server source-interface traps mgmt0
 snmp-server host 10.228.90.84 traps version 2c public
 snmp-server host 10.228.90.84 use-vrf management
@@ -90,15 +91,7 @@ snmp-server enable traps feature-control ciscoFeatOpStatusChange
 snmp-server enable traps mmode cseNormalModeChangeNotify
 snmp-server enable traps mmode cseMaintModeChangeNotify
 snmp-server community public group network-operator
-snmp-server context CX_Z01 vrf Z01
-snmp-server community Z01 group network-operator
-snmp-server mib community-map Z01 context CX_Z01
-ip igmp snooping vxlan
-system vlan long-name
-spanning-tree pathcost method long
-spanning-tree port type edge bpduguard default
-spanning-tree port type edge bpdufilter default
-spanning-tree vlan 1-3967 priority 8192
+
 route-map ctob permit 10
 router ospf 100
   log-adjacency-changes
@@ -106,12 +99,14 @@ router ospf 100
   timers lsa-group-pacing 240
   timers lsa-arrival 15
   timers throttle lsa 0 50 5000
+
 line console
   exec-timeout 60
 line vty
   session-limit 10
   exec-timeout 60
   access-class NETWORK_ADMIN in
+
 logging logfile messages 6 size 81920
 logging source-interface mgmt0
 logging origin-id hostname
