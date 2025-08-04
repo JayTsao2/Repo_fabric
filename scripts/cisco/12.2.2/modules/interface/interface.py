@@ -9,6 +9,7 @@ This module provides a clean, unified interface for all interface operations wit
 - Policy-based interface management (access, trunk, routed)
 """
 
+import json
 import api.interface as interface_api
 from modules.config_utils import load_yaml_file, read_freeform_config
 from config.config_factory import config_factory
@@ -111,8 +112,13 @@ class InterfaceManager:
             "int_routed_host": []
         }
         
+        # Track which interfaces were processed from YAML
+        processed_interfaces = set()
+        
+        # Process interfaces specified in YAML
         for interface_name, yaml_config in yaml_interfaces_map.items():
             print(f"[Interface] Processing interface: {interface_name}")
+            processed_interfaces.add(interface_name)
             policy = yaml_config.get("policy")
             
             # Find existing interface in the appropriate policy group
@@ -137,7 +143,30 @@ class InterfaceManager:
             else:
                 print(f"[Interface] Warning: Interface {interface_name} not found in existing interfaces")
         
+        # Process interfaces NOT specified in YAML - set to trunk with VLAN none and admin down
+        self._process_unspecified_interfaces(existing_interfaces_map, processed_interfaces, updated_interfaces)
+        
         return updated_interfaces
+    
+    def _process_unspecified_interfaces(self, existing_interfaces_map, processed_interfaces, updated_interfaces):
+        """Process interfaces that are not specified in YAML configuration."""
+        
+        for interfaces in existing_interfaces_map.values():
+            for interface_name, existing_interface in interfaces.items():
+                if (interface_name not in processed_interfaces and 
+                    not interface_name.startswith(('mgmt', 'loopback', 'nve'))):
+                    updated_nv_pairs = existing_interface["nvPairs"].copy()
+                    updated_nv_pairs.update({
+                        "ADMIN_STATE": "false",
+                        "ALLOWED_VLANS": "none",
+                        "MTU": "jumbo"
+                    })
+                    
+                    updated_interfaces["int_trunk_host"].append({
+                        "serialNumber": existing_interface["serialNumber"],
+                        "ifName": interface_name,
+                        "nvPairs": updated_nv_pairs
+                    })
     
     def _find_existing_interface(self, existing_interfaces_map, interface_name, target_policy):
         """Find existing interface across all policy groups."""
