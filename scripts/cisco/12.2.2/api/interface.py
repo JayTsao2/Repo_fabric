@@ -59,18 +59,18 @@ def get_interfaces(serial_number: str = None, if_name: str = None, template_name
     
     try:
         r = requests.get(url, headers=headers, params=query_params, verify=False)
-        check_status_code(r)
+        check_status_code(r, f"Get Interfaces for {serial_number}")
         
         interfaces_data = r.json()
         
         # Create directory if it doesn't exist
-        if not os.path.exists(interface_dir):
-            os.makedirs(interface_dir)
+        # if not os.path.exists(interface_dir):
+        #     os.makedirs(interface_dir)
         
-        if save_by_policy:
-            _save_interfaces_by_policy(interfaces_data, interface_dir, serial_number)
-        else:
-            _save_all_interfaces(interfaces_data, interface_dir, serial_number)
+        # if save_by_policy:
+        #     _save_interfaces_by_policy(interfaces_data, interface_dir, serial_number)
+        # else:
+        #     _save_all_interfaces(interfaces_data, interface_dir, serial_number)
         
         return interfaces_data
         
