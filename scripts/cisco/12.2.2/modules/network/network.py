@@ -58,6 +58,7 @@ class NetworkManager:
     def _load_networks(self) -> None:
         """Load network configurations from YAML file."""
         try:
+            print(f"[Network] Loading network config from: {self.config_path}")
             config_data = load_yaml_file(str(self.config_path))
             self._networks = config_data.get('Network', [])
         except Exception as e:
@@ -191,20 +192,20 @@ class NetworkManager:
     
     def create_network(self, fabric_name: str, network_name: str) -> bool:
         """Create a network using YAML configuration."""
-        print(f"[Network] Creating network '{network_name}' in fabric: '{fabric_name}'")
+        print(f"[Network] Creating network '{network_name}' in fabric '{fabric_name}'")
         payload, template_config = self._build_complete_payload(fabric_name, network_name)
         return network_api.create_network(fabric_name, payload, template_config)
     
     def update_network(self, fabric_name: str, network_name: str) -> bool:
         """Update a network using YAML configuration."""
-        print(f"[Network] Updating network '{network_name}' in fabric: '{fabric_name}'")
+        print(f"[Network] Updating network '{network_name}' in fabric '{fabric_name}'")
         payload, template_config = self._build_complete_payload(fabric_name, network_name)
         return network_api.update_network(fabric_name, payload, template_config)
 
     
     def delete_network(self, fabric_name: str, network_name: str) -> bool:
         """Delete a network."""
-        print(f"[Network] Deleting network '{network_name}' in fabric: '{fabric_name}'")
+        print(f"[Network] Deleting network '{network_name}' in fabric '{fabric_name}'")
         return network_api.delete_network(fabric_name, network_name)
     
     # --- Network Attachment Operations ---
@@ -216,6 +217,7 @@ class NetworkManager:
         try:
             # Load and validate switch configuration
             switch_path = self.switch_config_paths['configs_dir'] / fabric_name / role / f"{switch_name}.yaml"
+            print(f"[Network] Loading switch config from: {switch_path}")
             if not switch_path.exists():
                 print(f"[Network] Switch configuration not found: {switch_path}")
                 return False
@@ -268,6 +270,7 @@ class NetworkManager:
         try:
             # Load and validate switch configuration
             switch_path = self.switch_config_paths['configs_dir'] / fabric_name / role / f"{switch_name}.yaml"
+            print(f"[Network] Loading switch config from: {switch_path}")
             if not switch_path.exists():
                 print(f"[Network] Switch configuration not found: {switch_path}")
                 return False
