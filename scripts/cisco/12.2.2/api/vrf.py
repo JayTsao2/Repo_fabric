@@ -60,7 +60,7 @@ def create_vrf(fabric_name: str, vrf_payload: Dict[str, Any], template_payload: 
         
         url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric_name}/vrfs")
         r = requests.post(url, headers=headers, json=vrf_payload, verify=False)
-        return check_status_code(r)
+        return check_status_code(r, operation_name=f"Create VRF {vrf_payload.get('vrfName', 'unknown')}")
     except Exception as e:
         print(f"Error creating VRF {vrf_payload.get('vrfName', 'unknown')}: {e}")
         return False
@@ -88,8 +88,8 @@ def update_vrf(fabric_name: str, vrf_name: str, vrf_payload: Dict[str, Any], tem
         url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric_name}/vrfs/{vrf_name}")
         
         r = requests.put(url, headers=headers, json=vrf_payload, verify=False)
-        return check_status_code(r)
-        
+        return check_status_code(r, operation_name=f"Update VRF {vrf_name}")
+
     except Exception as e:
         print(f"Error updating VRF {vrf_name}: {e}")
         return False
@@ -110,7 +110,7 @@ def delete_vrf(fabric_name: str, vrf_name: str) -> bool:
         headers = get_api_key_header()
         
         r = requests.delete(url, headers=headers, verify=False)
-        return check_status_code(r)
+        return check_status_code(r, operation_name=f"Delete VRF {vrf_name}")
         
     except Exception as e:
         print(f"Error deleting VRF {vrf_name}: {e}")
@@ -131,11 +131,10 @@ def update_vrf_attachment(fabric_name: str, attachment_payload: Dict[str, Any]) 
         headers = get_api_key_header()
         headers['Content-Type'] = 'application/json'
         
-        print(f"Updating VRF attachment in fabric {fabric_name}...")
         url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric_name}/vrfs/attachments")
         
         r = requests.post(url, headers=headers, json=attachment_payload, verify=False)
-        return check_status_code(r)
+        return check_status_code(r, operation_name=f"Update VRF Attachment")
 
     except Exception as e:
         print(f"Error updating VRF attachment: {e}")
@@ -163,15 +162,13 @@ def attach_vrf_to_switches(fabric_name: str, vrf_name: str, attachment_payload: 
                 for attach_item in vrf_attachment["lanAttachList"]:
                     attach_item["deployment"] = True
         
-        print(f"Attaching VRF {vrf_name} to switches in fabric {fabric_name}...")
-        
         url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric_name}/vrfs/attachments")
         
         r = requests.post(url, headers=headers, json=attachment_payload, verify=False)
-        return check_status_code(r)
-        
+        return check_status_code(r, operation_name=f"Attach VRF {vrf_name} to switches")
+
     except Exception as e:
-        print(f"❌ Error attaching VRF {vrf_name} to switches: {e}")
+        print(f" Error attaching VRF {vrf_name} to switches: {e}")
         return False
 
 def detach_vrf_from_switches(fabric_name: str, vrf_name: str, attachment_payload: List[Dict[str, Any]]) -> bool:
@@ -196,13 +193,11 @@ def detach_vrf_from_switches(fabric_name: str, vrf_name: str, attachment_payload
                 for attach_item in vrf_attachment["lanAttachList"]:
                     attach_item["deployment"] = False
         
-        print(f"Detaching VRF {vrf_name} from switches in fabric {fabric_name}...")
-        
         url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric_name}/vrfs/attachments")
         
         r = requests.post(url, headers=headers, json=attachment_payload, verify=False)
-        return check_status_code(r)
+        return check_status_code(r, operation_name=f"Detach VRF {vrf_name} from switches")
         
     except Exception as e:
-        print(f"❌ Error detaching VRF {vrf_name} from switches: {e}")
+        print(f"Error detaching VRF {vrf_name} from switches: {e}")
         return False

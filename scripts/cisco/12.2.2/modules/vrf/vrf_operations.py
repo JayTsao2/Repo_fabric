@@ -36,11 +36,9 @@ class VRFOperations:
             bool: True if successful, False otherwise
         """
         try:
-            print(f"{operation.title()}ing VRF '{vrf_name}' in fabric '{fabric_name}'")
-            
             # Get configuration
             config = self.builder.get_vrf_config()
-            print(f"Using config file: {config.config_path}")
+            print(f"[VRF] Using config file: {config.config_path}")
             
             # Validate required files exist
             required_files = [

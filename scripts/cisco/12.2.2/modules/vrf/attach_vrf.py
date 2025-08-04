@@ -47,8 +47,6 @@ class VRFAttachment:
             if not vrf_name:
                 return False
             
-            print(f"  - VRF '{vrf_name}' configured on {switch_name} ({serial_number})")
-            
             # Get VRF details and build payload
             vrf_details = self._find_vrf_by_name(vrf_name, fabric_name)
             if not vrf_details:
@@ -78,15 +76,14 @@ class VRFAttachment:
             return False
 
     def _find_vrf_by_name(self, vrf_name: str, fabric_name: str) -> Optional[Dict[str, Any]]:
-        """Find VRF details by VRF name and fabric name."""
+        """Find VRF details by VRF name (fabric-agnostic)."""
         config = self.builder.get_vrf_config()
         vrf_config_list = load_yaml_file(config.config_path)
         
         if isinstance(vrf_config_list, dict) and "VRF" in vrf_config_list:
             vrf_list = vrf_config_list["VRF"]
             for vrf in vrf_list:
-                if (vrf.get("Fabric") == fabric_name and 
-                    vrf.get("VRF Name") == vrf_name):
+                if vrf.get("VRF Name") == vrf_name:
                     return vrf
         return None
 
@@ -133,19 +130,20 @@ class VRFAttachment:
         from config.config_factory import config_factory
         switch_paths = config_factory.create_switch_config()
         switch_path = switch_paths['configs_dir'] / fabric_name / switch_role / f"{switch_name}.yaml"
+        print(f"[VRF] Loading switch configuration from: {switch_path}")
         
         if not switch_path.exists():
-            print(f"Switch configuration not found: {switch_path}")
+            print(f"[VRF] Switch configuration not found: {switch_path}")
             return None, None
         
         switch_config = load_yaml_file(str(switch_path))
         if not switch_config:
-            print(f"Failed to load switch configuration: {switch_path}")
+            print(f"[VRF] Failed to load switch configuration: {switch_path}")
             return None, None
         
         serial_number = switch_config.get('Serial Number', '')
         if not serial_number:
-            print(f"No serial number found in switch configuration: {switch_name}")
+            print(f"[VRF] No serial number found in switch configuration: {switch_name}")
             return None, None
         
         return switch_config, serial_number
@@ -170,8 +168,8 @@ class VRFAttachment:
                 if (interface_config.get("policy") == "int_routed_host" and 
                     interface_config.get("Interface VRF")):
                     vrf_name = interface_config.get("Interface VRF")
-                    print(f"  - Found routed interface {interface_name} using VRF '{vrf_name}'")
+                    print(f"[VRF] Found routed interface {interface_name} using VRF '{vrf_name}'")
                     return vrf_name
-        
-        print(f"No routed interfaces with VRF configuration found in switch '{switch_name}'")
+
+        print(f"[VRF] No routed interfaces with VRF configuration found in switch '{switch_name}'")
         return None
