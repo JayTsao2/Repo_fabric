@@ -3,7 +3,7 @@ Change Mode: Normal # Normal <> maintenance
 IP Address: 10.192.195.72
 IP Netmask Length: 24 # For management interface
 Role: Leaf
-Serial Number: 95H3IT6BGM0
+Serial Number: 9CTODQEOPI8
 Platform: N9K-C9300v # For switch discovery
 Version: 9.3(15) # For switch discovery
 
