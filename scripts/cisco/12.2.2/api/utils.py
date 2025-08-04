@@ -99,10 +99,10 @@ def check_status_code(response: requests.Response, operation_name: str = "API op
         True if successful (status 200), False otherwise
     """
     if response.status_code == 200:
-        print(f"[+] {operation_name} successful")
+        print(f"[+] Success: {operation_name}")
         return True
     else:
-        print(f"[-] {operation_name} failed")
+        print(f"[-] Fail: {operation_name}")
         print(f"[*] Status Code: {response.status_code}")
         print(f"[*] Message: {response.text}")
         return False
