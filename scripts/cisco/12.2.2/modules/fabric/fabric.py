@@ -20,6 +20,8 @@ from modules.config_utils import (
 from config.config_factory import config_factory
 import api.fabric as fabric_api
 
+import json
+
 class FabricType(Enum):
     """Enumeration of supported fabric types."""
     VXLAN_EVPN = "Easy_Fabric"
@@ -44,27 +46,6 @@ class FabricManager:
         # Get fabric paths from factory
         self.fabric_paths = config_factory.get_fabric_paths()
         
-    def _get_fabric_config_path(self, fabric_type: FabricType, fabric_name: str) -> Dict[str, str]:
-        """Get configuration paths for a specific fabric type and name."""
-        base_configs = {
-            FabricType.VXLAN_EVPN: {
-                'config_path': str(self.fabric_paths['fabric'] / f"{fabric_name}.yaml"),
-                'defaults_path': str(self.fabric_paths['defaults'].parent / "cisco_vxlan.yaml"),
-                'field_mapping_path': str(self.fabric_paths['field_mapping'].parent / "cisco_vxlan.yaml")
-            },
-            FabricType.MULTI_SITE_DOMAIN: {
-                'config_path': str(self.fabric_paths['multisite'] / f"{fabric_name}.yaml"),
-                'defaults_path': str(self.fabric_paths['defaults'].parent / "cisco_multi-site.yaml"),
-                'field_mapping_path': str(self.fabric_paths['field_mapping'].parent / "cisco_multi-site.yaml")
-            },
-            FabricType.INTER_SITE_NETWORK: {
-                'config_path': str(self.fabric_paths['inter_site'] / f"{fabric_name}.yaml"),
-                'defaults_path': str(self.fabric_paths['defaults'].parent / "cisco_inter-site.yaml"),
-                'field_mapping_path': str(self.fabric_paths['field_mapping'].parent / "cisco_inter-site.yaml")
-            }
-        }
-        return base_configs[fabric_type]
-    
     def _determine_fabric_type_from_file(self, fabric_name: str) -> Optional[FabricType]:
         """Determine the fabric type by reading the YAML configuration file."""
         # Try each possible fabric type configuration path
@@ -119,7 +100,6 @@ class FabricManager:
             mapped_config.pop("SITE_ID", None)  # Remove SITE_ID if it exists
             mapped_config["FABRIC_TYPE"] = "External"
             mapped_config["EXT_FABRIC_TYPE"] = "Multi-Site External Network"
-        
         return mapped_config
     
     def _get_freeform_paths(self, fabric_name: str, fabric_type: FabricType, fabric_config: Dict[str, Any]) -> Dict[str, str]:
@@ -156,21 +136,20 @@ class FabricManager:
                         freeform_paths[path_key] = str(fabric_path / config['Freeform'])
 
         elif fabric_type == FabricType.INTER_SITE_NETWORK:
-            # Load from defaults configuration
-            defaults_path = self._get_fabric_config_path(fabric_type, fabric_name)['defaults_path']
-            defaults_config = load_yaml_file(defaults_path)
-            
-            if defaults_config:
-                advanced_config = defaults_config.get('Advanced', {})
-                
-                fabric_freeform = advanced_config.get('Fabric Freeform', {}).get('freeform')
-                if fabric_freeform:
-                    freeform_paths['fabric'] = fabric_freeform
-                
-                aaa_freeform = advanced_config.get('AAA Freeform Config', {}).get('freeform')
-                if aaa_freeform:
-                    freeform_paths['aaa'] = aaa_freeform
-        
+            # Initialize paths - no defaults, only read from YAML
+            if fabric_config:
+                fabric_path = self.fabric_paths['inter_site']
+                advanced_config = fabric_config.get('Advanced', {})
+                # Check for Fabric Freeform Config
+                fabric_freeform_config = advanced_config.get('Fabric Freeform', {})
+                if isinstance(fabric_freeform_config, dict) and 'Freeform' in fabric_freeform_config:
+                    freeform_paths['fabric'] = str(fabric_path / fabric_freeform_config['Freeform'])
+
+                # Check for AAA Freeform Config
+                aaa_freeform_config = advanced_config.get('AAA Freeform Config', {})
+                if isinstance(aaa_freeform_config, dict) and 'Freeform' in aaa_freeform_config:
+                    freeform_paths['aaa'] = str(fabric_path / aaa_freeform_config['Freeform'])
+
         return freeform_paths
     
     def _add_freeform_content_to_payload(self, payload_data: Dict[str, Any], fabric_type: FabricType, 
@@ -224,7 +203,7 @@ class FabricManager:
             # AAA Freeform Config
             aaa_path = freeform_paths.get('aaa')
             if aaa_path and validate_file_exists(aaa_path):
-                payload_data["AAA_FREEFORM"] = read_freeform_config(aaa_path)
+                payload_data["AAA_SERVER_CONF"] = read_freeform_config(aaa_path)
             elif aaa_path:
                 print(f"[Fabric] AAA freeform config file not found: {aaa_path}")
     
@@ -235,24 +214,31 @@ class FabricManager:
         if not fabric_type:
             raise ValueError(f"Could not determine fabric type for '{fabric_name}'")
         
-        # Get configuration paths
-        config_paths = self._get_fabric_config_path(fabric_type, fabric_name)
+        # Get configuration paths based on fabric type
+        if fabric_type == FabricType.VXLAN_EVPN:
+            config_path = str(self.fabric_paths['fabric'] / f"{fabric_name}.yaml")
+            defaults_path = str(self.fabric_paths['defaults'] / "cisco_vxlan.yaml")
+            field_mapping_path = str(self.fabric_paths['field_mapping'] / "cisco_vxlan.yaml")
+        elif fabric_type == FabricType.MULTI_SITE_DOMAIN:
+            config_path = str(self.fabric_paths['multisite'] / f"{fabric_name}.yaml")
+            defaults_path = str(self.fabric_paths['defaults'] / "cisco_multi-site.yaml")
+            field_mapping_path = str(self.fabric_paths['field_mapping'] / "cisco_multi-site.yaml")
+        elif fabric_type == FabricType.INTER_SITE_NETWORK:
+            config_path = str(self.fabric_paths['inter_site'] / f"{fabric_name}.yaml")
+            defaults_path = str(self.fabric_paths['defaults'] / "cisco_inter-site.yaml")
+            field_mapping_path = str(self.fabric_paths['field_mapping'] / "cisco_inter-site.yaml")
         
         # Validate required files for VXLAN EVPN
         if fabric_type == FabricType.VXLAN_EVPN:
-            required_files = [
-                config_paths['config_path'], 
-                config_paths['defaults_path'], 
-                config_paths['field_mapping_path']
-            ]
+            required_files = [config_path, defaults_path, field_mapping_path]
             files_exist, missing_files = validate_configuration_files(required_files)
             if not files_exist:
                 raise ValueError(f"Missing required configuration files: {missing_files}")
         
         # Load configurations
-        fabric_config = load_yaml_file(config_paths['config_path'])
-        defaults_config = load_yaml_file(config_paths['defaults_path'])
-        field_mapping = load_yaml_file(config_paths['field_mapping_path'])
+        fabric_config = load_yaml_file(config_path)
+        defaults_config = load_yaml_file(defaults_path)
+        field_mapping = load_yaml_file(field_mapping_path)
         
         if not all([fabric_config, defaults_config, field_mapping]):
             raise ValueError("Could not load required configurations or mappings")
@@ -274,7 +260,6 @@ class FabricManager:
                         print(f"  {config_type.title()}: {path}")
             
             self._add_freeform_content_to_payload(payload_data, fabric_type, freeform_paths)
-        
         # Get template name from fabric type
         template_name = fabric_type.value
         
@@ -288,7 +273,17 @@ class FabricManager:
         
         try:
             payload_data, template_name, fabric_name_resolved = self._build_complete_payload(fabric_name)
-            print(f"[Fabric] Using config file: {self._get_fabric_config_path(self._determine_fabric_type_from_file(fabric_name), fabric_name)['config_path']}")
+            
+            # Determine config file path for logging
+            fabric_type = self._determine_fabric_type_from_file(fabric_name)
+            if fabric_type == FabricType.VXLAN_EVPN:
+                config_path = str(self.fabric_paths['fabric'] / f"{fabric_name}.yaml")
+            elif fabric_type == FabricType.MULTI_SITE_DOMAIN:
+                config_path = str(self.fabric_paths['multisite'] / f"{fabric_name}.yaml")
+            elif fabric_type == FabricType.INTER_SITE_NETWORK:
+                config_path = str(self.fabric_paths['inter_site'] / f"{fabric_name}.yaml")
+            
+            print(f"[Fabric] Using config file: {config_path}")
             
             return fabric_api.create_fabric(
                 fabric_name=fabric_name_resolved,
@@ -305,7 +300,17 @@ class FabricManager:
         
         try:
             payload_data, template_name, fabric_name_resolved = self._build_complete_payload(fabric_name)
-            print(f"[Fabric] Using config file: {self._get_fabric_config_path(self._determine_fabric_type_from_file(fabric_name), fabric_name)['config_path']}")
+            
+            # Determine config file path for logging
+            fabric_type = self._determine_fabric_type_from_file(fabric_name)
+            if fabric_type == FabricType.VXLAN_EVPN:
+                config_path = str(self.fabric_paths['fabric'] / f"{fabric_name}.yaml")
+            elif fabric_type == FabricType.MULTI_SITE_DOMAIN:
+                config_path = str(self.fabric_paths['multisite'] / f"{fabric_name}.yaml")
+            elif fabric_type == FabricType.INTER_SITE_NETWORK:
+                config_path = str(self.fabric_paths['inter_site'] / f"{fabric_name}.yaml")
+            
+            print(f"[Fabric] Using config file: {config_path}")
             
             return fabric_api.update_fabric(
                 fabric_name=fabric_name_resolved,

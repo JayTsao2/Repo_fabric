@@ -60,8 +60,8 @@ class ProjectPaths:
         """Get all fabric-related paths."""
         return {
             'fabric': self.fabric_configs_dir,
-            'defaults': self.defaults_dir / "fabric.yaml",
-            'field_mapping': self.field_mapping_dir / "fabric.yaml",
+            'defaults': self.defaults_dir,
+            'field_mapping': self.field_mapping_dir,
             'freeform': self.freeform_dir,
             'inter_site': self.inter_site_dir,
             'multisite': self.multisite_dir,
@@ -108,18 +108,6 @@ class ProjectPaths:
             'defaults': self.defaults_dir / "vpc.yaml",
             'field_mapping': self.field_mapping_dir / "vpc.yaml"
         }
-    
-    def get_freeform_paths(self, fabric_name: str = None) -> Dict[str, Path]:
-        """Get freeform configuration paths."""
-        paths = {
-            'base': self.freeform_dir
-        }
-        
-        if fabric_name:
-            fabric_specific = self.fabric_configs_dir / f"{fabric_name}_FreeForm"
-            paths['fabric_specific'] = fabric_specific
-        
-        return paths
     
     def validate_paths(self) -> bool:
         """Validate that all required paths exist."""

@@ -29,18 +29,6 @@ class ConfigFactory:
         )
     
     @staticmethod
-    def create_fabric_config(fabric_name: str):
-        """Create fabric configuration."""
-        paths = project_paths.get_fabric_paths()
-        # Import here to avoid circular imports
-        from modules.fabric import FabricConfig
-        return FabricConfig(
-            config_path=str(paths['configs'] / f"{fabric_name}.yaml"),
-            defaults_path=str(paths['defaults']),
-            field_mapping_path=str(paths['field_mapping'])
-        )
-    
-    @staticmethod
     def create_switch_config():
         """Create switch configuration."""
         paths = project_paths.get_switch_paths()
@@ -87,10 +75,5 @@ class ConfigFactory:
         """Get fabric-related paths."""
         return project_paths.get_fabric_paths()
     
-    @staticmethod
-    def get_freeform_paths(fabric_name: str = None):
-        """Get freeform configuration paths."""
-        return project_paths.get_freeform_paths(fabric_name)
-
 # Global factory instance
 config_factory = ConfigFactory()
