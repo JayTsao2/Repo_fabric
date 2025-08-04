@@ -17,8 +17,13 @@ class ConfigFactory:
     def create_vrf_config():
         """Create VRF configuration."""
         paths = project_paths.get_vrf_paths()
-        # Import here to avoid circular imports
-        from modules.vrf import VRFConfig
+        # Return simple configuration object instead of importing VRFConfig
+        class VRFConfig:
+            def __init__(self, config_path, defaults_path, field_mapping_path):
+                self.config_path = config_path
+                self.defaults_path = defaults_path
+                self.field_mapping_path = field_mapping_path
+        
         return VRFConfig(
             config_path=str(paths['configs']),
             defaults_path=str(paths['defaults']),
