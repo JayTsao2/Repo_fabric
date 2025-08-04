@@ -7,8 +7,7 @@ Serial Number: 95H3IT6BGM0
 Platform: N9K-C9300v # For switch discovery
 Version: 9.3(15) # For switch discovery
 
-Switch Freeform Config: FreeForm\Route_Leak
-Switch Freeform Config: FreeForm\VPC10
+Switch Freeform Config: FreeForm\Route_Leak.sh, FreeForm\VPC10.sh
 
 Interface:
 
