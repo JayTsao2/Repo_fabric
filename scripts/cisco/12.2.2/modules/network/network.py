@@ -191,28 +191,28 @@ class NetworkManager:
     
     def create_network(self, fabric_name: str, network_name: str) -> bool:
         """Create a network using YAML configuration."""
-        print(f"[Network] Creating network: {network_name} in fabric: {fabric_name}")
+        print(f"[Network] Creating network '{network_name}' in fabric: '{fabric_name}'")
         payload, template_config = self._build_complete_payload(fabric_name, network_name)
         return network_api.create_network(fabric_name, payload, template_config)
     
     def update_network(self, fabric_name: str, network_name: str) -> bool:
         """Update a network using YAML configuration."""
-        print(f"[Network] Updating network: {network_name} in fabric: {fabric_name}")
+        print(f"[Network] Updating network '{network_name}' in fabric: '{fabric_name}'")
         payload, template_config = self._build_complete_payload(fabric_name, network_name)
         return network_api.update_network(fabric_name, payload, template_config)
 
     
     def delete_network(self, fabric_name: str, network_name: str) -> bool:
         """Delete a network."""
-        print(f"[Network] Deleting network: {network_name} in fabric: {fabric_name}")
+        print(f"[Network] Deleting network '{network_name}' in fabric: '{fabric_name}'")
         return network_api.delete_network(fabric_name, network_name)
     
     # --- Network Attachment Operations ---
     
     def attach_networks(self, fabric_name: str, role: str, switch_name: str) -> bool:
         """Attach networks to switch interfaces based on YAML configuration."""
-        print(f"[Network] Attaching networks to switch: {switch_name} in fabric: {fabric_name}, role: {role}")
-        
+        print(f"[Network] Attaching networks to switch '{switch_name}' ({role}) in fabric '{fabric_name}'")
+
         try:
             # Load and validate switch configuration
             switch_path = self.switch_config_paths['configs_dir'] / fabric_name / role / f"{switch_name}.yaml"
@@ -263,8 +263,8 @@ class NetworkManager:
     
     def detach_networks(self, fabric_name: str, role: str, switch_name: str) -> bool:
         """Detach networks from switch interfaces based on YAML configuration."""
-        print(f"[Network] Detaching networks from switch: {switch_name} in fabric: {fabric_name}, role: {role}")
-        
+        print(f"[Network] Detaching networks from switch '{switch_name}' ({role}) in fabric '{fabric_name}'")
+
         try:
             # Load and validate switch configuration
             switch_path = self.switch_config_paths['configs_dir'] / fabric_name / role / f"{switch_name}.yaml"
@@ -342,13 +342,6 @@ class NetworkManager:
                         fabric_name, network_name, serial_number, interface_name, vlan_id
                     )
                 
-                if result:
-                    print(f"[Network] Successfully {operation}ed network {network_name} (VLAN {vlan_id}) "
-                          f"to interface {interface_name}")
-                else:
-                    print(f"[Network] Failed to {operation} network {network_name} (VLAN {vlan_id}) "
-                          f"to interface {interface_name}")
-                
                 return result
             except ValueError:
                 print(f"[Network] Invalid VLAN ID '{access_vlan}' for interface {interface_name}")
@@ -364,7 +357,6 @@ class NetworkManager:
             try:
                 # Handle "all" case - attach to all available networks
                 if str(trunk_vlans).strip().lower() == 'all':
-                    print(f"[Network] Attaching interface {interface_name} to ALL networks in fabric {fabric_name}")
                     vlan_ids = list(network_lookup.keys())
                     if not vlan_ids:
                         print(f"[Network] No networks found in fabric {fabric_name}")
@@ -399,12 +391,7 @@ class NetworkManager:
                                 fabric_name, network_name, serial_number, interface_name, vlan_id
                             )
                         
-                        if result:
-                            print(f"[Network] Successfully {operation}ed network {network_name} (VLAN {vlan_id}) "
-                                  f"to interface {interface_name}")
-                        else:
-                            print(f"[Network] Failed to {operation} network {network_name} (VLAN {vlan_id}) "
-                                  f"to interface {interface_name}")
+                        if not result:
                             return False
                     except Exception as e:
                         print(f"[Network] Error during {operation} operation for VLAN {vlan_id}: {e}")
@@ -414,5 +401,9 @@ class NetworkManager:
             except ValueError as e:
                 print(f"[Network] Error parsing trunk VLANs for {interface_name}: {e}")
                 return False
-        
-        return True  # Unknown policy types are skipped but not considered failure
+        elif policy == 'int_routed_host':
+            print(f"[Network] Interface {interface_name} is {policy}, skipping") 
+            return True
+        else:
+            print(f"[Network] Unknown policy '{policy}' for interface {interface_name}, skipping")
+            return True
