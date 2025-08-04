@@ -9,8 +9,6 @@ This module provides a clean, unified interface for all interface operations wit
 - Policy-based interface management (access, trunk, routed)
 """
 
-from typing import Dict, Any
-
 import api.interface as interface_api
 from modules.config_utils import load_yaml_file, read_freeform_config
 from config.config_factory import config_factory
@@ -22,8 +20,6 @@ class InterfaceManager:
         """Initialize with centralized configuration paths."""
         self.config_paths = config_factory.create_interface_config()
         self.config_base_path = self.config_paths['configs_dir']
-        # Initialize interface API
-        self.interface_api = interface_api
     
     def update_switch_interfaces(self, fabric_name: str, role: str, switch_name: str) -> bool:
         """Update all interfaces for a switch based on YAML configuration."""
@@ -49,7 +45,7 @@ class InterfaceManager:
             
             # Get all existing interfaces from NDFC for this switch
             print(f"[Interface] Fetching existing interfaces for serial number: {serial_number}")
-            existing_interfaces_data = self.interface_api.get_interfaces(
+            existing_interfaces_data = interface_api.get_interfaces(
                 serial_number=serial_number, 
                 save_by_policy=False
             )
@@ -228,6 +224,7 @@ class InterfaceManager:
         
         freeform_path = yaml_config["Freeform Config"]
         if not freeform_path:
+            nv_pairs["CONF"] = ""
             return
         
         try:
@@ -238,30 +235,19 @@ class InterfaceManager:
             nv_pairs["CONF"] = freeform_content
         except Exception as e:
             print(f"[Interface] Warning: Failed to load freeform config {freeform_path}: {e}")
-            nv_pairs["CONF"] = nv_pairs.get("CONF", "")
+            nv_pairs["CONF"] = ""
     
     def _apply_interface_updates(self, updated_interfaces):
         """Apply interface updates to NDFC."""
         success = True
-        total_updated = 0
         
         for policy, interfaces in updated_interfaces.items():
             if not interfaces:
                 continue
             
             print(f"[Interface] Updating {len(interfaces)} {policy} interfaces")
-            # Note: fabric_name is not needed for the update_interface API call
-            # as it's contained within the interface nvPairs
-            if self.interface_api.update_interface("", policy, interfaces):
-                total_updated += len(interfaces)
-                print(f"[Interface] Successfully updated {len(interfaces)} {policy} interfaces")
-            else:
+            if not interface_api.update_interface(policy, interfaces):
                 print(f"[Interface] Failed to update {policy} interfaces")
                 success = False
-        
-        if success and total_updated > 0:
-            print(f"[Interface] Successfully updated {total_updated} total interfaces")
-        elif total_updated == 0:
-            print("[Interface] No interfaces to update")
         
         return success
