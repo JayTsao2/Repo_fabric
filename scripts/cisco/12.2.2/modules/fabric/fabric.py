@@ -153,7 +153,7 @@ class FabricManager:
         return freeform_paths
     
     def _add_freeform_content_to_payload(self, payload_data: Dict[str, Any], fabric_type: FabricType, 
-                                       freeform_paths: Dict[str, str]) -> None:
+                                       freeform_paths: Dict[str, str], fabric_config: Dict[str, Any] = None) -> None:
         """Add freeform configuration content to the API payload."""
         if fabric_type == FabricType.VXLAN_EVPN:
             # AAA Freeform Config
@@ -191,6 +191,9 @@ class FabricManager:
                 payload_data["BANNER"] = banner_data
             else:
                 print(f"[Fabric] Banner config file not found: {banner_path}")
+            
+            # iBGP Peer-Template Configs
+            self._add_ibgp_template_configs(payload_data, fabric_config)
 
         elif fabric_type == FabricType.INTER_SITE_NETWORK:
             # Fabric Freeform Config
@@ -206,6 +209,41 @@ class FabricManager:
                 payload_data["AAA_SERVER_CONF"] = read_freeform_config(aaa_path)
             elif aaa_path:
                 print(f"[Fabric] AAA freeform config file not found: {aaa_path}")
+    
+    def _add_ibgp_template_configs(self, payload_data: Dict[str, Any], fabric_config: Dict[str, Any]) -> None:
+        """Add iBGP Peer-Template configurations to the payload for VXLAN EVPN fabrics."""
+        # Get BGP ASN from fabric config
+        bgp_asn = get_nested_value(fabric_config, ('General Parameter', 'BGP ASN'))
+        if not bgp_asn:
+            print("[Fabric] Warning: No BGP ASN found in fabric config, skipping iBGP template configs")
+            return
+        
+        # Template file paths
+        template_dir = self.fabric_paths['template']
+        ibgp_template_path = template_dir / "iBGP Peer-Template Config.sh"
+        leaf_border_template_path = template_dir / "Leaf_Border_Border Gateway iBGP Peer-Template Config.sh"
+        
+        print(f"[Fabric] Processing iBGP Peer-Template Config path: {ibgp_template_path}")
+        # Process iBGP Peer-Template Config
+        if validate_file_exists(str(ibgp_template_path)):
+            template_content = read_freeform_config(str(ibgp_template_path))
+            # Replace $BGP_ASN with actual ASN value
+            processed_content = template_content.replace('$BGP_ASN', str(bgp_asn))
+            payload_data["IBGP_PEER_TEMPLATE"] = processed_content
+            print(f"[Fabric] Added iBGP Peer-Template Config with BGP ASN: {bgp_asn}")
+        else:
+            print(f"[Fabric] iBGP Peer-Template Config file not found: {ibgp_template_path}")
+        
+        print(f"[Fabric] Processing Leaf Border iBGP Peer-Template Config path: {leaf_border_template_path}")
+        # Process Leaf Border iBGP Peer-Template Config
+        if validate_file_exists(str(leaf_border_template_path)):
+            template_content = read_freeform_config(str(leaf_border_template_path))
+            # Replace $BGP_ASN with actual ASN value
+            processed_content = template_content.replace('$BGP_ASN', str(bgp_asn))
+            payload_data["IBGP_PEER_TEMPLATE_LEAF"] = processed_content
+            print(f"[Fabric] Added Leaf Border iBGP Peer-Template Config with BGP ASN: {bgp_asn}")
+        else:
+            print(f"[Fabric] Leaf Border iBGP Peer-Template Config file not found: {leaf_border_template_path}")
     
     def _build_complete_payload(self, fabric_name: str) -> Tuple[Dict[str, Any], str, str]:
         """Build complete fabric payload for API operations."""
@@ -259,7 +297,7 @@ class FabricManager:
                     if path:
                         print(f"  {config_type.title()}: {path}")
             
-            self._add_freeform_content_to_payload(payload_data, fabric_type, freeform_paths)
+            self._add_freeform_content_to_payload(payload_data, fabric_type, freeform_paths, fabric_config)
         # Get template name from fabric type
         template_name = fabric_type.value
         
