@@ -67,11 +67,10 @@ class VRFManager:
     
     def _get_vrf(self, vrf_name: str) -> Optional[Dict[str, Any]]:
         """Find VRF by name regardless of fabric."""
-        return next(
-            (vrf for vrf in self.vrfs 
-             if vrf.get('VRF Name') == vrf_name),
-            None
-        )
+        for vrf in self.vrfs:
+            if vrf.get('VRF Name') == vrf_name:
+                return vrf
+        return None
     
     def _validate_resources(self) -> None:
         """Validate required resource files exist."""

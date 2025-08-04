@@ -67,11 +67,10 @@ class NetworkManager:
     
     def _get_network(self, network_name: str) -> Optional[Dict[str, Any]]:
         """Find network by name regardless of fabric."""
-        return next(
-            (net for net in self.networks 
-             if net.get('Network Name') == network_name),
-            None
-        )
+        for net in self.networks:
+            if net.get('Network Name') == network_name:
+                return net
+        return None
     
     def _get_effective_vrf(self, network: Dict[str, Any]) -> str:
         """Return VRF name, 'NA' if Layer 2 Only."""
@@ -81,7 +80,7 @@ class NetworkManager:
         """Validate required resource files exist."""
         validate_configuration_files([str(self.defaults_path), str(self.field_mapping_path)])
     
-    def _build_network_template_config(self, fabric_name: str, network_name: str, network: Dict[str, Any]) -> Dict[str, Any]:
+    def _build_network_template_config(self, network_name: str, network: Dict[str, Any]) -> Dict[str, Any]:
         """Build network template configuration dictionary."""
         # Extract required fields from network data
         vlan_name = network.get('VLAN Name', '')
@@ -182,8 +181,8 @@ class NetworkManager:
         payload = self._build_network_payload(fabric_name, network_name, network)
         
         # Build template config using dictionary approach
-        template_config = self._build_network_template_config(fabric_name, network_name, network)
-        
+        template_config = self._build_network_template_config(network_name, network)
+
         # Return both payload and template config as dictionaries
         # The API layer will handle JSON encoding
         return payload, template_config
