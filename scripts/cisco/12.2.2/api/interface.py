@@ -13,7 +13,30 @@ def update_interface(policy: str, interfaces_payload: List[Dict[str, Any]]) -> b
     
     Args:
         policy: Interface policy type (e.g., "int_access_host", "int_trunk_host", "int_routed_host")
-        policy: Interface policy type (e.g., "int_access_host", "int_trunk_host", "int_routed_host")
+        interfaces_payload: List of interface configurations
+    
+    Returns:
+        Boolean indicating success
+    """
+    url = get_url("/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/interface")
+    headers = get_api_key_header()
+    
+    payload = {
+        "policy": policy,
+        "interfaces": interfaces_payload
+    }
+    r = requests.put(url, headers=headers, json=payload, verify=False)
+    # print if the policy == "int_port_channel_trunk_host"
+    # if "port_channel" in policy.lower():
+    #     print(json.dumps(payload, indent=2, ensure_ascii=False))
+    return check_status_code(r, operation_name=f"Update Interfaces")
+
+def create_interface(policy: str, interfaces_payload: List[Dict[str, Any]]) -> bool:
+    """
+    Create interface configuration using NDFC API (POST method).
+    
+    Args:
+        policy: Interface policy type (e.g., "int_port_channel_trunk_host")
         interfaces_payload: List of interface configurations
     
     Returns:
@@ -27,8 +50,12 @@ def update_interface(policy: str, interfaces_payload: List[Dict[str, Any]]) -> b
         "interfaces": interfaces_payload
     }
     
-    r = requests.put(url, headers=headers, json=payload, verify=False)
-    return check_status_code(r, operation_name=f"Update Interfaces")
+    # Add interfaceType for port channel interfaces
+    if "port_channel" in policy.lower():
+        payload["interfaceType"] = "INTERFACE_PORT_CHANNEL"
+    
+    r = requests.post(url, headers=headers, json=payload, verify=False)
+    return check_status_code(r, operation_name=f"Create Interfaces")
 
 def get_interfaces(serial_number: str = None, if_name: str = None, template_name: str = None, 
                   interface_dir: str = "interfaces", save_by_policy: bool = True) -> List[Dict[str, Any]]:
