@@ -90,3 +90,24 @@
 - 🚀 **多版本支援**: 支援 NDFC 12.1.2e 和 12.3 版本
 - 🚀 **自動化部署**: 完全自動化的網路部署流程
 - 🚀 **監控整合**: 與網路監控系統的整合
+
+
+## 說明影片
+
+**NDFC Fabric / Child Fabric / Multi-Site / Free Form**
+https://youtu.be/XEMBwHlYooA
+
+**Add Switch / Set Role / Recaculate & Deploy / Change Mode**
+https://youtu.be/0ZNgtebdc3A
+
+**VRF Create / Attach / Detach / Delete**
+https://youtu.be/y8kl2KT0cNo
+
+**Network Create / Attach / Detach / Delete**
+https://youtu.be/iIEqcQEvCMU
+
+
+
+
+
+
