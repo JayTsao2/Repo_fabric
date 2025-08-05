@@ -108,7 +108,7 @@ Interface:
       MTU: 9100
       SPEED: Auto
       Enable Interface: True
-      Freeform Config: FreeForm\L3_Link_Local
+      Freeform Config: FreeForm\L3_Link_Local.sh
 
   - Ethernet1/16:
       policy: int_routed_host
@@ -119,7 +119,7 @@ Interface:
       MTU: 9100
       SPEED: Auto
       Enable Interface: True
-      Freeform Config: FreeForm\L3_Link_Local
+      Freeform Config: FreeForm\L3_Link_Local.sh
 
   - Ethernet1/17:
       policy: int_port_channel_access_member_11_1
