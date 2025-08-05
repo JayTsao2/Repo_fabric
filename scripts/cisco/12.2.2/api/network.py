@@ -209,7 +209,7 @@ def detach_network(fabric_name: str, network_name: str, serial_number: str, deta
         "instanceValues": "",
         "freeformConfig": ""
     }
-    
+    # print(json.dumps(payload, indent=2, ensure_ascii=False))
     url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric_name}/networks/{network_name}/attachments")
     r = requests.post(url, headers=headers, json=payload, verify=False)
     return check_status_code(r, operation_name=f"Detach {network_name} from port {detach_switch_ports}")

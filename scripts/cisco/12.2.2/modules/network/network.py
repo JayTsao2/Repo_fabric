@@ -243,17 +243,25 @@ class NetworkManager:
                 if net.get('VLAN ID')
             }
             
+            # Group interfaces by VLAN/Network
+            vlan_interface_map = self._group_interfaces_by_vlan(switch_config, network_lookup)
+            
             serial_number = switch_config.get('Serial Number')
             overall_success = True
             
-            # Process all interfaces
-            for interface_config in switch_config['Interface']:
-                for interface_name, interface_data in interface_config.items():
-                    success = self._process_interface(
-                        interface_name, interface_data, network_lookup, 
-                        'attach', fabric_name, serial_number
+            # Process each network with all its interfaces at once
+            for vlan_id, interface_data in vlan_interface_map.items():
+                network_name = interface_data['network_name']
+                interfaces = interface_data['interfaces']
+                
+                if interfaces:  # Only process if there are interfaces
+                    interface_list = ','.join(interfaces)
+                    print(f"[Network] Attaching network '{network_name}' (VLAN {vlan_id}) to interfaces: {interface_list}")
+                    
+                    result = self.network_api.attach_network(
+                        fabric_name, network_name, serial_number, interface_list, vlan_id
                     )
-                    if not success:
+                    if not result:
                         overall_success = False
             
             return overall_success
@@ -296,17 +304,25 @@ class NetworkManager:
                 if net.get('VLAN ID')
             }
             
+            # Group interfaces by VLAN/Network
+            vlan_interface_map = self._group_interfaces_by_vlan(switch_config, network_lookup)
+            
             serial_number = switch_config.get('Serial Number')
             overall_success = True
             
-            # Process all interfaces
-            for interface_config in switch_config['Interface']:
-                for interface_name, interface_data in interface_config.items():
-                    success = self._process_interface(
-                        interface_name, interface_data, network_lookup, 
-                        'detach', fabric_name, serial_number
+            # Process each network with all its interfaces at once
+            for vlan_id, interface_data in vlan_interface_map.items():
+                network_name = interface_data['network_name']
+                interfaces = interface_data['interfaces']
+                
+                if interfaces:  # Only process if there are interfaces
+                    interface_list = ','.join(interfaces)
+                    print(f"[Network] Detaching network '{network_name}' (VLAN {vlan_id}) from interfaces: {interface_list}")
+                    
+                    result = self.network_api.detach_network(
+                        fabric_name, network_name, serial_number, interface_list, vlan_id
                     )
-                    if not success:
+                    if not result:
                         overall_success = False
             
             return overall_success
@@ -314,98 +330,95 @@ class NetworkManager:
         except Exception as e:
             print(f"[Network] Error detaching networks: {e}")
             return False
-    
-    def _process_interface(self, interface_name: str, interface_data: Dict[str, Any], 
-                          network_lookup: Dict[int, Dict[str, Any]], operation: str, 
-                          fabric_name: str, serial_number: str) -> bool:
-        """Process a single interface based on its policy."""
-        policy = interface_data.get('policy')
+
+    def _group_interfaces_by_vlan(self, switch_config: Dict[str, Any], 
+                                 network_lookup: Dict[int, Dict[str, Any]]) -> Dict[int, Dict[str, Any]]:
+        """Group interfaces by VLAN ID for bulk operations."""
+        vlan_interface_map = {}
         
-        if policy == 'int_access_host':
-            # Process access interface
-            access_vlan = interface_data.get('Access Vlan')
-            if not access_vlan:
-                return True  # No VLAN configured is not an error
-            
-            try:
-                vlan_id = int(access_vlan)
-                network_info = network_lookup.get(vlan_id)
-                if not network_info:
-                    return True  # Network not found in lookup is not an error
-                
-                network_name = network_info['network_name']
-                
-                if operation == 'attach':
-                    result = self.network_api.attach_network(
-                        fabric_name, network_name, serial_number, interface_name, vlan_id
-                    )
-                else:  # detach
-                    result = self.network_api.detach_network(
-                        fabric_name, network_name, serial_number, interface_name, vlan_id
-                    )
-                
-                return result
-            except ValueError:
-                print(f"[Network] Invalid VLAN ID '{access_vlan}' for interface {interface_name}")
-                return False
+        # Get all available VLAN IDs from network lookup
+        all_vlan_ids = set(network_lookup.keys())
         
-        elif policy == 'int_trunk_host':
-            # Process trunk interface
-            trunk_vlans = interface_data.get('Trunk Allowed Vlans')
-            if not trunk_vlans:
-                trunk_vlans = "all"
-            print(f"[Network] Processing trunk VLANs for {interface_name}: {trunk_vlans}")
-            
-            try:
-                # Handle "all" case - attach to all available networks
-                if str(trunk_vlans).strip().lower() == 'all':
-                    vlan_ids = list(network_lookup.keys())
-                    if not vlan_ids:
-                        print(f"[Network] No networks found in fabric {fabric_name}")
-                        return True
-                else:
-                    # Parse specific VLAN IDs
-                    vlan_ids = [int(vlan.strip()) for vlan in str(trunk_vlans).split(',') 
-                               if vlan.strip() and vlan.strip().isdigit()]
+        # Process all interfaces
+        for interface_config in switch_config['Interface']:
+            for interface_name, interface_data in interface_config.items():
+                policy = interface_data.get('policy')
                 
-                if not vlan_ids:
-                    print(f"[Network] No valid VLAN IDs found for interface {interface_name}")
-                    return True
-                
-                print(f"[Network] Will process VLANs: {vlan_ids}")
-                
-                # Process each VLAN
-                for vlan_id in vlan_ids:
-                    if vlan_id not in network_lookup:
-                        print(f"[Network] Warning: Network for VLAN {vlan_id} not found in fabric {fabric_name}")
-                        continue
-                    
-                    network_info = network_lookup[vlan_id]
-                    network_name = network_info['network_name']
+                # Handle Port-channel interfaces (no policy field)
+                if interface_name.startswith('Port-channel'):
+                    trunk_vlans = interface_data.get('Trunk Allowed Vlans', 'all')
                     
                     try:
-                        if operation == "attach":
-                            result = self.network_api.attach_network(
-                                fabric_name, network_name, serial_number, interface_name, vlan_id
-                            )
-                        else:  # detach
-                            result = self.network_api.detach_network(
-                                fabric_name, network_name, serial_number, interface_name, vlan_id
-                            )
+                        # Handle "all" case - add to all available networks
+                        if str(trunk_vlans).strip().lower() == 'all':
+                            vlan_ids = all_vlan_ids
+                        else:
+                            # Parse specific VLAN IDs
+                            vlan_ids = {int(vlan.strip()) for vlan in str(trunk_vlans).split(',') 
+                                       if vlan.strip() and vlan.strip().isdigit()}
+                            # Filter to only include VLANs that exist in network lookup
+                            vlan_ids = vlan_ids.intersection(all_vlan_ids)
                         
-                        if not result:
-                            return False
-                    except Exception as e:
-                        print(f"[Network] Error during {operation} operation for VLAN {vlan_id}: {e}")
-                        return False
+                        # Add port-channel to each VLAN it belongs to
+                        for vlan_id in vlan_ids:
+                            self._add_interface_to_vlan_map(
+                                vlan_interface_map, vlan_id, interface_name, network_lookup
+                            )
+                            
+                    except ValueError as e:
+                        print(f"[Network] Error parsing trunk VLANs for {interface_name}: {e}")
                 
-                return True
-            except ValueError as e:
-                print(f"[Network] Error parsing trunk VLANs for {interface_name}: {e}")
-                return False
-        elif policy == 'int_routed_host':
-            print(f"[Network] Interface {interface_name} is {policy}, skipping") 
-            return True
-        else:
-            print(f"[Network] Unknown policy '{policy}' for interface {interface_name}, skipping")
-            return True
+                elif policy == 'int_access_host':
+                    # Process access interface
+                    access_vlan = interface_data.get('Access Vlan')
+                    if access_vlan:
+                        try:
+                            vlan_id = int(access_vlan)
+                            if vlan_id in network_lookup:
+                                self._add_interface_to_vlan_map(
+                                    vlan_interface_map, vlan_id, interface_name, network_lookup
+                                )
+                        except ValueError:
+                            print(f"[Network] Invalid VLAN ID '{access_vlan}' for interface {interface_name}")
+                
+                elif policy == 'int_trunk_host':
+                    # Process trunk interface
+                    trunk_vlans = interface_data.get('Trunk Allowed Vlans', 'all')
+                    
+                    try:
+                        # Handle "all" case - add to all available networks
+                        if str(trunk_vlans).strip().lower() == 'all':
+                            vlan_ids = all_vlan_ids
+                        else:
+                            # Parse specific VLAN IDs
+                            vlan_ids = {int(vlan.strip()) for vlan in str(trunk_vlans).split(',') 
+                                       if vlan.strip() and vlan.strip().isdigit()}
+                            # Filter to only include VLANs that exist in network lookup
+                            vlan_ids = vlan_ids.intersection(all_vlan_ids)
+                        
+                        # Add interface to each VLAN it belongs to
+                        for vlan_id in vlan_ids:
+                            self._add_interface_to_vlan_map(
+                                vlan_interface_map, vlan_id, interface_name, network_lookup
+                            )
+                            
+                    except ValueError as e:
+                        print(f"[Network] Error parsing trunk VLANs for {interface_name}: {e}")
+        
+        return vlan_interface_map
+
+    def _add_interface_to_vlan_map(self, vlan_interface_map: Dict[int, Dict[str, Any]], 
+                                  vlan_id: int, interface_name: str, 
+                                  network_lookup: Dict[int, Dict[str, Any]]) -> None:
+        """Add interface to VLAN mapping for bulk operations."""
+        if vlan_id not in vlan_interface_map:
+            network_info = network_lookup[vlan_id]
+            vlan_interface_map[vlan_id] = {
+                'network_name': network_info['network_name'],
+                'vlan_id': vlan_id,
+                'interfaces': []
+            }
+        
+        # Add interface if not already present
+        if interface_name not in vlan_interface_map[vlan_id]['interfaces']:
+            vlan_interface_map[vlan_id]['interfaces'].append(interface_name)
