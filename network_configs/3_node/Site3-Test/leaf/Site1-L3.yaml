@@ -122,18 +122,22 @@ Interface:
       Freeform Config: FreeForm\L3_Link_Local.sh
 
   - Ethernet1/17:
+      policy: int_port_channel_trunk_member_11_1
       Interface Description: Port-channel501
       Enable Interface: True
 
   - Ethernet1/18: 
+      policy: int_port_channel_trunk_member_11_1
       Interface Description: Port-channel501
       Enable Interface: True
 
   - Ethernet1/19:
+      policy: int_port_channel_trunk_member_11_1
       Interface Description: Port-channel501
       Enable Interface: True
 
   - Ethernet1/20:
+      policy: int_port_channel_trunk_member_11_1
       Interface Description: Port-channel501
       Enable Interface: True
 
