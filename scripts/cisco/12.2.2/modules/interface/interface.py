@@ -86,6 +86,9 @@ class InterfaceManager:
         self._process_regular_interfaces(context, updated_interfaces)
         self._process_unspecified_interfaces(context.existing_interfaces_map, context.processed_interfaces, updated_interfaces)
         
+        # Check for port channels that exist in fabric but not in YAML and mark for deletion
+        self._process_port_channel_deletions(context)
+        
         return updated_interfaces
     
     def _initialize_interface_collections(self) -> Dict[str, list]:
@@ -298,6 +301,62 @@ class InterfaceManager:
             
             if interface_data:
                 updated_interfaces[policy].append(interface_data)
+    
+    def _process_port_channel_deletions(self, context: InterfaceProcessingContext):
+        """Check for existing port channels that are not specified in YAML and delete them."""
+        # Find all existing port channels in the fabric
+        existing_port_channels = []
+        
+        for policy, interfaces in context.existing_interfaces_map.items():
+            # Only check port channel policies
+            if "port_channel" in policy and "host" in policy:
+                for interface_name, interface_data in interfaces.items():
+                    if (interface_name.startswith('Port-channel') or interface_name.startswith('port-channel')):
+                        existing_port_channels.append({
+                            'ifName': interface_name,
+                            'serialNumber': interface_data.get('serialNumber', context.serial_number),
+                            'policy': policy
+                        })
+        
+        if not existing_port_channels:
+            print("[Interface] No existing port channels found in fabric")
+            return
+        
+        # Check which port channels are not specified in YAML
+        yaml_port_channels = set()
+        for interface_name in context.yaml_interfaces_map.keys():
+            if interface_name.startswith('Port-channel') or interface_name.startswith('port-channel'):
+                # Normalize the name for comparison
+                if interface_name.startswith('port-channel'):
+                    normalized_name = 'Port-channel' + interface_name[12:]
+                else:
+                    normalized_name = interface_name
+                yaml_port_channels.add(normalized_name)
+        
+        # Find port channels to delete (exist in fabric but not in YAML)
+        port_channels_to_delete = []
+        for pc_info in existing_port_channels:
+            pc_name = pc_info['ifName']
+            # Normalize for comparison
+            if pc_name.startswith('port-channel'):
+                normalized_name = 'Port-channel' + pc_name[12:]
+            else:
+                normalized_name = pc_name
+            
+            if normalized_name not in yaml_port_channels:
+                port_channels_to_delete.append({
+                    'ifName': pc_name,
+                    'serialNumber': pc_info['serialNumber']
+                })
+                print(f"[Interface] Port channel {pc_name} exists in fabric but not in YAML - marking for deletion")
+        
+        # Delete the port channels if any found
+        if port_channels_to_delete:
+            print(f"[Interface] Deleting {len(port_channels_to_delete)} port channels that are not specified in YAML")
+            return interface_api.delete_interfaces(port_channels_to_delete)
+        else:
+            print("[Interface] No port channels found for deletion")
+            return True
     
     def _process_regular_interfaces(self, context: InterfaceProcessingContext, updated_interfaces: Dict[str, list]):
         """Process regular (non-port-channel) interfaces from YAML configuration."""

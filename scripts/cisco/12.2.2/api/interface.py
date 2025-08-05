@@ -57,6 +57,22 @@ def create_interface(policy: str, interfaces_payload: List[Dict[str, Any]]) -> b
     r = requests.post(url, headers=headers, json=payload, verify=False)
     return check_status_code(r, operation_name=f"Create Interfaces")
 
+def delete_interfaces(interfaces_payload: List[Dict[str, Any]]) -> bool:
+    """
+    Delete interfaces using NDFC API (DELETE method).
+    
+    Args:
+        interfaces_payload: List of interfaces to delete. Format: [{"ifName":"Port-channel1","serialNumber":"SAL2008ZAXX"}]
+    
+    Returns:
+        Boolean indicating success
+    """
+    url = get_url("/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/interface")
+    headers = get_api_key_header()
+    
+    r = requests.delete(url, headers=headers, json=interfaces_payload, verify=False)
+    return check_status_code(r, operation_name=f"Delete Interfaces")
+
 def get_interfaces(serial_number: str = None, if_name: str = None, template_name: str = None, 
                   interface_dir: str = "interfaces", save_by_policy: bool = True) -> List[Dict[str, Any]]:
     """
