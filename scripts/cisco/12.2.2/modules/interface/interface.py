@@ -81,9 +81,6 @@ class InterfaceManager:
         """Process all interfaces using the provided context."""
         updated_interfaces = self._initialize_interface_collections()
         
-        # Create port channel mapping for member interface processing
-        context.port_channel_mapping = self._create_port_channel_mapping(context.yaml_interfaces_map)
-        
         # Process interfaces in order: port-channels first, then regular interfaces
         self._process_port_channel_interfaces(context, updated_interfaces)
         self._process_regular_interfaces(context, updated_interfaces)
@@ -98,7 +95,9 @@ class InterfaceManager:
             "int_trunk_host": [],
             "int_routed_host": [],
             "int_port_channel_trunk_host": [],
-            "int_port_channel_trunk_member_11_1": []
+            "int_port_channel_trunk_member_11_1": [],
+            "int_port_channel_access_host": [],
+            "int_port_channel_access_member_11_1": []
         }
     
     def update_switch_interfaces(self, fabric_name: str, role: str, switch_name: str) -> bool:
@@ -252,6 +251,22 @@ class InterfaceManager:
             "CONF": ""
         }
     
+    def _create_default_port_channel_access_nv_pairs(self):
+        """Create default nvPairs for new port-channel access interfaces."""
+        return {
+            "ADMIN_STATE": "true",
+            "ACCESS_VLAN": "1",
+            "BPDUGUARD_ENABLED": "true",
+            "DESC": "",
+            "MTU": "jumbo",
+            "PC_MODE": "active",
+            "PO_ID": "",  # Will be set to interface name
+            "PORTTYPE_FAST_ENABLED": "true",
+            "SPEED": "Auto",
+            "MEMBER_INTERFACES": "",
+            "CONF": ""
+        }
+    
     def _process_port_channel_interfaces(self, context: InterfaceProcessingContext, updated_interfaces: Dict[str, list]):
         """Process port-channel interfaces from YAML configuration."""
         port_channel_interfaces = {k: v for k, v in context.yaml_interfaces_map.items() 
@@ -261,8 +276,20 @@ class InterfaceManager:
             print(f"[Interface] Processing port-channel interface: {interface_name}")
             context.processed_interfaces.add(interface_name)
             
+            # Create mapping for this specific port channel's member interfaces
+            single_pc_map = {interface_name: yaml_config}
+            pc_mapping = self._create_port_channel_mapping(single_pc_map)
+            context.port_channel_mapping.update(pc_mapping)
+            
             policy = yaml_config.get("policy")
-            if not policy or policy not in updated_interfaces:
+            
+            # Check if policy is specified and supported/implemented
+            if not policy:
+                print(f"[Interface] Warning: Port-channel interface {interface_name} has no policy specified")
+                continue
+                
+            if policy not in updated_interfaces:
+                print(f"[Interface] Warning: Policy '{policy}' specified for port-channel interface {interface_name} is not implemented or supported")
                 continue
             
             interface_data = self._create_or_update_interface(
@@ -288,8 +315,10 @@ class InterfaceManager:
                 self._process_interface_without_policy(context, interface_name, yaml_config, updated_interfaces)
                 continue
             
+            # Check if policy is supported/implemented
             if policy not in updated_interfaces:
-                print(f"[Interface] Warning: Unknown policy {policy} for interface {interface_name}")
+                print(f"[Interface] Warning: Policy '{policy}' specified for interface {interface_name} is not implemented or supported")
+                print(f"[Interface] Supported policies are: {', '.join(updated_interfaces.keys())}")
                 continue
             
             interface_data = self._create_or_update_interface(
@@ -390,7 +419,14 @@ class InterfaceManager:
     def _create_new_port_channel_interface(self, context: InterfaceProcessingContext, interface_name: str, 
                                          yaml_config: Dict[str, Any]) -> Dict[str, Any]:
         """Create a new port-channel interface."""
-        default_nv_pairs = self._create_default_port_channel_nv_pairs()
+        policy = yaml_config.get("policy", "")
+        
+        # Choose appropriate default nvPairs based on policy
+        if policy == "int_port_channel_access_host":
+            default_nv_pairs = self._create_default_port_channel_access_nv_pairs()
+        elif policy == "int_port_channel_trunk_host":
+            default_nv_pairs = self._create_default_port_channel_nv_pairs()
+        
         updated_nv_pairs = self._update_nv_pairs(
             default_nv_pairs, 
             yaml_config, 
@@ -465,7 +501,9 @@ class InterfaceManager:
             "int_trunk_host": self._update_trunk_host_nv_pairs,
             "int_routed_host": self._update_routed_host_nv_pairs,
             "int_port_channel_trunk_host": lambda nv, cfg: self._update_port_channel_host_nv_pairs(nv, cfg, interface_name),
-            "int_port_channel_trunk_member_11_1": lambda nv, cfg: self._update_port_channel_member_nv_pairs(nv, cfg, port_channel_mapping, interface_name)
+            "int_port_channel_trunk_member_11_1": lambda nv, cfg: self._update_port_channel_member_nv_pairs(nv, cfg, port_channel_mapping, interface_name),
+            "int_port_channel_access_host": lambda nv, cfg: self._update_port_channel_access_host_nv_pairs(nv, cfg, interface_name),
+            "int_port_channel_access_member_11_1": lambda nv, cfg: self._update_port_channel_access_member_nv_pairs(nv, cfg, port_channel_mapping, interface_name)
         }
         
         updater = policy_updaters.get(policy)
@@ -574,6 +612,46 @@ class InterfaceManager:
         print(f"[Interface] Set PO_ID={po_name} for member interface {interface_name}")
         return nv_pairs
     
+    def _update_port_channel_access_host_nv_pairs(self, nv_pairs, yaml_config, interface_name=None):
+        """Update nvPairs for port channel access host interfaces."""
+        # Set PO_ID to the port channel interface name itself
+        if interface_name:
+            nv_pairs["PO_ID"] = interface_name
+            print(f"[Interface] Set PO_ID={interface_name} for port channel access host interface")
+        
+        # Basic mappings for access port channel
+        basic_mappings = {
+            "Port Channel Description": ("DESC", lambda x: str(x) if x else ""),
+            "Enable Port Channel": ("ADMIN_STATE", lambda x: "true" if x else "false"),
+            "MTU": ("MTU", str),
+            "Port Channel Mode": ("PC_MODE", str),
+            "Port Channel Member Interfaces": ("MEMBER_INTERFACES", str),
+            "Enable BPDU Guard": ("BPDUGUARD_ENABLED", lambda x: "true" if x else "no"),
+            "Enable Port Type Fast": ("PORTTYPE_FAST_ENABLED", lambda x: "true" if x else "false"),
+            "Access Vlan": ("ACCESS_VLAN", str)
+        }
+        
+        self._apply_yaml_mappings(nv_pairs, yaml_config, basic_mappings)
+    
+    def _update_port_channel_access_member_nv_pairs(self, nv_pairs, yaml_config, port_channel_mapping=None, interface_name=None):
+        """Update nvPairs for port channel access member interfaces."""
+        # Update port channel ID - this is critical for validation
+        # Use the current interface name to look up the full port channel name
+        if not port_channel_mapping or not interface_name:
+            print(f"Warning: Could not find port channel name for access member interface {interface_name}")
+            return nv_pairs
+        
+        normalized_name = self._normalize_interface_name(interface_name)
+        po_name = port_channel_mapping.get(normalized_name, "")
+        
+        if not po_name:
+            print(f"Warning: Could not find port channel name for access member interface {interface_name}")
+            return nv_pairs
+        
+        nv_pairs["PO_ID"] = str(po_name)
+        print(f"[Interface] Set PO_ID={po_name} for access member interface {interface_name}")
+        return nv_pairs
+    
     def _update_freeform_config(self, nv_pairs, yaml_config, fabric_name, role):
         """Update freeform configuration in nvPairs."""
         if "Freeform Config" not in yaml_config:
@@ -601,7 +679,9 @@ class InterfaceManager:
         # Define the order to process policies - port channels first
         policy_order = [
             "int_port_channel_trunk_host",
-            "int_port_channel_trunk_member_11_1", 
+            "int_port_channel_trunk_member_11_1",
+            "int_port_channel_access_host",
+            "int_port_channel_access_member_11_1",
             "int_access_host",
             "int_trunk_host",
             "int_routed_host"
@@ -614,10 +694,11 @@ class InterfaceManager:
             
             print(f"[Interface] Updating {len(interfaces)} {policy} interfaces")
             
-            # For port channel host policy, try PUT first, then POST if it fails
+            # For port channel host policies, try PUT first, then POST if it fails
+            is_port_channel_host = policy in ["int_port_channel_trunk_host", "int_port_channel_access_host"]
             update_success = (
                 self._update_port_channel_interfaces(policy, interfaces) 
-                if policy == "int_port_channel_trunk_host" 
+                if is_port_channel_host
                 else interface_api.update_interface(policy, interfaces)
             )
             
