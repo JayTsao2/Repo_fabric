@@ -110,10 +110,10 @@ def get_interfaces(serial_number: str = None, if_name: str = None, template_name
         # if not os.path.exists(interface_dir):
         #     os.makedirs(interface_dir)
         
-        if save_by_policy:
-            _save_interfaces_by_policy(interfaces_data, interface_dir, serial_number)
-        else:
-            _save_all_interfaces(interfaces_data, interface_dir, serial_number)
+        # if save_by_policy:
+        #     _save_interfaces_by_policy(interfaces_data, interface_dir, serial_number)
+        # else:
+        #     _save_all_interfaces(interfaces_data, interface_dir, serial_number)
         
         return interfaces_data
         
