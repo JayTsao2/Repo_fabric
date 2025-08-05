@@ -8,11 +8,28 @@ This module provides a clean, unified interface for all interface operations wit
 - Freeform configuration integration
 - Policy-based interface management (access, trunk, routed)
 """
-
-import json
 import api.interface as interface_api
 from modules.config_utils import load_yaml_file, read_freeform_config
 from config.config_factory import config_factory
+from dataclasses import dataclass
+from typing import Dict, Set, Any
+
+@dataclass
+class InterfaceProcessingContext:
+    """Context object to pass data between interface processing methods."""
+    existing_interfaces_map: Dict[str, Dict[str, Any]]
+    yaml_interfaces_map: Dict[str, Any]
+    fabric_name: str
+    role: str
+    serial_number: str
+    processed_interfaces: Set[str] = None
+    port_channel_mapping: Dict[str, str] = None
+    
+    def __post_init__(self):
+        if self.processed_interfaces is None:
+            self.processed_interfaces = set()
+        if self.port_channel_mapping is None:
+            self.port_channel_mapping = {}
 
 class InterfaceManager:
     """Unified interface operations manager with YAML configuration support."""
@@ -22,55 +39,94 @@ class InterfaceManager:
         self.config_paths = config_factory.create_interface_config()
         self.config_base_path = self.config_paths['configs_dir']
     
+    def _load_switch_config(self, fabric_name: str, role: str, switch_name: str) -> Dict[str, Any]:
+        """Load and validate switch configuration from YAML file."""
+        config_path = self.config_base_path / fabric_name / role / f"{switch_name}.yaml"
+        print(f"[Interface] Loading switch configuration from: {config_path}")
+        
+        if not config_path.exists():
+            print(f"[Interface] Switch configuration not found: {config_path}")
+            return None
+        
+        switch_config = load_yaml_file(str(config_path))
+        if not switch_config or "Interface" not in switch_config:
+            print("[Interface] No interfaces found to process")
+            return None
+        
+        return switch_config
+    
+    def _extract_serial_number(self, switch_config: Dict[str, Any]) -> str:
+        """Extract and validate serial number from switch configuration."""
+        serial_number = switch_config.get("Serial Number", "")
+        if not serial_number:
+            print("[Interface] Error: No serial number found in switch config")
+            return None
+        return serial_number
+    
+    def _fetch_existing_interfaces(self, serial_number: str) -> list:
+        """Fetch existing interfaces from NDFC for the given serial number."""
+        print(f"[Interface] Fetching existing interfaces for serial number: {serial_number}")
+        existing_interfaces_data = interface_api.get_interfaces(
+            serial_number=serial_number, 
+            save_by_policy=False
+        )
+        
+        if not existing_interfaces_data:
+            print("[Interface] No existing interfaces found from NDFC")
+            return None
+        
+        return existing_interfaces_data
+    
+    def _process_all_interfaces(self, context: InterfaceProcessingContext) -> Dict[str, list]:
+        """Process all interfaces using the provided context."""
+        updated_interfaces = self._initialize_interface_collections()
+        
+        # Create port channel mapping for member interface processing
+        context.port_channel_mapping = self._create_port_channel_mapping(context.yaml_interfaces_map)
+        
+        # Process interfaces in order: port-channels first, then regular interfaces
+        self._process_port_channel_interfaces(context, updated_interfaces)
+        self._process_regular_interfaces(context, updated_interfaces)
+        self._process_unspecified_interfaces(context.existing_interfaces_map, context.processed_interfaces, updated_interfaces)
+        
+        return updated_interfaces
+    
+    def _initialize_interface_collections(self) -> Dict[str, list]:
+        """Initialize the interface collections for different policies."""
+        return {
+            "int_access_host": [],
+            "int_trunk_host": [],
+            "int_routed_host": [],
+            "int_port_channel_trunk_host": [],
+            "int_port_channel_trunk_member_11_1": []
+        }
+    
     def update_switch_interfaces(self, fabric_name: str, role: str, switch_name: str) -> bool:
         """Update all interfaces for a switch based on YAML configuration."""
         print(f"[Interface] Updating interfaces for switch: {switch_name} in fabric: {fabric_name}, role: {role}")
         
         try:
-            # Load switch configuration
-            config_path = self.config_base_path / fabric_name / role / f"{switch_name}.yaml"
-            print(f"[Interface] Loading switch configuration from: {config_path}")
-            if not config_path.exists():
-                print(f"[Interface] Switch configuration not found: {config_path}")
+            switch_config = self._load_switch_config(fabric_name, role, switch_name)
+            if not switch_config:
                 return False
             
-            switch_config = load_yaml_file(str(config_path))
-            if not switch_config or "Interface" not in switch_config:
-                print("[Interface] No interfaces found to process")
-                return True
-            
-            serial_number = switch_config.get("Serial Number", "")
+            serial_number = self._extract_serial_number(switch_config)
             if not serial_number:
-                print("[Interface] Error: No serial number found in switch config")
                 return False
             
-            # Get all existing interfaces from NDFC for this switch
-            print(f"[Interface] Fetching existing interfaces for serial number: {serial_number}")
-            existing_interfaces_data = interface_api.get_interfaces(
-                serial_number=serial_number, 
-                save_by_policy=False
-            )
-            
+            existing_interfaces_data = self._fetch_existing_interfaces(serial_number)
             if not existing_interfaces_data:
-                print("[Interface] No existing interfaces found from NDFC")
                 return False
             
-            # Create a map of existing interfaces by name and policy for easy lookup
-            existing_interfaces_map = self._create_interface_map(existing_interfaces_data)
-            
-            # Create YAML interface configuration map
-            yaml_interfaces_map = self._create_yaml_interface_map(switch_config["Interface"])
-            
-            # Update interfaces based on YAML configuration
-            updated_interfaces = self._update_interfaces_from_yaml(
-                existing_interfaces_map, 
-                yaml_interfaces_map, 
-                fabric_name, 
-                role,
-                serial_number
+            context = InterfaceProcessingContext(
+                existing_interfaces_map=self._create_interface_map(existing_interfaces_data),
+                yaml_interfaces_map=self._create_yaml_interface_map(switch_config["Interface"]),
+                fabric_name=fabric_name,
+                role=role,
+                serial_number=serial_number
             )
             
-            # Apply updates to NDFC
+            updated_interfaces = self._process_all_interfaces(context)
             return self._apply_interface_updates(updated_interfaces)
             
         except Exception as e:
@@ -196,108 +252,159 @@ class InterfaceManager:
             "CONF": ""
         }
     
-    def _update_interfaces_from_yaml(self, existing_interfaces_map, yaml_interfaces_map, fabric_name, role, serial_number):
-        """Update existing interface nvPairs based on YAML configuration."""
-        updated_interfaces = {
-            "int_access_host": [],
-            "int_trunk_host": [],
-            "int_routed_host": [],
-            "int_port_channel_trunk_host": [],
-            "int_port_channel_trunk_member_11_1": []
-        }
-        
-        # Track which interfaces were processed from YAML
-        processed_interfaces = set()
-        
-        # Create port channel mapping for member interface processing
-        port_channel_mapping = self._create_port_channel_mapping(yaml_interfaces_map)
-        
-        # First, process port-channel interfaces (logical interfaces first)
-        port_channel_interfaces = {k: v for k, v in yaml_interfaces_map.items() 
+    def _process_port_channel_interfaces(self, context: InterfaceProcessingContext, updated_interfaces: Dict[str, list]):
+        """Process port-channel interfaces from YAML configuration."""
+        port_channel_interfaces = {k: v for k, v in context.yaml_interfaces_map.items() 
                                  if k.startswith('Port-channel') or k.startswith('port-channel')}
         
         for interface_name, yaml_config in port_channel_interfaces.items():
             print(f"[Interface] Processing port-channel interface: {interface_name}")
-            processed_interfaces.add(interface_name)
+            context.processed_interfaces.add(interface_name)
+            
             policy = yaml_config.get("policy")
+            if not policy or policy not in updated_interfaces:
+                continue
             
-            existing_interface = self._find_existing_interface(existing_interfaces_map, interface_name, policy)
+            interface_data = self._create_or_update_interface(
+                context, interface_name, yaml_config, is_port_channel=True
+            )
             
-            if existing_interface:
-                updated_nv_pairs = self._update_nv_pairs(
-                    existing_interface["nvPairs"].copy(), 
-                    yaml_config, 
-                    fabric_name, 
-                    role,
-                    None,  # port_channel_mapping not needed for host interfaces
-                    interface_name
-                )
-                
-                updated_interface = {
-                    "serialNumber": existing_interface["serialNumber"],
-                    "ifName": interface_name,
-                    "nvPairs": updated_nv_pairs
-                }
-                if policy and policy in updated_interfaces:
-                    updated_interfaces[policy].append(updated_interface)
-            else:
-                # Port-channel doesn't exist, create a new one
-                print(f"[Interface] Creating new port-channel interface: {interface_name}")
-                default_nv_pairs = self._create_default_port_channel_nv_pairs()
-                updated_nv_pairs = self._update_nv_pairs(
-                    default_nv_pairs, 
-                    yaml_config, 
-                    fabric_name, 
-                    role,
-                    None,  # port_channel_mapping not needed for host interfaces
-                    interface_name
-                )
-                
-                new_interface = {
-                    "serialNumber": serial_number,
-                    "ifName": interface_name,
-                    "nvPairs": updated_nv_pairs
-                }
-                if policy and policy in updated_interfaces:
-                    updated_interfaces[policy].append(new_interface)
-        
-        # Then process regular interfaces (excluding port-channels)
-        regular_interfaces = {k: v for k, v in yaml_interfaces_map.items() 
+            if interface_data:
+                updated_interfaces[policy].append(interface_data)
+    
+    def _process_regular_interfaces(self, context: InterfaceProcessingContext, updated_interfaces: Dict[str, list]):
+        """Process regular (non-port-channel) interfaces from YAML configuration."""
+        regular_interfaces = {k: v for k, v in context.yaml_interfaces_map.items() 
                             if not (k.startswith('Port-channel') or k.startswith('port-channel'))}
         
         for interface_name, yaml_config in regular_interfaces.items():
             print(f"[Interface] Processing interface: {interface_name}")
-            processed_interfaces.add(interface_name)
+            context.processed_interfaces.add(interface_name)
+            
             policy = yaml_config.get("policy")
             
-            # Find existing interface in the appropriate policy group
-            existing_interface = self._find_existing_interface(existing_interfaces_map, interface_name, policy)
+            # Handle interfaces without policy - only update description and admin status
+            if not policy:
+                self._process_interface_without_policy(context, interface_name, yaml_config, updated_interfaces)
+                continue
             
-            if existing_interface:
-                # Update existing nvPairs with YAML configuration
-                updated_nv_pairs = self._update_nv_pairs(
-                    existing_interface["nvPairs"].copy(), 
-                    yaml_config, 
-                    fabric_name, 
-                    role,
-                    port_channel_mapping,
-                    interface_name
-                )
-                
-                updated_interface = {
-                    "serialNumber": existing_interface["serialNumber"],
-                    "ifName": interface_name,
-                    "nvPairs": updated_nv_pairs
-                }
-                if policy and policy in updated_interfaces:
-                    updated_interfaces[policy].append(updated_interface)
+            if policy not in updated_interfaces:
+                print(f"[Interface] Warning: Unknown policy {policy} for interface {interface_name}")
+                continue
+            
+            interface_data = self._create_or_update_interface(
+                context, interface_name, yaml_config, is_port_channel=False
+            )
+            
+            if interface_data:
+                updated_interfaces[policy].append(interface_data)
             else:
                 print(f"[Interface] Warning: Interface {interface_name} not found in existing interfaces")
+    
+    def _process_interface_without_policy(self, context: InterfaceProcessingContext, interface_name: str, 
+                                        yaml_config: Dict[str, Any], updated_interfaces: Dict[str, list]):
+        """Process interfaces that don't have a policy specified - only update description and admin status."""
+        # Find the existing interface across all policies
+        existing_interface = self._find_existing_interface(context.existing_interfaces_map, interface_name, None)
         
-        # Process interfaces NOT specified in YAML - set to trunk with VLAN none and admin down
-        self._process_unspecified_interfaces(existing_interfaces_map, processed_interfaces, updated_interfaces)
+        if not existing_interface:
+            print(f"[Interface] Warning: Interface {interface_name} not found in existing interfaces")
+            return
         
-        return updated_interfaces
+        # Get the original policy from the existing interface
+        original_policy = self._find_interface_policy(context.existing_interfaces_map, interface_name)
+        if not original_policy or original_policy not in updated_interfaces:
+            print(f"[Interface] Warning: Could not determine original policy for interface {interface_name}")
+            return
+        
+        print(f"[Interface] Interface {interface_name} does not have policy, updating description and admin status only")
+        
+        # Copy existing nvPairs and only update description and admin status
+        updated_nv_pairs = existing_interface["nvPairs"].copy()
+        
+        # Update only description and admin status from YAML
+        if "Interface Description" in yaml_config:
+            desc_value = yaml_config["Interface Description"]
+            updated_nv_pairs["DESC"] = str(desc_value) if desc_value else ""
+        
+        if "Enable Interface" in yaml_config:
+            updated_nv_pairs["ADMIN_STATE"] = "true" if yaml_config["Enable Interface"] else "false"
+        
+        interface_data = {
+            "serialNumber": existing_interface["serialNumber"],
+            "ifName": interface_name,
+            "nvPairs": updated_nv_pairs
+        }
+        
+        updated_interfaces[original_policy].append(interface_data)
+    
+    def _find_interface_policy(self, existing_interfaces_map: Dict[str, Dict[str, Any]], interface_name: str) -> str:
+        """Find which policy group an interface belongs to."""
+        # First try exact name match
+        for policy, interfaces in existing_interfaces_map.items():
+            if interface_name in interfaces:
+                return policy
+        
+        # Try normalized name match
+        normalized_search_name = self._normalize_interface_name(interface_name)
+        for policy, interfaces in existing_interfaces_map.items():
+            for existing_name in interfaces.keys():
+                normalized_existing = self._normalize_interface_name(existing_name)
+                if normalized_existing == normalized_search_name:
+                    return policy
+        
+        return None
+    
+    def _create_or_update_interface(self, context: InterfaceProcessingContext, interface_name: str, 
+                                  yaml_config: Dict[str, Any], is_port_channel: bool) -> Dict[str, Any]:
+        """Create or update a single interface based on YAML configuration."""
+        policy = yaml_config.get("policy")
+        existing_interface = self._find_existing_interface(context.existing_interfaces_map, interface_name, policy)
+        
+        if existing_interface:
+            return self._update_existing_interface(context, existing_interface, yaml_config, interface_name)
+        
+        if is_port_channel:
+            return self._create_new_port_channel_interface(context, interface_name, yaml_config)
+        
+        return None
+    
+    def _update_existing_interface(self, context: InterfaceProcessingContext, existing_interface: Dict[str, Any], 
+                                 yaml_config: Dict[str, Any], interface_name: str) -> Dict[str, Any]:
+        """Update an existing interface with YAML configuration."""
+        updated_nv_pairs = self._update_nv_pairs(
+            existing_interface["nvPairs"].copy(), 
+            yaml_config, 
+            context.fabric_name, 
+            context.role,
+            context.port_channel_mapping,
+            interface_name
+        )
+        
+        return {
+            "serialNumber": existing_interface["serialNumber"],
+            "ifName": interface_name,
+            "nvPairs": updated_nv_pairs
+        }
+    
+    def _create_new_port_channel_interface(self, context: InterfaceProcessingContext, interface_name: str, 
+                                         yaml_config: Dict[str, Any]) -> Dict[str, Any]:
+        """Create a new port-channel interface."""
+        default_nv_pairs = self._create_default_port_channel_nv_pairs()
+        updated_nv_pairs = self._update_nv_pairs(
+            default_nv_pairs, 
+            yaml_config, 
+            context.fabric_name, 
+            context.role,
+            None,  # port_channel_mapping not needed for host interfaces
+            interface_name
+        )
+        
+        return {
+            "serialNumber": context.serial_number,
+            "ifName": interface_name,
+            "nvPairs": updated_nv_pairs
+        }
     
     def _process_unspecified_interfaces(self, existing_interfaces_map, processed_interfaces, updated_interfaces):
         """Process interfaces that are not specified in YAML configuration."""
@@ -343,50 +450,56 @@ class InterfaceManager:
                 normalized_existing = self._normalize_interface_name(existing_name)
                 if normalized_existing == normalized_search_name:
                     return interface_data
+        
         return None
     
     def _update_nv_pairs(self, existing_nv_pairs, yaml_config, fabric_name, role, port_channel_mapping=None, interface_name=None):
         """Update existing nvPairs with values from YAML configuration."""
         # Update common fields
-        if "Interface Description" in yaml_config:
-            desc_value = yaml_config["Interface Description"]
-            existing_nv_pairs["DESC"] = str(desc_value) if desc_value else ""
-        
-        if "Enable Interface" in yaml_config:
-            existing_nv_pairs["ADMIN_STATE"] = "true" if yaml_config["Enable Interface"] else "false"
-        
-        if "SPEED" in yaml_config:
-            existing_nv_pairs["SPEED"] = str(yaml_config["SPEED"])
+        self._update_common_nv_pairs(existing_nv_pairs, yaml_config)
         
         # Update policy-specific fields
         policy = yaml_config.get("policy", "")
+        policy_updaters = {
+            "int_access_host": self._update_access_host_nv_pairs,
+            "int_trunk_host": self._update_trunk_host_nv_pairs,
+            "int_routed_host": self._update_routed_host_nv_pairs,
+            "int_port_channel_trunk_host": lambda nv, cfg: self._update_port_channel_host_nv_pairs(nv, cfg, interface_name),
+            "int_port_channel_trunk_member_11_1": lambda nv, cfg: self._update_port_channel_member_nv_pairs(nv, cfg, port_channel_mapping, interface_name)
+        }
         
-        if policy == "int_access_host":
-            self._update_access_host_nv_pairs(existing_nv_pairs, yaml_config)
-        elif policy == "int_trunk_host":
-            self._update_trunk_host_nv_pairs(existing_nv_pairs, yaml_config)
-        elif policy == "int_routed_host":
-            self._update_routed_host_nv_pairs(existing_nv_pairs, yaml_config)
-        elif policy == "int_port_channel_trunk_host":
-            self._update_port_channel_host_nv_pairs(existing_nv_pairs, yaml_config, interface_name)
-        elif policy == "int_port_channel_trunk_member_11_1":
-            self._update_port_channel_member_nv_pairs(existing_nv_pairs, yaml_config, port_channel_mapping, interface_name)
+        updater = policy_updaters.get(policy)
+        if updater:
+            updater(existing_nv_pairs, yaml_config)
         
         # Handle freeform configuration
         self._update_freeform_config(existing_nv_pairs, yaml_config, fabric_name, role)
         
         return existing_nv_pairs
     
+    def _update_common_nv_pairs(self, nv_pairs: Dict[str, Any], yaml_config: Dict[str, Any]):
+        """Update common nvPairs fields that apply to all interface types."""
+        common_mappings = {
+            "Interface Description": ("DESC", lambda x: str(x) if x else ""),
+            "Enable Interface": ("ADMIN_STATE", lambda x: "true" if x else "false"),
+            "SPEED": ("SPEED", str)
+        }
+        
+        for yaml_key, (nv_key, converter) in common_mappings.items():
+            if yaml_key in yaml_config:
+                nv_pairs[nv_key] = converter(yaml_config[yaml_key])
+    
     def _update_access_host_nv_pairs(self, nv_pairs, yaml_config):
         """Update nvPairs for access host interfaces."""
-        if "Access Vlan" in yaml_config:
-            nv_pairs["ACCESS_VLAN"] = str(yaml_config["Access Vlan"])
-        
-        if "MTU" in yaml_config:
-            nv_pairs["MTU"] = str(yaml_config["MTU"])
+        mappings = {
+            "Access Vlan": ("ACCESS_VLAN", str),
+            "MTU": ("MTU", str)
+        }
+        self._apply_yaml_mappings(nv_pairs, yaml_config, mappings)
     
     def _update_trunk_host_nv_pairs(self, nv_pairs, yaml_config):
         """Update nvPairs for trunk host interfaces."""
+        # Handle allowed VLANs with special processing
         if "Trunk Allowed Vlans" in yaml_config:
             allowed_vlans = yaml_config["Trunk Allowed Vlans"]
             if isinstance(allowed_vlans, (list, tuple)):
@@ -399,19 +512,20 @@ class InterfaceManager:
     
     def _update_routed_host_nv_pairs(self, nv_pairs, yaml_config):
         """Update nvPairs for routed host interfaces."""
-        if "Interface IP" in yaml_config:
-            ip_value = yaml_config["Interface IP"]
-            nv_pairs["IP"] = str(ip_value) if ip_value else ""
-        
-        if "IP Netmask Length" in yaml_config:
-            prefix_value = yaml_config["IP Netmask Length"]
-            nv_pairs["PREFIX"] = str(prefix_value) if prefix_value else ""
-        
-        if "Interface VRF" in yaml_config:
-            nv_pairs["INTF_VRF"] = str(yaml_config["Interface VRF"])
-        
-        if "MTU" in yaml_config:
-            nv_pairs["MTU"] = str(yaml_config["MTU"])
+        mappings = {
+            "Interface IP": ("IP", lambda x: str(x) if x else ""),
+            "IP Netmask Length": ("PREFIX", lambda x: str(x) if x else ""),
+            "Interface VRF": ("INTF_VRF", str),
+            "MTU": ("MTU", str)
+        }
+        self._apply_yaml_mappings(nv_pairs, yaml_config, mappings)
+    
+    def _apply_yaml_mappings(self, nv_pairs: Dict[str, Any], yaml_config: Dict[str, Any], 
+                           mappings: Dict[str, tuple]):
+        """Apply YAML to nvPairs mappings using the provided mapping dictionary."""
+        for yaml_key, (nv_key, converter) in mappings.items():
+            if yaml_key in yaml_config:
+                nv_pairs[nv_key] = converter(yaml_config[yaml_key])
     
     def _update_port_channel_host_nv_pairs(self, nv_pairs, yaml_config, interface_name=None):
         """Update nvPairs for port channel host interfaces."""
@@ -420,55 +534,44 @@ class InterfaceManager:
             nv_pairs["PO_ID"] = interface_name
             print(f"[Interface] Set PO_ID={interface_name} for port channel host interface")
         
-        # Update port channel description
-        if "Port Channel Description" in yaml_config:
-            desc_value = yaml_config["Port Channel Description"]
-            nv_pairs["DESC"] = str(desc_value) if desc_value else ""
+        # Basic mappings
+        basic_mappings = {
+            "Port Channel Description": ("DESC", lambda x: str(x) if x else ""),
+            "Enable Port Channel": ("ADMIN_STATE", lambda x: "true" if x else "false"),
+            "MTU": ("MTU", str),
+            "Port Channel Mode": ("PC_MODE", str),
+            "Port Channel Member Interfaces": ("MEMBER_INTERFACES", str),
+            "Enable BPDU Guard": ("BPDUGUARD_ENABLED", lambda x: "true" if x else "no"),
+            "Enable Port Type Fast": ("PORTTYPE_FAST_ENABLED", lambda x: "true" if x else "false")
+        }
         
-        # Update enable port channel (admin state)
-        if "Enable Port Channel" in yaml_config:
-            nv_pairs["ADMIN_STATE"] = "true" if yaml_config["Enable Port Channel"] else "false"
+        self._apply_yaml_mappings(nv_pairs, yaml_config, basic_mappings)
         
-        # Update trunk allowed VLANs
+        # Handle allowed VLANs with special processing
         if "Trunk Allowed Vlans" in yaml_config:
             allowed_vlans = yaml_config["Trunk Allowed Vlans"]
             if isinstance(allowed_vlans, (list, tuple)):
                 nv_pairs["ALLOWED_VLANS"] = ",".join(map(str, allowed_vlans))
             else:
                 nv_pairs["ALLOWED_VLANS"] = str(allowed_vlans) if allowed_vlans else "all"
-        
-        # Update MTU
-        if "MTU" in yaml_config:
-            nv_pairs["MTU"] = str(yaml_config["MTU"])
-        
-        # Update port channel mode
-        if "Port Channel Mode" in yaml_config:
-            nv_pairs["PC_MODE"] = str(yaml_config["Port Channel Mode"])
-        
-        # Update member interfaces
-        if "Port Channel Member Interfaces" in yaml_config:
-            nv_pairs["MEMBER_INTERFACES"] = str(yaml_config["Port Channel Member Interfaces"])
-        
-        # Update BPDU Guard
-        if "Enable BPDU Guard" in yaml_config:
-            nv_pairs["BPDUGUARD_ENABLED"] = "true" if yaml_config["Enable BPDU Guard"] else "no"
-        
-        # Update Port Type Fast
-        if "Enable Port Type Fast" in yaml_config:
-            nv_pairs["PORTTYPE_FAST_ENABLED"] = "true" if yaml_config["Enable Port Type Fast"] else "false"
     
     def _update_port_channel_member_nv_pairs(self, nv_pairs, yaml_config, port_channel_mapping=None, interface_name=None):
         """Update nvPairs for port channel member interfaces."""
         # Update port channel ID - this is critical for validation
         # Use the current interface name to look up the full port channel name
-        if port_channel_mapping and interface_name:
-            normalized_name = self._normalize_interface_name(interface_name)
-            po_name = port_channel_mapping.get(normalized_name, "")
-            if po_name:
-                nv_pairs["PO_ID"] = str(po_name)
-                print(f"[Interface] Set PO_ID={po_name} for member interface {interface_name}")
-            else:
-                print(f"Warning: Could not find port channel name for member interface {interface_name}")
+        if not port_channel_mapping or not interface_name:
+            print(f"Warning: Could not find port channel name for member interface {interface_name}")
+            return nv_pairs
+        
+        normalized_name = self._normalize_interface_name(interface_name)
+        po_name = port_channel_mapping.get(normalized_name, "")
+        
+        if not po_name:
+            print(f"Warning: Could not find port channel name for member interface {interface_name}")
+            return nv_pairs
+        
+        nv_pairs["PO_ID"] = str(po_name)
+        print(f"[Interface] Set PO_ID={po_name} for member interface {interface_name}")
         return nv_pairs
     
     def _update_freeform_config(self, nv_pairs, yaml_config, fabric_name, role):
@@ -512,15 +615,15 @@ class InterfaceManager:
             print(f"[Interface] Updating {len(interfaces)} {policy} interfaces")
             
             # For port channel host policy, try PUT first, then POST if it fails
-            if policy == "int_port_channel_trunk_host":
-                if not self._update_port_channel_interfaces(policy, interfaces):
-                    print(f"[Interface] Failed to update {policy} interfaces")
-                    success = False
-            else:
-                # For other policies, use regular update
-                if not interface_api.update_interface(policy, interfaces):
-                    print(f"[Interface] Failed to update {policy} interfaces")
-                    success = False
+            update_success = (
+                self._update_port_channel_interfaces(policy, interfaces) 
+                if policy == "int_port_channel_trunk_host" 
+                else interface_api.update_interface(policy, interfaces)
+            )
+            
+            if not update_success:
+                print(f"[Interface] Failed to update {policy} interfaces")
+                success = False
         
         return success
     
@@ -533,15 +636,16 @@ class InterfaceManager:
         
         # If PUT fails, try POST request
         print(f"[Interface] PUT failed for {policy}, trying POST...")
+        
         try:
             result = interface_api.create_interface(policy, interfaces)
-            
-            if result:
-                print(f"[Interface] Successfully created {len(interfaces)} {policy} interfaces via POST")
-                return True
-            else:
+            if not result:
                 print(f"[Interface] POST also failed for {policy}")
                 return False
+            
+            print(f"[Interface] Successfully created {len(interfaces)} {policy} interfaces via POST")
+            return True
+            
         except Exception as e:
             print(f"[Interface] Error during POST for {policy}: {e}")
             return False

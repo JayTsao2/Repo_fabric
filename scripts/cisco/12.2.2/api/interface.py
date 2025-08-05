@@ -27,7 +27,7 @@ def update_interface(policy: str, interfaces_payload: List[Dict[str, Any]]) -> b
     }
     r = requests.put(url, headers=headers, json=payload, verify=False)
     # print if the policy == "int_port_channel_trunk_host"
-    # if "port_channel" in policy.lower():
+    # if "int_port_channel_trunk_host" == policy.lower():
     #     print(json.dumps(payload, indent=2, ensure_ascii=False))
     return check_status_code(r, operation_name=f"Update Interfaces")
 
