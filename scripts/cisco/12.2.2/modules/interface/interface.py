@@ -752,40 +752,6 @@ class InterfaceManager:
                 continue
             
             print(f"[Interface] Updating {len(interfaces)} {policy} interfaces")
-            
-            # For port channel host policies, try PUT first, then POST if it fails
-            is_port_channel_host = policy in ["int_port_channel_trunk_host", "int_port_channel_access_host"]
-            update_success = (
-                self._update_port_channel_interfaces(policy, interfaces) 
-                if is_port_channel_host
-                else interface_api.update_interface(policy, interfaces)
-            )
-            
-            if not update_success:
-                print(f"[Interface] Failed to update {policy} interfaces")
-                success = False
+            success = interface_api.update_interface(policy, interfaces)
         
         return success
-    
-    def _update_port_channel_interfaces(self, policy, interfaces):
-        """Update port channel interfaces with PUT first, then POST fallback."""
-        # Try PUT request first
-        if interface_api.update_interface(policy, interfaces):
-            print(f"[Interface] Successfully updated {len(interfaces)} {policy} interfaces via PUT")
-            return True
-        
-        # If PUT fails, try POST request
-        print(f"[Interface] PUT failed for {policy}, trying POST...")
-        
-        try:
-            result = interface_api.create_interface(policy, interfaces)
-            if not result:
-                print(f"[Interface] POST also failed for {policy}")
-                return False
-            
-            print(f"[Interface] Successfully created {len(interfaces)} {policy} interfaces via POST")
-            return True
-            
-        except Exception as e:
-            print(f"[Interface] Error during POST for {policy}: {e}")
-            return False
