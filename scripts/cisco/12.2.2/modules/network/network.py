@@ -187,11 +187,81 @@ class NetworkManager:
     
     # --- Network CRUD Operations ---
     
+    def sync(self, fabric_name: str) -> bool:
+        """Update all networks for a fabric - delete unwanted, update existing, and create missing networks."""
+        print(f"[Network] Updating all networks in fabric '{fabric_name}'")
+        
+        try:
+            # Get existing networks from the fabric
+            existing_networks = network_api.get_networks(fabric_name)
+            existing_network_names = {net.get('networkName') for net in existing_networks}
+            print(f"[Network] Found {len(existing_network_names)} existing networks: {existing_network_names}")
+            
+            # Get networks from YAML config for this fabric
+            fabric_networks = [net for net in self.networks if net.get('Fabric') == fabric_name]
+            yaml_network_names = {net.get('Network Name') for net in fabric_networks}
+            print(f"[Network] Found {len(yaml_network_names)} networks in YAML: {yaml_network_names}")
+            
+            # Find networks to delete (exist in fabric but not in YAML)
+            networks_to_delete = existing_network_names - yaml_network_names
+            print(f"[Network] Networks to delete: {networks_to_delete}")
+            
+            # Find networks to create (exist in YAML but not in fabric)
+            networks_to_create = yaml_network_names - existing_network_names
+            print(f"[Network] Networks to create: {networks_to_create}")
+            
+            # Find networks to update (exist in both fabric and YAML)
+            networks_to_update = existing_network_names.intersection(yaml_network_names)
+            print(f"[Network] Networks to update: {networks_to_update}")
+            
+            overall_success = True
+            
+            # Delete unwanted networks
+            for network_name in networks_to_delete:
+                success = self.delete_network(fabric_name, network_name)
+                if not success:
+                    overall_success = False
+    
+            # Update existing networks
+            for network_name in networks_to_update:
+                success = self.update_network(fabric_name, network_name)
+                if not success:
+                    overall_success = False
+
+            # Create missing networks
+            for network_name in networks_to_create:
+                success = self.create_network(fabric_name, network_name)
+                if not success:
+                    overall_success = False
+
+            if overall_success:
+                print(f"[Network] Successfully updated all networks for fabric '{fabric_name}'")
+
+            return overall_success
+            
+        except Exception as e:
+            print(f"[Network] Error updating networks: {e}")
+            return False
+    
     def create_network(self, fabric_name: str, network_name: str) -> bool:
         """Create a network using YAML configuration."""
         print(f"[Network] Creating network '{network_name}' in fabric '{fabric_name}'")
-        payload, template_config = self._build_complete_payload(fabric_name, network_name)
-        return network_api.create_network(fabric_name, payload, template_config)
+        
+        try:
+            # Check if network already exists
+            existing_networks = network_api.get_networks(fabric_name)
+            existing_network_names = {net.get('networkName') for net in existing_networks}
+            
+            if network_name in existing_network_names:
+                print(f"[Network] Network '{network_name}' already exists in fabric '{fabric_name}', skipping creation")
+                return True
+            
+            payload, template_config = self._build_complete_payload(fabric_name, network_name)
+            return network_api.create_network(fabric_name, payload, template_config)
+            
+        except Exception as e:
+            print(f"[Network] Error creating network '{network_name}': {e}")
+            return False
     
     def update_network(self, fabric_name: str, network_name: str) -> bool:
         """Update a network using YAML configuration."""

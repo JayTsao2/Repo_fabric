@@ -22,6 +22,7 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
+  python network_cli.py sync <fabric_name>                          # Sync the network for the fabric with the yaml file
   python network_cli.py create <fabric_name> <network_name>         # Create a network
   python network_cli.py update <fabric_name> <network_name>         # Update a network
   python network_cli.py delete <fabric_name> <network_name>         # Delete a network
@@ -36,6 +37,10 @@ Examples:
     create_parser.add_argument('fabric_name', help='Name of the fabric')
     create_parser.add_argument('network_name', help='Name of the network')
     
+    # sync all command
+    sync_all_parser = subparsers.add_parser('sync', help='Sync the network for the fabric with the yaml file')
+    sync_all_parser.add_argument('fabric_name', help='Name of the fabric')
+
     # Update command
     update_parser = subparsers.add_parser('update', help='Update a network')
     update_parser.add_argument('fabric_name', help='Name of the fabric')
@@ -70,6 +75,10 @@ Examples:
         
         if args.command == 'create':
             success = network_manager.create_network(args.fabric_name, args.network_name)
+            sys.exit(0 if success else 1)
+            
+        elif args.command == 'sync':
+            success = network_manager.sync(args.fabric_name)
             sys.exit(0 if success else 1)
             
         elif args.command == 'update':

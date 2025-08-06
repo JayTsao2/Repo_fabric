@@ -8,7 +8,10 @@
     
     * **`/modules/fabric`**
         * 用途: Fabric 管理模組，包含建立、更新、刪除功能以及統一管理介面 (FabricManager)。
-        
+     - `update_all_networks(fabric_name: str)` - 完全同步網路（刪除多餘、更新現有、創建缺失的網路）
+- `create_network(fabric_name: str, network_name: str)` - 創建單個網路（先檢查是否已存在）
+- `update_network(fabric_name: str, network_name: str)` - 更新網路
+- `delete_network(fabric_name: str, network_name: str)` - 刪除網路
     * **`/modules/vrf`**
         * 用途: VRF 管理模組，包含建立、更新、刪除、附加、分離功能以及統一管理介面 (VRFManager)。
         

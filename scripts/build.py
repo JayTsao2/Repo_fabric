@@ -74,9 +74,8 @@ def main():
     for switch in SWITCH_LIST:
         vrf_manager.attach_vrf(FABRIC, "leaf", switch)
 
-    # Step 6. Create Network
-    for network in NETWORK_LIST:
-        network_manager.create_network(FABRIC, network)
+    # Step 6. Update Networks (delete unwanted, create missing)
+    network_manager.sync(FABRIC)
 
     # Step 7. Attach Network 
     for switch in SWITCH_LIST:
