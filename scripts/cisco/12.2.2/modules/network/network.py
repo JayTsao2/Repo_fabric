@@ -271,9 +271,97 @@ class NetworkManager:
 
     
     def delete_network(self, fabric_name: str, network_name: str) -> bool:
-        """Delete a network."""
+        """Delete a network after detaching from all switches."""
         print(f"[Network] Deleting network '{network_name}' in fabric '{fabric_name}'")
-        return network_api.delete_network(fabric_name, network_name)
+        
+        try:
+            # First, detach the network from all switches
+            print(f"[Network] Detaching network '{network_name}' from all switches before deletion")
+            detach_success = self._detach_network_from_all_switches(fabric_name, network_name)
+            
+            if not detach_success:
+                print(f"[Network] Warning: Failed to detach network '{network_name}' from some switches, but continuing with deletion")
+            
+            # Then delete the network
+            return network_api.delete_network(fabric_name, network_name)
+            
+        except Exception as e:
+            print(f"[Network] Error deleting network '{network_name}': {e}")
+            return False
+    
+    def _detach_network_from_all_switches(self, fabric_name: str, network_name: str) -> bool:
+        """Helper method to detach a network from all switches it's attached to."""
+        try:
+            # Get network attachments to see which switches have this network
+            attachments = network_api.get_network_attachment(fabric_name, networkname=network_name, save_files=False)
+            
+            if not attachments:
+                print(f"[Network] No attachments found for network '{network_name}', skipping detach")
+                return True
+            
+            # Extract detach data from attachments and build payload
+            detach_data = []
+            for attachment in attachments:
+                serial_number = attachment.get('switchSerialNo')
+                switch_name = attachment.get('switchName')
+                vlan_id = attachment.get('vlanId', -1)
+                
+                if serial_number and switch_name:
+                    detach_data.append({
+                        'network_name': network_name,
+                        'serial_number': serial_number,
+                        'vlan_id': vlan_id,
+                        'switch_name': switch_name
+                    })
+            
+            payload = self._build_detach_payload(fabric_name, detach_data)
+            
+            if payload:
+                print(f"[Network] Detaching network '{network_name}' from {len(payload)} switches")
+                return network_api.detach_network(fabric_name, payload)
+            else:
+                print(f"[Network] No valid switches to detach network '{network_name}' from")
+                return True
+                
+        except Exception as e:
+            print(f"[Network] Error detaching network '{network_name}' from all switches: {e}")
+            return False
+    
+    def _build_detach_payload(self, fabric_name: str, detach_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Universal function to build detach payload from any data source.
+        
+        Args:
+            fabric_name: Name of the fabric
+            detach_data: List of dicts with keys: network_name, serial_number, vlan_id, switch_name
+        """
+        payload = []
+        for data in detach_data:
+            network_name = data['network_name']
+            serial_number = data['serial_number']
+            vlan_id = data['vlan_id']
+            switch_name = data.get('switch_name', 'unknown')
+            
+            network_payload = {
+                "networkName": network_name,
+                "lanAttachList": [{
+                    "fabric": fabric_name,
+                    "networkName": network_name,
+                    "serialNumber": serial_number,
+                    "vlan": vlan_id,
+                    "switchPorts": "",
+                    "detachSwitchPorts": "",
+                    "dot1QVlan": 1,
+                    "untagged": False,
+                    "freeformConfig": "",
+                    "deployment": False,
+                    "extensionValues": "",
+                    "instanceValues": ""
+                }]
+            }
+            payload.append(network_payload)
+            print(f"[Network] Added network '{network_name}' on switch '{switch_name}' (SN: {serial_number}, VLAN: {vlan_id}) to detach payload")
+        
+        return payload
     
     # --- Network Attachment Operations ---
     
@@ -379,34 +467,23 @@ class NetworkManager:
                 print(f"[Network] No networks found for fabric '{fabric_name}'")
                 return True  # No networks to process is considered success
             
-            # Build payload for all networks in the new detach format
-            payload = []
+            # Extract detach data from YAML networks and build payload
+            detach_data = []
             for network in fabric_networks:
                 network_name = network.get('Network Name')
                 vlan_id = network.get('VLAN ID', -1)
                 
                 if network_name:
-                    network_payload = {
-                        "networkName": network_name,
-                        "lanAttachList": [{
-                            "fabric": fabric_name,
-                            "networkName": network_name,
-                            "serialNumber": serial_number,
-                            "vlan": vlan_id,
-                            "switchPorts": "",
-                            "detachSwitchPorts": "",
-                            "dot1QVlan": 1,
-                            "untagged": False,
-                            "freeformConfig": "",
-                            "deployment": False,
-                            "extensionValues": "",
-                            "instanceValues": ""
-                        }]
-                    }
-                    payload.append(network_payload)
-                    print(f"[Network] Added network '{network_name}' to detach payload")
+                    detach_data.append({
+                        'network_name': network_name,
+                        'serial_number': serial_number,
+                        'vlan_id': vlan_id,
+                        'switch_name': switch_name
+                    })
                 else:
                     print(f"[Network] Skipping network with missing name: {network}")
+            
+            payload = self._build_detach_payload(fabric_name, detach_data)
             
             if not payload:
                 print(f"[Network] No valid networks to detach")

@@ -4,6 +4,7 @@ import urllib3
 urllib3.disable_warnings(InsecureRequestWarning)
 from .utils import *
 import json
+import os
 from typing import Dict, Any, List
 
 def get_networks(fabric):
@@ -107,23 +108,30 @@ def delete_network(fabric_name: str, network_name: str) -> bool:
     r = requests.delete(url, headers=headers, verify=False)
     return check_status_code(r, operation_name="Delete Network")
 
-def get_network_attachment(fabric, network_dir="networks", networkname=""):
+def get_network_attachment(fabric, network_dir="networks", networkname="", save_files=True):
     url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric}/networks/{networkname}/attachments")
     headers = get_api_key_header()
     r = requests.get(url, headers=headers, verify=False)
-    check_status_code(r)
+    check_status_code(r, f"Get Network Attachments for {networkname} in fabric {fabric}")
 
-    if not os.path.exists(network_dir):
-        os.makedirs(network_dir)
-    if not os.path.exists(f"{network_dir}/attachments"):
-        os.makedirs(f"{network_dir}/attachments")
     attachments = r.json()
-    for attachment in attachments:
-        attachment_switch_name = attachment.get("switchName", "unknown")
-        filename = f"{network_dir}/attachments/{fabric}_{networkname}_{attachment_switch_name}.json"
-        with open(filename, "w") as f:
-            json.dump(attachment, f, indent=4)
-            print(f"Network attachments for {networkname} on switch {attachment_switch_name} are saved to {filename}")
+    
+    # Only save files if requested
+    if save_files:
+        if not os.path.exists(network_dir):
+            os.makedirs(network_dir)
+        if not os.path.exists(f"{network_dir}/attachments"):
+            os.makedirs(f"{network_dir}/attachments")
+        
+        for attachment in attachments:
+            attachment_switch_name = attachment.get("switchName", "unknown")
+            filename = f"{network_dir}/attachments/{fabric}_{networkname}_{attachment_switch_name}.json"
+            with open(filename, "w") as f:
+                json.dump(attachment, f, indent=4)
+                print(f"Network attachments for {networkname} on switch {attachment_switch_name} are saved to {filename}")
+    
+    # Return the attachments data for programmatic use
+    return attachments
 
 def attach_network(payload: List[Dict[str, Any]]) -> bool:
     """
