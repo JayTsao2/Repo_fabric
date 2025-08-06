@@ -11,6 +11,7 @@ Example usage:
     python vrf_cli.py delete <fabric_name> <vrf_name>
     python vrf_cli.py attach <fabric_name> <switch_role> <switch_name>
     python vrf_cli.py detach <fabric_name> <switch_role> <switch_name>
+    python vrf_cli.py sync <fabric_name>
 """
 
 import argparse
@@ -35,6 +36,7 @@ Examples:
   python vrf_cli.py delete <fabric_name> <vrf_name>          # Delete a VRF from specified fabric
   python vrf_cli.py attach <fabric_name> <switch_role> <switch_name>  # Attach VRF to a specific switch
   python vrf_cli.py detach <fabric_name> <switch_role> <switch_name>  # Detach VRF from a specific switch
+  python vrf_cli.py sync <fabric_name>                       # Synchronize all VRFs for a fabric
         """
     )
     
@@ -67,6 +69,10 @@ Examples:
     detach_parser.add_argument('switch_role', help='Role of the switch (leaf, spine, border_gateway)')
     detach_parser.add_argument('switch_name', help='Name of the switch')
     
+    # Sync VRFs command
+    sync_parser = subparsers.add_parser('sync', help='Synchronize all VRFs for a fabric (delete unwanted, update existing, create missing)')
+    sync_parser.add_argument('fabric_name', help='Name of the fabric to synchronize VRFs for')
+    
     args = parser.parse_args()
     
     if not args.command:
@@ -93,6 +99,9 @@ Examples:
             
         elif args.command == 'detach':
             success = vrf_manager.detach_vrf(args.fabric_name, args.switch_role, args.switch_name)
+            
+        elif args.command == 'sync':
+            success = vrf_manager.sync(args.fabric_name)
             
         else:
             print(f"Unknown command: {args.command}")

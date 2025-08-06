@@ -6,38 +6,14 @@ from .utils import *
 import json
 from typing import Dict, Any
 
-def get_VRFs(fabric, vrf_dir="vrfs", vrf_template_config_dir="vrf_template_config_dirs", vrf_filter="", range=0):
-    # range = show the vrfs from 0 to {range}
+def get_VRFs(fabric):
+    # range = show the vrfs from 0 to 9999
     url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric}/vrfs")
     headers = get_api_key_header()
-    headers["range"] = f"0-{range}"
-    query_params = {}
-    if vrf_filter != "":
-        query_params["filter"] = vrf_filter
-    r = requests.get(url, headers=headers, params=query_params, verify=False)
-    check_status_code(r)
-
-    vrfs = r.json()
-    # if the directory does not exist, create it
-    if not os.path.exists(vrf_dir):
-        os.makedirs(vrf_dir)
-    if not os.path.exists(vrf_template_config_dir):
-        os.makedirs(vrf_template_config_dir)
-    # Save vrfs to a file, vrfs is a array of vrf objects
-    for vrf in vrfs:
-        vrf_id = vrf.get("vrfId", "unknown")
-        vrf_name = vrf.get("vrfName", "unknown")
-        vrf_template_config = vrf.get("vrfTemplateConfig", {})
-        filename = f"{vrf_dir}/{fabric}_{vrf_id}_{vrf_name}.json"
-        with open(filename, "w") as f:
-            json.dump(vrf, f, indent=4)
-            print(f"VRF config for {vrf_name} (ID: {vrf_id}) is saved to {filename}")
-        if vrf_template_config:
-            vrf_template_config = json.loads(vrf_template_config) if isinstance(vrf_template_config, str) else vrf_template_config
-            vrf_template_config_filename = f"{vrf_template_config_dir}/{fabric}_{vrf_id}_{vrf_name}.json"
-            with open(vrf_template_config_filename, "w") as f:
-                json.dump(vrf_template_config, f, indent=4)
-                print(f"VRF config template for {vrf_name} (ID: {vrf_id}) is saved to {vrf_template_config_filename}")
+    headers["range"] = f"0-9999"
+    r = requests.get(url, headers=headers, verify=False)
+    check_status_code(r, f"Get VRFs for fabric {fabric}")
+    return r.json()
 
 def create_vrf(fabric_name: str, vrf_payload: Dict[str, Any], template_payload: Dict[str, Any]) -> bool:
     """

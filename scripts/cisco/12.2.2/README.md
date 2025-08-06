@@ -13,7 +13,7 @@
 - `update_network(fabric_name: str, network_name: str)` - 更新網路
 - `delete_network(fabric_name: str, network_name: str)` - 刪除網路
     * **`/modules/vrf`**
-        * 用途: VRF 管理模組，包含建立、更新、刪除、附加、分離功能以及統一管理介面 (VRFManager)。
+        * 用途: VRF 管理模組，包含建立、更新、刪除、附加、分離、同步功能以及統一管理介面 (VRFManager)。
         
     * **`/modules/network`**
         * 用途: Network 管理模組，提供統一的網路 CRUD 操作與交換器附加功能。
@@ -169,12 +169,14 @@ python vrf_cli.py update <fabric_name> <vrf_name>     # 更新特定 VRF
 python vrf_cli.py delete <fabric_name> <vrf_name>     # 刪除特定 VRF
 python vrf_cli.py attach <fabric_name> <switch_role> <switch_name>   # 附加 VRF 到交換器
 python vrf_cli.py detach <fabric_name> <switch_role> <switch_name>   # 從交換器分離 VRF
+python vrf_cli.py sync <fabric_name>                  # 同步所有 VRF (刪除不需要的、更新既存的、建立缺少的)
 
 # 範例
 python vrf_cli.py create Site1 bluevrf         # 建立 bluevrf VRF
 python vrf_cli.py delete Site1 bluevrf         # 刪除 bluevrf VRF
 python vrf_cli.py attach Site1 leaf Site1-L1    # 附加 VRF 到指定 leaf 交換器
 python vrf_cli.py detach Site1 leaf Site1-L1    # 從指定 leaf 交換器分離 VRF
+python vrf_cli.py sync Site3-Test              # 同步 Site3-Test fabric 的所有 VRF
 
 # 顯示幫助資訊
 python vrf_cli.py --help
@@ -256,7 +258,8 @@ python switch_cli.py <command> --help
 - `remove_from_msd(parent_fabric: str, child_fabric: str, force: bool = False)` - 從 Multi-Site Domain 移除子 fabric
 
 ## VRFManager
-- `create_vrf(fabric_name: str, vrf_name: str)` - 在指定 fabric 建立 VRF
+- `sync(fabric_name: str)` - 完全同步 VRF（刪除多餘、更新現有、創建缺失的 VRF）
+- `create_vrf(fabric_name: str, vrf_name: str)` - 在指定 fabric 建立 VRF（先檢查是否已存在）
 - `update_vrf(fabric_name: str, vrf_name: str)` - 更新指定 VRF
 - `delete_vrf(fabric_name: str, vrf_name: str)` - 刪除指定 VRF
 - `attach_vrf(fabric_name: str, role: str, switch_name: str)` - 將 VRF 附加到指定交換器

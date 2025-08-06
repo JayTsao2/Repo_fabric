@@ -10,6 +10,7 @@ This module provides a clean, unified interface for all VRF operations with:
 - VRF attachment/detachment to switch interfaces
 """
 
+from ast import If
 from typing import List, Dict, Any, Tuple, Optional
 from modules.config_utils import load_yaml_file, validate_configuration_files, merge_configs, apply_field_mapping, flatten_config
 from config.config_factory import config_factory
@@ -162,11 +163,80 @@ class VRFManager:
     
     # --- VRF CRUD Operations ---
     
+    def sync(self, fabric_name: str) -> bool:
+        """Update all VRFs for a fabric - delete unwanted, update existing, and create missing VRFs."""
+        print(f"[VRF] Updating all VRFs in fabric '{fabric_name}'")
+        
+        try:
+            # Get existing VRFs from the fabric
+            existing_vrfs = vrf_api.get_VRFs(fabric_name)
+            existing_vrf_names = {vrf.get('vrfName') for vrf in existing_vrfs}
+            print(f"[VRF] Found {len(existing_vrf_names)} existing VRFs: {existing_vrf_names}")
+            
+            # Get VRFs from YAML config for this fabric
+            fabric_vrfs = [vrf for vrf in self.vrfs if vrf.get('Fabric') == fabric_name]
+            yaml_vrf_names = {vrf.get('VRF Name') for vrf in fabric_vrfs}
+            print(f"[VRF] Found {len(yaml_vrf_names)} VRFs in YAML: {yaml_vrf_names}")
+            
+            # Find VRFs to delete (exist in fabric but not in YAML)
+            vrfs_to_delete = existing_vrf_names - yaml_vrf_names
+            print(f"[VRF] VRFs to delete: {vrfs_to_delete if vrfs_to_delete else 'None'}")
+
+            # Find VRFs to create (exist in YAML but not in fabric)
+            vrfs_to_create = yaml_vrf_names - existing_vrf_names
+            print(f"[VRF] VRFs to create: {vrfs_to_create if vrfs_to_create else 'None'}")
+
+            # Find VRFs to update (exist in both fabric and YAML)
+            vrfs_to_update = existing_vrf_names.intersection(yaml_vrf_names)
+            print(f"[VRF] VRFs to update: {vrfs_to_update if vrfs_to_update else 'None'}")
+            
+            overall_success = True
+            
+            # Delete unwanted VRFs
+            for vrf_name in vrfs_to_delete:
+                if not self.delete_vrf(fabric_name, vrf_name):
+                    overall_success = False
+    
+            # Update existing VRFs
+            for vrf_name in vrfs_to_update:
+                if not self.update_vrf(fabric_name, vrf_name):
+                    overall_success = False
+
+            # Create missing VRFs
+            for vrf_name in vrfs_to_create:
+                if not self.create_vrf(fabric_name, vrf_name):
+                    overall_success = False
+
+            if overall_success:
+                print(f"[VRF] Successfully synchronized all VRFs in fabric '{fabric_name}'")
+            else:
+                print(f"[VRF] VRF synchronization completed with some errors in fabric '{fabric_name}'")
+
+            return overall_success
+            
+        except Exception as e:
+            print(f"[VRF] Error updating VRFs: {e}")
+            return False
+    
     def create_vrf(self, fabric_name: str, vrf_name: str) -> bool:
         """Create a VRF using YAML configuration."""
         print(f"[VRF] Creating VRF '{vrf_name}' in fabric '{fabric_name}'")
-        payload, template_config = self._build_complete_payload(fabric_name, vrf_name)
-        return vrf_api.create_vrf(fabric_name, payload, template_config)
+        
+        try:
+            # Check if VRF already exists
+            existing_vrfs = vrf_api.get_VRFs(fabric_name)
+            existing_vrf_names = {vrf.get('vrfName') for vrf in existing_vrfs}
+            
+            if vrf_name in existing_vrf_names:
+                print(f"[VRF] VRF '{vrf_name}' already exists in fabric '{fabric_name}', skipping creation")
+                return True
+            
+            payload, template_config = self._build_complete_payload(fabric_name, vrf_name)
+            return vrf_api.create_vrf(fabric_name, payload, template_config)
+            
+        except Exception as e:
+            print(f"[VRF] Error creating VRF '{vrf_name}': {e}")
+            return False
     
     def update_vrf(self, fabric_name: str, vrf_name: str) -> bool:
         """Update a VRF using YAML configuration."""

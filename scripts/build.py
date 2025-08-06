@@ -66,9 +66,8 @@ def main():
 
     # fabric_manager.deploy_fabric(FABRIC)
 
-    # Step 4. Create VRF
-    for vrf in VRF_LIST:
-        vrf_manager.create_vrf(FABRIC, vrf)
+    # Step 4. Update VRFs (delete unwanted, update existing, create missing)
+    vrf_manager.sync(FABRIC)
     
     # Step 5. Attach VRF to switches
     for switch in SWITCH_LIST:
