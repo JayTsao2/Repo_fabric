@@ -99,8 +99,8 @@ SWITCH_PASSWORD=<your_switch_password>
 - `create_network(fabric_name: str, network_payload: Dict[str, Any], template_payload: Dict[str, Any])` - 建立網路
 - `update_network(fabric_name: str, network_payload: Dict[str, Any], template_payload: Dict[str, Any])` - 更新網路
 - `delete_network(fabric_name: str, network_name: str)` - 刪除網路
-- `attach_network(fabric_name: str, network_name: str, serial_number: str, switch_ports: str, vlan: int)` - 將網路附加到交換器
-- `detach_network(fabric_name: str, network_name: str, serial_number: str, detach_switch_ports: str, vlan: int)` - 從交換器分離網路
+- `attach_network(payload: List[Dict[str, Any]])` - 將網路附加到設備
+- `detach_network(fabric_name: str, payload: List[Dict[str, Any]])` - 從設備分離網路
 - `get_network_attachment(fabric, network_dir="networks", networkname="")` - 獲取網路附加狀態
 - `preview_networks(fabric, network_names)` - 預覽網路配置 (生成待部署配置)
 - `deploy_networks(fabric, network_names)` - 部署網路配置

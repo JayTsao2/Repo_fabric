@@ -1,7 +1,7 @@
 ---
 Network:
 
-- Fabric: MSD_DCI
+- Fabric: Site3-Test
   Network Name: Z01_NET_1118
   Layer 2 Only: False
   VRF Name: Z01
@@ -11,7 +11,7 @@ Network:
   VLAN Name: Z01_VLAN_1118
   Interface Description: Z01_VLAN_1118
 
-- Fabric: MSD_DCI
+- Fabric: Site3-Test
   Network Name: Z01_NET_2023
   Layer 2 Only: False
   VRF Name: Z01
@@ -21,7 +21,7 @@ Network:
   VLAN Name: Z01_VLAN_2023
   Interface Description: Z01_VLAN_2023
 
-- Fabric: MSD_DCI
+- Fabric: Site3-Test
   Network Name: Z01_NET_2253
   Layer 2 Only: False
   VRF Name: Z01
@@ -31,7 +31,7 @@ Network:
   VLAN Name: Z01_VLAN_2253
   Interface Description: Z01_VLAN_2253
 
-- Fabric: MSD_DCI
+- Fabric: Site3-Test
   Network Name: VPC10_NET_1120
   Layer 2 Only: False
   VRF Name: VPC10
@@ -41,7 +41,7 @@ Network:
   VLAN Name: VPC10_VLAN_1120
   Interface Description: VPC10_VLAN_1120
 
-- Fabric: MSD_DCI
+- Fabric: Site3-Test
   Network Name: VPC11_NET_1121
   Layer 2 Only: False
   VRF Name: VPC11

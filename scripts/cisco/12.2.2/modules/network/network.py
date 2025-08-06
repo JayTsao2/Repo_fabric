@@ -7,7 +7,7 @@ This module provides a clean, unified interface for all network operations with:
 - Network CRUD operations with configuration merging
 - Template payload generation with field mapping
 - Corp defaults integration and Layer 2 Only support
-- Network attachment/detachment to switch interfaces
+- Network attachment/detachment to switches (reads switch config for serial number, no interface parsing)
 """
 
 from typing import List, Dict, Any, Tuple, Optional
@@ -27,8 +27,6 @@ class NetworkManager:
         self.defaults_path = self.config_paths['defaults_path']
         self.field_mapping_path = self.config_paths['field_mapping_path']
         self.config_path = self.config_paths['config_path']
-        # Initialize network API
-        self.network_api = network_api
         # Lazy-loaded cached configurations
         self._defaults = None
         self._field_mapping = None
@@ -210,11 +208,11 @@ class NetworkManager:
     # --- Network Attachment Operations ---
     
     def attach_networks(self, fabric_name: str, role: str, switch_name: str) -> bool:
-        """Attach networks to switch interfaces based on YAML configuration."""
+        """Attach all networks to a device based on YAML configuration."""
         print(f"[Network] Attaching networks to switch '{switch_name}' ({role}) in fabric '{fabric_name}'")
 
         try:
-            # Load and validate switch configuration
+            # Load switch configuration to get serial number and IP
             switch_path = self.switch_config_paths['configs_dir'] / fabric_name / role / f"{switch_name}.yaml"
             print(f"[Network] Loading switch config from: {switch_path}")
             if not switch_path.exists():
@@ -225,57 +223,64 @@ class NetworkManager:
             if not switch_config:
                 return False
             
-            if not switch_config.get('Serial Number'):
+            serial_number = switch_config.get('Serial Number')
+            switch_ip = switch_config.get('IP Address')
+            
+            if not serial_number:
                 print(f"[Network] Error: Serial Number not found in switch configuration")
                 return False
             
-            if 'Interface' not in switch_config:
-                print("[Network] No interfaces found to process")
-                return True  # No interfaces to process is considered success
+            if not switch_ip:
+                print(f"[Network] Error: IP Address not found in switch configuration")
+                return False
             
-            # Build network lookup table for all networks (fabric-agnostic)
-            network_lookup = {
-                net.get('VLAN ID'): {
-                    'network_name': net.get('Network Name'),
-                    'vlan_id': net.get('VLAN ID')
-                }
-                for net in self.networks 
-                if net.get('VLAN ID')
-            }
+            # Get all networks for the specified fabric
+            fabric_networks = [net for net in self.networks if net.get('Fabric') == fabric_name]
             
-            # Group interfaces by VLAN/Network
-            vlan_interface_map = self._group_interfaces_by_vlan(switch_config, network_lookup)
+            if not fabric_networks:
+                print(f"[Network] No networks found for fabric '{fabric_name}'")
+                return True  # No networks to process is considered success
             
-            serial_number = switch_config.get('Serial Number')
-            overall_success = True
-            
-            # Process each network with all its interfaces at once
-            for vlan_id, interface_data in vlan_interface_map.items():
-                network_name = interface_data['network_name']
-                interfaces = interface_data['interfaces']
+            # Build payload for all networks
+            payload = []
+            for network in fabric_networks:
+                network_name = network.get('Network Name')
                 
-                if interfaces:  # Only process if there are interfaces
-                    interface_list = ','.join(interfaces)
-                    print(f"[Network] Attaching network '{network_name}' (VLAN {vlan_id}) to interfaces: {interface_list}")
-                    
-                    result = self.network_api.attach_network(
-                        fabric_name, network_name, serial_number, interface_list, vlan_id
-                    )
-                    if not result:
-                        overall_success = False
+                if network_name:
+                    network_payload = {
+                        "networkName": network_name,
+                        "switchName": switch_name,
+                        "switchIP": switch_ip,
+                        "switchSN": serial_number,
+                        "peerSwitchSN": None,
+                        "peerSwitchName": None,
+                        "ports": "",
+                        "torSwitches": None,
+                        "allSwitches": [switch_name]
+                    }
+                    payload.append(network_payload)
+                    print(f"[Network] Added network '{network_name}' to attach payload")
+                else:
+                    print(f"[Network] Skipping network with missing name: {network}")
             
-            return overall_success
+            if not payload:
+                print(f"[Network] No valid networks to attach")
+                return True
+            
+            # Call API with complete payload
+            result = network_api.attach_network(payload)
+            return result
             
         except Exception as e:
             print(f"[Network] Error attaching networks: {e}")
             return False
     
     def detach_networks(self, fabric_name: str, role: str, switch_name: str) -> bool:
-        """Detach networks from switch interfaces based on YAML configuration."""
+        """Detach all networks from a device based on YAML configuration."""
         print(f"[Network] Detaching networks from switch '{switch_name}' ({role}) in fabric '{fabric_name}'")
 
         try:
-            # Load and validate switch configuration
+            # Load switch configuration to get serial number and IP
             switch_path = self.switch_config_paths['configs_dir'] / fabric_name / role / f"{switch_name}.yaml"
             print(f"[Network] Loading switch config from: {switch_path}")
             if not switch_path.exists():
@@ -286,139 +291,61 @@ class NetworkManager:
             if not switch_config:
                 return False
             
-            if not switch_config.get('Serial Number'):
+            serial_number = switch_config.get('Serial Number')
+            switch_ip = switch_config.get('IP Address')
+            
+            if not serial_number:
                 print(f"[Network] Error: Serial Number not found in switch configuration")
                 return False
             
-            if 'Interface' not in switch_config:
-                print("[Network] No interfaces found to process")
-                return True  # No interfaces to process is considered success
+            if not switch_ip:
+                print(f"[Network] Error: IP Address not found in switch configuration")
+                return False
             
-            # Build network lookup table for all networks (fabric-agnostic)
-            network_lookup = {
-                net.get('VLAN ID'): {
-                    'network_name': net.get('Network Name'),
-                    'vlan_id': net.get('VLAN ID')
-                }
-                for net in self.networks 
-                if net.get('VLAN ID')
-            }
+            # Get all networks for the specified fabric
+            fabric_networks = [net for net in self.networks if net.get('Fabric') == fabric_name]
             
-            # Group interfaces by VLAN/Network
-            vlan_interface_map = self._group_interfaces_by_vlan(switch_config, network_lookup)
+            if not fabric_networks:
+                print(f"[Network] No networks found for fabric '{fabric_name}'")
+                return True  # No networks to process is considered success
             
-            serial_number = switch_config.get('Serial Number')
-            overall_success = True
-            
-            # Process each network with all its interfaces at once
-            for vlan_id, interface_data in vlan_interface_map.items():
-                network_name = interface_data['network_name']
-                interfaces = interface_data['interfaces']
+            # Build payload for all networks in the new detach format
+            payload = []
+            for network in fabric_networks:
+                network_name = network.get('Network Name')
+                vlan_id = network.get('VLAN ID', -1)
                 
-                if interfaces:  # Only process if there are interfaces
-                    interface_list = ','.join(interfaces)
-                    print(f"[Network] Detaching network '{network_name}' (VLAN {vlan_id}) from interfaces: {interface_list}")
-                    
-                    result = self.network_api.detach_network(
-                        fabric_name, network_name, serial_number, interface_list, vlan_id
-                    )
-                    if not result:
-                        overall_success = False
+                if network_name:
+                    network_payload = {
+                        "networkName": network_name,
+                        "lanAttachList": [{
+                            "fabric": fabric_name,
+                            "networkName": network_name,
+                            "serialNumber": serial_number,
+                            "vlan": vlan_id,
+                            "switchPorts": "",
+                            "detachSwitchPorts": "",
+                            "dot1QVlan": 1,
+                            "untagged": False,
+                            "freeformConfig": "",
+                            "deployment": False,
+                            "extensionValues": "",
+                            "instanceValues": ""
+                        }]
+                    }
+                    payload.append(network_payload)
+                    print(f"[Network] Added network '{network_name}' to detach payload")
+                else:
+                    print(f"[Network] Skipping network with missing name: {network}")
             
-            return overall_success
+            if not payload:
+                print(f"[Network] No valid networks to detach")
+                return True
+            
+            # Call API with complete payload
+            result = network_api.detach_network(fabric_name, payload)
+            return result
             
         except Exception as e:
             print(f"[Network] Error detaching networks: {e}")
             return False
-
-    def _group_interfaces_by_vlan(self, switch_config: Dict[str, Any], 
-                                 network_lookup: Dict[int, Dict[str, Any]]) -> Dict[int, Dict[str, Any]]:
-        """Group interfaces by VLAN ID for bulk operations."""
-        vlan_interface_map = {}
-        
-        # Get all available VLAN IDs from network lookup
-        all_vlan_ids = set(network_lookup.keys())
-        
-        # Process all interfaces
-        for interface_config in switch_config['Interface']:
-            for interface_name, interface_data in interface_config.items():
-                policy = interface_data.get('policy')
-                
-                # Handle Port-channel interfaces (no policy field)
-                if interface_name.startswith('Port-channel'):
-                    trunk_vlans = interface_data.get('Trunk Allowed Vlans', 'all')
-                    
-                    try:
-                        # Handle "all" case - add to all available networks
-                        if str(trunk_vlans).strip().lower() == 'all':
-                            vlan_ids = all_vlan_ids
-                        else:
-                            # Parse specific VLAN IDs
-                            vlan_ids = {int(vlan.strip()) for vlan in str(trunk_vlans).split(',') 
-                                       if vlan.strip() and vlan.strip().isdigit()}
-                            # Filter to only include VLANs that exist in network lookup
-                            vlan_ids = vlan_ids.intersection(all_vlan_ids)
-                        
-                        # Add port-channel to each VLAN it belongs to
-                        for vlan_id in vlan_ids:
-                            self._add_interface_to_vlan_map(
-                                vlan_interface_map, vlan_id, interface_name, network_lookup
-                            )
-                            
-                    except ValueError as e:
-                        print(f"[Network] Error parsing trunk VLANs for {interface_name}: {e}")
-                
-                elif policy == 'int_access_host':
-                    # Process access interface
-                    access_vlan = interface_data.get('Access Vlan')
-                    if access_vlan:
-                        try:
-                            vlan_id = int(access_vlan)
-                            if vlan_id in network_lookup:
-                                self._add_interface_to_vlan_map(
-                                    vlan_interface_map, vlan_id, interface_name, network_lookup
-                                )
-                        except ValueError:
-                            print(f"[Network] Invalid VLAN ID '{access_vlan}' for interface {interface_name}")
-                
-                elif policy == 'int_trunk_host':
-                    # Process trunk interface
-                    trunk_vlans = interface_data.get('Trunk Allowed Vlans', 'all')
-                    
-                    try:
-                        # Handle "all" case - add to all available networks
-                        if str(trunk_vlans).strip().lower() == 'all':
-                            vlan_ids = all_vlan_ids
-                        else:
-                            # Parse specific VLAN IDs
-                            vlan_ids = {int(vlan.strip()) for vlan in str(trunk_vlans).split(',') 
-                                       if vlan.strip() and vlan.strip().isdigit()}
-                            # Filter to only include VLANs that exist in network lookup
-                            vlan_ids = vlan_ids.intersection(all_vlan_ids)
-                        
-                        # Add interface to each VLAN it belongs to
-                        for vlan_id in vlan_ids:
-                            self._add_interface_to_vlan_map(
-                                vlan_interface_map, vlan_id, interface_name, network_lookup
-                            )
-                            
-                    except ValueError as e:
-                        print(f"[Network] Error parsing trunk VLANs for {interface_name}: {e}")
-        
-        return vlan_interface_map
-
-    def _add_interface_to_vlan_map(self, vlan_interface_map: Dict[int, Dict[str, Any]], 
-                                  vlan_id: int, interface_name: str, 
-                                  network_lookup: Dict[int, Dict[str, Any]]) -> None:
-        """Add interface to VLAN mapping for bulk operations."""
-        if vlan_id not in vlan_interface_map:
-            network_info = network_lookup[vlan_id]
-            vlan_interface_map[vlan_id] = {
-                'network_name': network_info['network_name'],
-                'vlan_id': vlan_id,
-                'interfaces': []
-            }
-        
-        # Add interface if not already present
-        if interface_name not in vlan_interface_map[vlan_id]['interfaces']:
-            vlan_interface_map[vlan_id]['interfaces'].append(interface_name)

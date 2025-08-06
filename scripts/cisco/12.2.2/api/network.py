@@ -150,16 +150,12 @@ def get_network_attachment(fabric, network_dir="networks", networkname=""):
             json.dump(attachment, f, indent=4)
             print(f"Network attachments for {networkname} on switch {attachment_switch_name} are saved to {filename}")
 
-def attach_network(fabric_name: str, network_name: str, serial_number: str, switch_ports: str, vlan: int) -> bool:
+def attach_network(payload: List[Dict[str, Any]]) -> bool:
     """
-    Attach a network to switch interfaces using payload data.
+    Attach networks to devices using the new payload format.
     
     Args:
-        fabric_name: Name of the fabric
-        network_name: Name of the network
-        serial_number: Serial number of the switch
-        switch_ports: Comma-separated list of switch ports
-        vlan: VLAN ID
+        payload: List of network attachment configurations
         
     Returns:
         bool: True if successful, False otherwise
@@ -167,31 +163,17 @@ def attach_network(fabric_name: str, network_name: str, serial_number: str, swit
     headers = get_api_key_header()
     headers['Content-Type'] = 'application/json'
     
-    payload = {
-        "fabric": fabric_name,
-        "networkName": network_name,
-        "serialNumber": serial_number,
-        "switchPorts": switch_ports,
-        "vlan": vlan,
-        "deployment": True,
-        "instanceValues": "",
-        "freeformConfig": ""
-    }
-    
-    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric_name}/networks/{network_name}/attachments")
+    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/networks/multiattach")
     r = requests.post(url, headers=headers, json=payload, verify=False)
-    return check_status_code(r, operation_name=f"Attach {network_name} to port {switch_ports}")
+    return check_status_code(r, operation_name=f"Attach networks")
 
-def detach_network(fabric_name: str, network_name: str, serial_number: str, detach_switch_ports: str, vlan: int) -> bool:
+def detach_network(fabric_name: str, payload: List[Dict[str, Any]]) -> bool:
     """
-    Detach a network from switch interfaces using payload data.
+    Detach networks from devices using the new payload format.
     
     Args:
         fabric_name: Name of the fabric
-        network_name: Name of the network
-        serial_number: Serial number of the switch
-        detach_switch_ports: Comma-separated list of switch ports to detach
-        vlan: VLAN ID
+        payload: List of network detachment configurations
         
     Returns:
         bool: True if successful, False otherwise
@@ -199,20 +181,9 @@ def detach_network(fabric_name: str, network_name: str, serial_number: str, deta
     headers = get_api_key_header()
     headers['Content-Type'] = 'application/json'
     
-    payload = {
-        "fabric": fabric_name,
-        "networkName": network_name,
-        "serialNumber": serial_number,
-        "detachSwitchPorts": detach_switch_ports,
-        "vlan": vlan,
-        "deployment": False,
-        "instanceValues": "",
-        "freeformConfig": ""
-    }
-    # print(json.dumps(payload, indent=2, ensure_ascii=False))
-    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric_name}/networks/{network_name}/attachments")
+    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric_name}/networks/attachments")
     r = requests.post(url, headers=headers, json=payload, verify=False)
-    return check_status_code(r, operation_name=f"Detach {network_name} from port {detach_switch_ports}")
+    return check_status_code(r, operation_name=f"Detach networks")
 
 def preview_networks(fabric, network_names):
     headers = get_api_key_header()
