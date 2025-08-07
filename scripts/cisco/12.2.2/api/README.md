@@ -1,14 +1,29 @@
-## [Fabric](api/fabric.py)
-- `get_fabrics()` - 獲取所有 fabric 列表
-- `get_fabric(fabric_name: str, fabric_dir: str = "fabrics")` - 獲取指定 fabric 配置
-- `create_fabric(fabric_name: str, template_name: str, payload_data: Dict[str, Any])` - 使用直接傳遞的 payload 資料創建 fabric
-- `update_fabric(fabric_name: str, template_name: str, payload_data: Dict[str, Any])` - 使用直接傳遞的 payload 資料更新 fabric
+## [Fabric](fabric.py)
+- `get_fabrics(save_files: bool = False)` - 獲取所有 fabric 列表，可選擇儲存到 fabrics.json
+- `get_fabric(fabric_name: str, save_files: bool = False)` - 獲取指定 fabric 配置，可選擇儲存到 {fabric_name}.json
+- `create_fabric(fabric_name: str, template_name: str, payload_data: Dict[str, Any])` - 建立 fabric
+  - 支援模板類型：Easy_Fabric, External_Fabric, MSD_Fabric
+  - 自動清理無效欄位 (USE_LINK_LOCAL, ISIS_OVERLOAD_ENABLE, ISIS_P2P_ENABLE, PNP_ENABLE_INTERNAL, DOMAIN_NAME_INTERNAL)
+  - 使用完整 nvPairs payload 資料
+- `update_fabric(fabric_name: str, template_name: str, payload_data: Dict[str, Any])` - 更新 fabric
+  - 同樣支援模板類型和自動清理無效欄位
+  - 使用完整 nvPairs payload 資料
 - `delete_fabric(fabric_name: str)` - 刪除 fabric
 - `recalculate_config(fabric_name: str)` - 重新計算 fabric 配置
 - `deploy_fabric_config(fabric_name: str)` - 部署 fabric 配置
-- `get_pending_config(fabric_name: str)` - 獲取待部署配置並格式化輸出至 pending.txt
+- `get_pending_config(fabric_name: str, save_files: bool = False)` - 獲取待部署配置
+  - 可選擇儲存格式化輸出至 pending.txt
+  - 按交換器分組顯示待部署命令
 - `add_MSD(parent_fabric_name: str, child_fabric_name: str)` - 將子 fabric 添加到 Multi-Site Domain
 - `remove_MSD(parent_fabric_name: str, child_fabric_name: str)` - 從 Multi-Site Domain 移除子 fabric
+
+### 無效欄位自動清理
+以下欄位會在 create 和 update 操作中自動移除：
+- USE_LINK_LOCAL
+- ISIS_OVERLOAD_ENABLE
+- ISIS_P2P_ENABLE
+- PNP_ENABLE_INTERNAL
+- DOMAIN_NAME_INTERNAL
 
 ## [Switch](api/switch.py)
 - `get_switches(fabric, save_files: bool = False)` - 獲取指定 fabric 中的所有交換器，可選擇儲存到檔案

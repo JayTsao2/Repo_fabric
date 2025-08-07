@@ -6,7 +6,7 @@ from .utils import *
 import json
 from typing import Dict, Any, Optional
 
-def get_fabrics():
+def get_fabrics(save_files: bool = False) -> Optional[Dict[str, Any]]:
     """Get all fabrics from NDFC."""
     url = get_url("/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics")
     headers = get_api_key_header()
@@ -16,13 +16,14 @@ def get_fabrics():
     
     if success:
         fabrics = r.json()
-        with open("fabrics.json", "w") as f:
-            json.dump(fabrics, f, indent=4)
+        if save_files:
+            with open("fabrics.json", "w") as f:
+                json.dump(fabrics, f, indent=4)
         return fabrics
     else:
         return None
 
-def get_fabric(fabric_name: str, fabric_dir: str = "fabrics") -> Optional[Dict[str, Any]]:
+def get_fabric(fabric_name: str, save_files: bool = False) -> Optional[Dict[str, Any]]:
     """Get specific fabric configuration from NDFC."""
     url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric_name}")
     
@@ -31,20 +32,13 @@ def get_fabric(fabric_name: str, fabric_dir: str = "fabrics") -> Optional[Dict[s
     r = requests.get(url=url, headers=headers, verify=False)
     success = check_status_code(r)
     
-    if not success:
-        return None
-    
-    try: 
-        data = r.json()
-        if not os.path.exists(fabric_dir):
-            os.makedirs(fabric_dir)
-        filename = f"{fabric_dir}/{fabric_name}.json"
-        with open(filename, "w") as f:
-            json.dump(data, f, indent=4)
-            print(f"Fabric {fabric_name} data is saved to {filename}")
-        return data
-    except Exception as e:
-        print(f"Error: {e}")
+    if success:
+        fabric_data = r.json()
+        if save_files:
+            with open(f"{fabric_name}.json", "w") as f:
+                json.dump(fabric_data, f, indent=4)
+        return fabric_data
+    else:
         return None
 
 def delete_fabric(fabric_name: str) -> bool:
@@ -122,7 +116,7 @@ def deploy_fabric_config(fabric_name: str) -> bool:
 
     return check_status_code(r, operation_name="Deploy Fabric Config")
 
-def get_pending_config(fabric_name: str) -> Optional[Dict[str, Any]]:
+def get_pending_config(fabric_name: str, save_files: bool = False) -> Optional[Dict[str, Any]]:
     """Get pending configuration for a fabric and save in formatted text file."""
     url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric_name}/config-preview")
     headers = get_api_key_header()
@@ -132,9 +126,9 @@ def get_pending_config(fabric_name: str) -> Optional[Dict[str, Any]]:
     if not check_status_code(r):
         return None
     
-    try:
-        data = r.json()
-        
+    data = r.json()
+    
+    if save_files:
         txt_filename = "pending.txt"
         with open(txt_filename, "w") as f:
             for switch_data in data:
@@ -147,11 +141,7 @@ def get_pending_config(fabric_name: str) -> Optional[Dict[str, Any]]:
                 f.write("===\n")
         
         print(f"Formatted pending configuration for fabric {fabric_name} saved to {txt_filename}")
-        return data
-        
-    except Exception as e:
-        print(f"Error getting pending config for fabric {fabric_name}: {e}")
-        return None
+    return data
 
 def add_MSD(parent_fabric_name: str, child_fabric_name: str) -> bool:
     """Add a child fabric to a Multi-Site Domain."""

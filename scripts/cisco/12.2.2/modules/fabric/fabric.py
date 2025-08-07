@@ -374,7 +374,7 @@ class FabricManager:
     def get_pending_config(self, fabric_name: str) -> Optional[Dict[str, Any]]:
         """Get pending configuration with formatted output."""
         print(f"[Fabric] Getting pending configuration for fabric '{fabric_name}'")
-        return fabric_api.get_pending_config(fabric_name)
+        return fabric_api.get_pending_config(fabric_name, save_files=True)
 
     def deploy_fabric(self, fabric_name: str) -> bool:
         """Deploy fabric configuration."""
