@@ -1,5 +1,6 @@
 ---
 Change Mode: Normal # Normal <> maintenance 
+Hostname: Site1-L2
 IP Address: 10.192.195.72
 IP Netmask Length: 24 # For management interface
 Role: Leaf

@@ -1,5 +1,6 @@
 ---
 Fabric:
+  Name: Site1
   type: Data Center VXLAN EVPN
   Location: San Jose, US
 
