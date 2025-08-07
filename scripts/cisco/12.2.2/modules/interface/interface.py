@@ -68,7 +68,7 @@ class InterfaceManager:
         print(f"[Interface] Fetching existing interfaces for serial number: {serial_number}")
         existing_interfaces_data = interface_api.get_interfaces(
             serial_number=serial_number, 
-            save_by_policy=False
+            save_files=False
         )
         
         if not existing_interfaces_data:
