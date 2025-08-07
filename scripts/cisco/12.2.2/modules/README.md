@@ -1,5 +1,5 @@
 
-## [FabricManager](modules/fabric/README.md)
+## [FabricManager](fabric/README.md)
 - `create_fabric(fabric_name: str)` - 建立指定的 fabric，自動識別類型並載入 YAML 配置
   - 支援 VXLAN EVPN、Multi-Site Domain、Inter-Site Network 三種 fabric 類型
   - 自動合併預設配置、套用欄位映射、處理 freeform 配置
@@ -14,7 +14,7 @@
 - `remove_from_msd(parent_fabric: str, child_fabric: str, force: bool = False)` - 從 Multi-Site Domain 移除子 fabric
 
 
-## [VRFManager](modules/vrf/README.md)
+## [VRFManager](vrf/README.md)
 - `sync(fabric_name: str)` - 完全同步 VRF（刪除多餘、更新現有、創建缺失的 VRF）
 - `create_vrf(fabric_name: str, vrf_name: str)` - 在指定 fabric 建立 VRF（先檢查是否已存在）
 - `update_vrf(fabric_name: str, vrf_name: str)` - 更新指定 VRF
@@ -22,14 +22,14 @@
 - `attach_vrf(fabric_name: str, role: str, switch_name: str)` - 將 VRF 附加到指定交換器
 - `detach_vrf(fabric_name: str, role: str, switch_name: str)` - 從指定交換器分離 VRF
 
-## [NetworkManager](modules/network/README.md)
+## [NetworkManager](network/README.md)
 - `create_network(fabric_name: str, network_name: str)` - 建立網路
 - `update_network(fabric_name: str, network_name: str)` - 更新網路
 - `delete_network(fabric_name: str, network_name: str)` - 刪除網路
 - `attach_networks(fabric_name: str, role: str, switch_name: str)` - 將網路附加到交換器
 - `detach_networks(fabric_name: str, role: str, switch_name: str)` - 從交換器分離網路
 
-## [InterfaceManager](modules/interface/README.md)
+## [InterfaceManager](interface/README.md)
 - `update_switch_interfaces(fabric_name: str, role: str, switch_name: str)` - 更新指定交換器的所有介面配置
   - 自動載入交換器 YAML 配置檔案
   - 支援 Access、Trunk、Routed 介面政策配置
@@ -37,7 +37,7 @@
   - 處理介面啟用/停用狀態
   - 智能處理未在 YAML 中指定的現有介面
 
-## [SwitchManager](modules/switch/README.md)
+## [SwitchManager](switch/README.md)
 - `discover_switch(fabric_name: str, role: str, switch_name: str, preserve_config: bool = False)` - 新增交換器
 - `delete_switch(fabric_name: str, role: str, switch_name: str)` - 刪除交換器
 - `set_switch_role(fabric_name: str, role: str, switch_name: str)` - 設定交換器角色
@@ -47,7 +47,7 @@
     - 因為在設定的時候實際上是創造出一個 freeform policy，如果之後沒有這個 JSON 檔案就無法知道正確的 policy ID 並做修改
 - `change_switch_hostname(fabric_name: str, role: str, switch_name: str, new_hostname: str)` - 變更交換器主機名稱
 
-## [VPCManager](modules/vpc/README.md)
+## [VPCManager](vpc/README.md)
 - `create_vpc_pairs(fabric_name: str)` - 建立指定 fabric 的所有 VPC 配對
   - 自動掃描 VPC 配置目錄中的所有 YAML 檔案
   - 解析 VPC 配對資訊和政策配置
