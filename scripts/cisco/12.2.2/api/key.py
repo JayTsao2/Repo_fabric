@@ -3,7 +3,7 @@ from urllib3.exceptions import InsecureRequestWarning
 import urllib3
 urllib3.disable_warnings(InsecureRequestWarning)
 
-from .utils import *
+from utils import *
 
 from dotenv import load_dotenv
 
@@ -21,7 +21,7 @@ def login():
 
     r = requests.post(url=url, json=payload, verify=False)
 
-    check_status_code(r)
+    check_status_code(r, "Login to NDFC")
     json_data = r.json()
     jwttoken = json_data.get("jwttoken")
 
@@ -36,7 +36,7 @@ def add_api_key(token):
     url = get_url("/api/config/addapikey")
     r = requests.post(url, headers=headers, json=payload, verify=False)
 
-    check_status_code(r)
+    check_status_code(r, "Add API Key")
     print(r.json())
 
 def get_api_key(token):
@@ -46,7 +46,7 @@ def get_api_key(token):
     }
     r = requests.get(url, headers=headers, verify=False)
 
-    check_status_code(r)
+    check_status_code(r, "Get API Key")
 
     response_json = r.json()
     api_keys = response_json.get("apiKeys", [])
@@ -58,8 +58,7 @@ def get_api_key(token):
 def generate_api_key():
     token = login()
     # add_api_key(token)
-    api_key = get_api_key(token)
-    print(f"API key: {api_key}")
+    return get_api_key(token)
 
 if __name__ == "__main__":
-    generate_api_key()
+    print(f"Generated API key: {generate_api_key()}")
