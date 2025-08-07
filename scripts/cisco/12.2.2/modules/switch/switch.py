@@ -134,7 +134,7 @@ class SwitchManager:
         switch_config = self._build_switch_config(fabric_name, role, switch_name, switch_data)
         payload = self._build_discovery_payload(switch_config, preserve_config)
         
-        return switch_api.discover_switch_from_payload(fabric_name, payload)
+        return switch_api.discover_switch(fabric_name, payload)
     
     def delete_switch(self, fabric_name: str, role: str, switch_name: str) -> bool:
         """Delete switch based on YAML configuration."""

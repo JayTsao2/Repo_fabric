@@ -41,7 +41,7 @@ def delete_switch(fabric, serial_number):
     r = requests.delete(url, headers=headers, verify=False)
     return check_status_code(r, operation_name="Delete Switch")
 
-def discover_switch_from_payload(fabric, payload):
+def discover_switch(fabric, payload):
     """Discover switch using provided payload data."""
     load_dotenv()
     url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/inventory/discover")
@@ -53,27 +53,6 @@ def discover_switch_from_payload(fabric, payload):
     
     r = requests.post(url, headers=headers, json=payload, verify=False)
     return check_status_code(r, operation_name="Discover Switch")
-
-def discover_switch(fabric, filename):
-    load_dotenv()
-    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric}/inventory/discover")
-    headers = get_api_key_header()
-    headers['Content-Type'] = 'application/json'
-    try:
-        with open(filename, "r") as file:
-            data = json.load(file)
-    except FileNotFoundError:
-        print(f"File {filename} not found!")
-        exit()
-    except Exception as e:
-        print(f"Error: {e}")
-        exit()
-    payload = data
-
-    payload["password"] = os.getenv("SWITCH_PASSWORD") 
-    r = requests.post(url, headers=headers, json=payload, verify=False)
-    return check_status_code(r, operation_name="Discover Switch")
-
 
 def change_discovery_ip(fabric, serial_number, new_ip):
     headers = get_api_key_header()
