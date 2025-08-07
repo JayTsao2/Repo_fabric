@@ -7,37 +7,28 @@ import json
 import os
 from typing import Dict, Any, List
 
-def get_networks(fabric):
+def get_networks(fabric: str, save_files: bool = False) -> List[Dict[str, Any]]:
+    """Get networks for a specific fabric using NDFC API.
+    Args:
+        fabric: Name of the fabric
+        save_files: Whether to save the response to a file
+    Returns:
+        List of networks for the specified fabric
+    """
     # range = show the networks from 0 to {range}
     url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric}/networks")
     headers = get_api_key_header()
     headers["range"] = f"0-9999"
     r = requests.get(url, headers=headers, verify=False)
     check_status_code(r, f"Get Networks for fabric {fabric}")
+    if save_files:
+        if not os.path.exists("networks"):
+            os.makedirs("networks")
+        filename = f"networks/{fabric}_networks.json"
+        with open(filename, "w") as f:
+            json.dump(r.json(), f, indent=4)
+            print(f"Networks for fabric {fabric} are saved to {filename}")
     return r.json()
-
-def get_network(fabric, network_name, network_dir="networks", network_template_config_dir="networks/network_templates"):
-    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric}/networks/{network_name}")
-    headers = get_api_key_header()
-    r = requests.get(url, headers=headers, verify=False)
-    check_status_code(r)
-
-    network = r.json()
-    # Save the network to a file
-    network_id = network.get("networkId", "unknown")
-    filename = f"{network_dir}/{fabric}_{network_id}_{network_name}.json"
-    with open(filename, "w") as f:
-        json.dump(network, f, indent=4)
-        print(f"Network config for {network_name} (ID: {network_id}) is saved to {filename}")
-
-    # Save the network template config if it exists
-    network_template_config = network.get("networkTemplateConfig", {})
-    if network_template_config:
-        network_template_config_filename = f"{network_template_config_dir}/{fabric}_{network_id}_{network_name}.json"
-        network_template_config = json.loads(network_template_config) if isinstance(network_template_config, str) else network_template_config
-        with open(network_template_config_filename, "w") as f:
-            json.dump(network_template_config, f, indent=4)
-            print(f"Network config template for {network_name} (ID: {network_id}) is saved to {network_template_config_filename}")
 
 def create_network(fabric_name: str, network_payload: Dict[str, Any], template_payload: Dict[str, Any]) -> bool:
     """
@@ -108,7 +99,16 @@ def delete_network(fabric_name: str, network_name: str) -> bool:
     r = requests.delete(url, headers=headers, verify=False)
     return check_status_code(r, operation_name="Delete Network")
 
-def get_network_attachment(fabric, network_dir="networks", networkname="", save_files=True):
+def get_network_attachment(fabric: str, networkname: str, save_files: bool = True) -> List[Dict[str, Any]]:
+    """
+    Get network attachments for a specific fabric and network.
+    Args:
+        fabric: Name of the fabric
+        networkname: Name of the network
+        save_files: Whether to save the response to a file
+    Returns:
+        List of network attachments for the specified fabric and network
+    """
     url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric}/networks/{networkname}/attachments")
     headers = get_api_key_header()
     r = requests.get(url, headers=headers, verify=False)
@@ -118,6 +118,7 @@ def get_network_attachment(fabric, network_dir="networks", networkname="", save_
     
     # Only save files if requested
     if save_files:
+        network_dir = "networks"
         if not os.path.exists(network_dir):
             os.makedirs(network_dir)
         if not os.path.exists(f"{network_dir}/attachments"):
