@@ -74,7 +74,7 @@ def delete_interfaces(interfaces_payload: List[Dict[str, Any]]) -> bool:
     return check_status_code(r, operation_name=f"Delete Interfaces")
 
 def get_interfaces(serial_number: str = None, if_name: str = None, template_name: str = None, 
-                  interface_dir: str = "interfaces", save_by_policy: bool = True) -> List[Dict[str, Any]]:
+                  save_files: bool = False) -> List[Dict[str, Any]]:
     """
     Get interfaces from NDFC API with optional filtering.
     
@@ -82,8 +82,7 @@ def get_interfaces(serial_number: str = None, if_name: str = None, template_name
         serial_number: Filter by device serial number
         if_name: Filter by specific interface name (e.g., "Ethernet1/1")
         template_name: Filter by policy template (e.g., "int_trunk_host", "int_access_host", "int_routed_host")
-        interface_dir: Directory to save interface data
-        save_by_policy: Whether to save interfaces grouped by policy type
+        save_files: If True, save the interface data to files in the current directory
     
     Returns:
         List of interface data from the API
@@ -99,61 +98,17 @@ def get_interfaces(serial_number: str = None, if_name: str = None, template_name
         query_params["ifName"] = if_name
     if template_name:
         query_params["templateName"] = template_name
+    r = requests.get(url, headers=headers, params=query_params, verify=False)
+    check_status_code(r, operation_name="Get Interfaces")
     
-    try:
-        r = requests.get(url, headers=headers, params=query_params, verify=False)
-        check_status_code(r, f"Get Interfaces for {serial_number}")
+    if save_files:
+        # Create directory for interface files
+        interface_dir = "interfaces"
+        os.makedirs(interface_dir, exist_ok=True)
         
         interfaces_data = r.json()
-        
-        # Create directory if it doesn't exist
-        # if not os.path.exists(interface_dir):
-        #     os.makedirs(interface_dir)
-        
-        # if save_by_policy:
-        #     _save_interfaces_by_policy(interfaces_data, interface_dir, serial_number)
-        # else:
-        #     _save_all_interfaces(interfaces_data, interface_dir, serial_number)
-        
-        return interfaces_data
-        
-    except Exception as e:
-        print(f"❌ Error getting interfaces: {e}")
-        return []
-
-def _save_interfaces_by_policy(interfaces_data: List[Dict], interface_dir: str, serial_number: str = None):
-    """Save interfaces grouped by policy type."""
-    policy_groups = {
-        "int_access_host": [],
-        "int_trunk_host": [], 
-        "int_routed_host": [],
-        "other": []
-    }
+        with open(os.path.join(interface_dir, "interfaces.json"), 'w', encoding='utf-8') as f:
+            json.dump(interfaces_data, f, indent=2, ensure_ascii=False)
+        print(f"Interfaces data saved to {interface_dir}/interfaces.json")
     
-    for policy_group in interfaces_data:
-        policy = policy_group.get("policy", "unknown")
-        interfaces = policy_group.get("interfaces", [])
-        
-        if policy in policy_groups:
-            policy_groups[policy].extend(interfaces)
-        else:
-            policy_groups["other"].extend(interfaces)
-    
-    # Save each policy group to separate files
-    for policy, interfaces in policy_groups.items():
-        if interfaces:
-            filename_suffix = f"_{serial_number}" if serial_number else ""
-            filename = f"{policy}_interfaces{filename_suffix}.json"
-            filepath = os.path.join(interface_dir, filename)
-            
-            with open(filepath, 'w', encoding='utf-8') as f:
-                json.dump(interfaces, f, indent=2, ensure_ascii=False)
-
-def _save_all_interfaces(interfaces_data: List[Dict], interface_dir: str, serial_number: str = None):
-    """Save all interfaces in a single file."""
-    filename_suffix = f"_{serial_number}" if serial_number else ""
-    filename = f"all_interfaces{filename_suffix}.json"
-    filepath = os.path.join(interface_dir, filename)
-    
-    with open(filepath, 'w', encoding='utf-8') as f:
-        json.dump(interfaces_data, f, indent=2, ensure_ascii=False)
+    return r.json()
