@@ -10,11 +10,11 @@ This module provides a clean, unified interface for all VRF operations with:
 - VRF attachment/detachment to switch interfaces
 """
 
-from ast import If
 from typing import List, Dict, Any, Tuple, Optional
 from modules.config_utils import load_yaml_file, validate_configuration_files, merge_configs, apply_field_mapping, flatten_config
 from config.config_factory import config_factory
 import api.vrf as vrf_api
+import json
 
 class VRFManager:
     """Unified VRF operations manager with YAML configuration support."""
@@ -245,9 +245,115 @@ class VRFManager:
         return vrf_api.update_vrf(fabric_name, vrf_name, payload, template_config)
     
     def delete_vrf(self, fabric_name: str, vrf_name: str) -> bool:
-        """Delete a VRF."""
+        """Delete a VRF after detaching from all switches."""
         print(f"[VRF] Deleting VRF '{vrf_name}' in fabric '{fabric_name}'")
+        
+        # First, detach the VRF from all switches
+        print(f"[VRF] Detaching VRF '{vrf_name}' from all switches before deletion")
+        detach_success = self._detach_vrf_from_all_switches(fabric_name, vrf_name)
+        if not detach_success:
+            print(f"[VRF] Warning: Failed to detach VRF '{vrf_name}' from some switches, but continuing with deletion")
+        
+        # Then delete the VRF
         return vrf_api.delete_vrf(fabric_name, vrf_name)
+    
+    def _detach_vrf_from_all_switches(self, fabric_name: str, vrf_name: str) -> bool:
+        """Helper method to detach a VRF from all switches it's attached to."""
+        try:
+            # Get VRF attachments to see which switches have this VRF
+            attachments = vrf_api.get_vrf_attachment(fabric_name, save_files=False)
+            if not attachments:
+                print(f"[VRF] No attachments found for VRF '{vrf_name}', skipping detach")
+                return True
+            
+            # Find the specific VRF in the attachments
+            target_vrf_attachment = None
+            for vrf_attachment in attachments:
+                if vrf_attachment.get('vrfName') == vrf_name:
+                    target_vrf_attachment = vrf_attachment
+                    break
+            
+            if not target_vrf_attachment:
+                print(f"[VRF] VRF '{vrf_name}' not found in attachments, skipping detach")
+                return True
+            
+            # Get the lanAttachList for this VRF
+            lan_attach_list = target_vrf_attachment.get('lanAttachList', [])
+            
+            if not lan_attach_list:
+                print(f"[VRF] No switch attachments found for VRF '{vrf_name}', skipping detach")
+                return True
+            
+            # Extract detach data from the lanAttachList
+            detach_data = []
+            for attachment in lan_attach_list:
+                # Only detach if the VRF is actually attached or has some state
+                is_lan_attached = attachment.get('isLanAttached', False)
+
+                # Skip if not attached
+                if not is_lan_attached:
+                    continue
+                
+                serial_number = attachment.get('switchSerialNo')
+                switch_name = attachment.get('switchName')
+                vlan_id = attachment.get('vlanId')
+                
+                if serial_number and switch_name:
+                    detach_data.append({
+                        'vrf_name': vrf_name,
+                        'serial_number': serial_number,
+                        'vlan_id': vlan_id if vlan_id else -1,
+                        'switch_name': switch_name
+                    })
+                    print(f"[VRF] Found VRF '{vrf_name}' attached to switch '{switch_name}' (SN: {serial_number}, VLAN: {vlan_id})")
+            
+            if not detach_data:
+                print(f"[VRF] No active attachments found for VRF '{vrf_name}', skipping detach")
+                return True
+            
+            payload = self._build_vrf_detach_payload(fabric_name, detach_data)
+            
+            if payload:
+                print(f"[VRF] Detaching VRF '{vrf_name}' from {len(detach_data)} switches")
+                return vrf_api.update_vrf_attachment(fabric_name, payload)
+            else:
+                print(f"[VRF] No valid switches to detach VRF '{vrf_name}' from")
+                return True
+                
+        except Exception as e:
+            print(f"[VRF] Error detaching VRF '{vrf_name}' from all switches: {e}")
+            return False
+    
+    def _build_vrf_detach_payload(self, fabric_name: str, detach_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Build VRF detach payload from normalized data structure.
+        
+        Args:
+            fabric_name: Name of the fabric
+            detach_data: List of dicts with keys: vrf_name, serial_number, vlan_id, switch_name
+        """
+        payload = []
+        for data in detach_data:
+            vrf_name = data['vrf_name']
+            serial_number = data['serial_number']
+            vlan_id = data['vlan_id']
+            switch_name = data.get('switch_name', 'unknown')
+            
+            vrf_payload = {
+                "vrfName": vrf_name,
+                "lanAttachList": [{
+                    "fabric": fabric_name,
+                    "vrfName": vrf_name,
+                    "serialNumber": serial_number,
+                    "vlan": str(vlan_id),
+                    "deployment": False,  # False for detach
+                    "instanceValues": "",
+                    "freeformConfig": ""
+                }]
+            }
+            payload.append(vrf_payload)
+            print(f"[VRF] Added VRF '{vrf_name}' on switch '{switch_name}' (SN: {serial_number}, VLAN: {vlan_id}) to detach payload")
+        
+        return payload
     
     # --- VRF Attachment Operations ---
     
