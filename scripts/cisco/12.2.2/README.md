@@ -8,10 +8,7 @@
     
     * **`/modules/fabric`**
         * 用途: Fabric 管理模組，包含建立、更新、刪除功能以及統一管理介面 (FabricManager)。
-     - `update_all_networks(fabric_name: str)` - 完全同步網路（刪除多餘、更新現有、創建缺失的網路）
-- `create_network(fabric_name: str, network_name: str)` - 創建單個網路（先檢查是否已存在）
-- `update_network(fabric_name: str, network_name: str)` - 更新網路
-- `delete_network(fabric_name: str, network_name: str)` - 刪除網路
+        
     * **`/modules/vrf`**
         * 用途: VRF 管理模組，包含建立、更新、刪除、附加、分離、同步功能以及統一管理介面 (VRFManager)。
         
@@ -72,16 +69,11 @@ SWITCH_PASSWORD=<your_switch_password>
 - `remove_MSD(parent_fabric_name: str, child_fabric_name: str)` - 從 Multi-Site Domain 移除子 fabric
 
 ## [Switch](api/switch.py)
-- `get_switches(fabric, switch_dir="switches")` - 獲取指定 fabric 中的所有交換器
+- `get_switches(fabric, save_files: bool = False)` - 獲取指定 fabric 中的所有交換器，可選擇儲存到檔案
 - `delete_switch(fabric, serial_number)` - 根據序號刪除交換器
-- `discover_switch_from_payload(fabric, payload)` - 使用 payload 發現交換器
-- `discover_switch(fabric, filename)` - 使用檔案發現交換器
+- `discover_switch(fabric, payload)` - 使用 payload 發現交換器
 - `change_discovery_ip(fabric, serial_number, new_ip)` - 變更交換器發現 IP
 - `rediscover_device(fabric, serial_number)` - 重新發現設備
-- `get_config_preview(fabric, serial_number)` - 獲取配置預覽
-- `get_config_diff(fabric, serial_number)` - 獲取配置差異
-- `parse_config_diff(data, filename)` - 解析配置差異
-- `parsePendingConfig(data, filename)` - 解析待部署配置
 - `deploy_switch_config(fabric, serial_number)` - 部署交換器配置
 - `set_switch_role(serial_number, role)` - 設定交換器角色
 
@@ -247,9 +239,13 @@ python switch_cli.py <command> --help
 
 # Manager 可使用功能
 
-## FabricManager
-- `create_fabric(fabric_name: str)` - 建立指定的 fabric
-- `update_fabric(fabric_name: str)` - 更新指定的 fabric
+## [FabricManager](modules/fabric/README.md)
+- `create_fabric(fabric_name: str)` - 建立指定的 fabric，自動識別類型並載入 YAML 配置
+  - 支援 VXLAN EVPN、Multi-Site Domain、Inter-Site Network 三種 fabric 類型
+  - 自動合併預設配置、套用欄位映射、處理 freeform 配置
+  - 支援 AAA、Leaf、Spine、Intra-fabric Links、Banner 等 freeform 配置
+  - 自動處理 iBGP Peer-Template 配置並替換 BGP ASN
+- `update_fabric(fabric_name: str)` - 更新指定的 fabric，使用相同的 YAML 驅動流程
 - `delete_fabric(fabric_name: str)` - 刪除指定的 fabric
 - `recalculate_config(fabric_name: str)` - 重新計算 fabric 配置
 - `get_pending_config(fabric_name: str)` - 獲取待部署配置
@@ -257,7 +253,8 @@ python switch_cli.py <command> --help
 - `add_to_msd(parent_fabric: str, child_fabric: str)` - 將子 fabric 添加到 Multi-Site Domain
 - `remove_from_msd(parent_fabric: str, child_fabric: str, force: bool = False)` - 從 Multi-Site Domain 移除子 fabric
 
-## VRFManager
+
+## [VRFManager](modules/vrf/README.md)
 - `sync(fabric_name: str)` - 完全同步 VRF（刪除多餘、更新現有、創建缺失的 VRF）
 - `create_vrf(fabric_name: str, vrf_name: str)` - 在指定 fabric 建立 VRF（先檢查是否已存在）
 - `update_vrf(fabric_name: str, vrf_name: str)` - 更新指定 VRF
@@ -265,18 +262,23 @@ python switch_cli.py <command> --help
 - `attach_vrf(fabric_name: str, role: str, switch_name: str)` - 將 VRF 附加到指定交換器
 - `detach_vrf(fabric_name: str, role: str, switch_name: str)` - 從指定交換器分離 VRF
 
-## NetworkManager
+## [NetworkManager](modules/network/README.md)
 - `create_network(fabric_name: str, network_name: str)` - 建立網路
 - `update_network(fabric_name: str, network_name: str)` - 更新網路
 - `delete_network(fabric_name: str, network_name: str)` - 刪除網路
 - `attach_networks(fabric_name: str, role: str, switch_name: str)` - 將網路附加到交換器
 - `detach_networks(fabric_name: str, role: str, switch_name: str)` - 從交換器分離網路
 
-## InterfaceManager
-- `update_switch_interfaces(fabric_name: str, role: str, switch_name: str)` - 更新指定交換器的所有介面配置 (支援 policy 介面或是單純 開 / 關 介面)
+## [InterfaceManager](modules/interface/README.md)
+- `update_switch_interfaces(fabric_name: str, role: str, switch_name: str)` - 更新指定交換器的所有介面配置
+  - 自動載入交換器 YAML 配置檔案
+  - 支援 Access、Trunk、Routed 介面政策配置
+  - 支援 Port-Channel 介面配置和成員介面管理
+  - 處理介面啟用/停用狀態
+  - 智能處理未在 YAML 中指定的現有介面
 
-## SwitchManager
-- `discover_switch(fabric_name: str, role: str, switch_name: str, preserve_config: bool = False)` - 發現交換器
+## [SwitchManager](modules/switch/README.md)
+- `discover_switch(fabric_name: str, role: str, switch_name: str, preserve_config: bool = False)` - 新增交換器
 - `delete_switch(fabric_name: str, role: str, switch_name: str)` - 刪除交換器
 - `set_switch_role(fabric_name: str, role: str, switch_name: str)` - 設定交換器角色
 - `change_switch_ip(fabric_name: str, role: str, switch_name: str, original_ip_with_mask: str, new_ip_with_mask: str)` - 變更交換器管理 IP
@@ -285,6 +287,13 @@ python switch_cli.py <command> --help
     - 因為在設定的時候實際上是創造出一個 freeform policy，如果之後沒有這個 JSON 檔案就無法知道正確的 policy ID 並做修改
 - `change_switch_hostname(fabric_name: str, role: str, switch_name: str, new_hostname: str)` - 變更交換器主機名稱
 
-## VPCManager
+## [VPCManager](modules/vpc/README.md)
 - `create_vpc_pairs(fabric_name: str)` - 建立指定 fabric 的所有 VPC 配對
+  - 自動掃描 VPC 配置目錄中的所有 YAML 檔案
+  - 解析 VPC 配對資訊和政策配置
+  - 建立 VPC 配對並套用政策設定
+  - 支援多個 VPC 配對的批次處理
 - `delete_vpc_pairs(fabric_name: str, switch_name: str)` - 刪除指定交換器的 VPC 配對
+  - 解析交換器名稱並找出對應的 VPC 配對
+  - 自動刪除相關的 VPC 政策
+  - 移除 VPC 配對關係
