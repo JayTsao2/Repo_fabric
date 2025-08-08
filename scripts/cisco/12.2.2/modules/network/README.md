@@ -6,16 +6,24 @@
   - 創建缺失的 Network
 - `create_network(fabric_name: str, network_name: str)` - 建立網路
   - 自動載入 Network 配置並建構 API payload
+  - 先檢查 Network 是否已存在，避免重複創建
   - 支援 Layer 2 Only 和 Layer 3 網路
   - 合併企業預設配置與 Network 特定配置
   - 套用欄位映射轉換為 NDFC API 格式
 - `update_network(fabric_name: str, network_name: str)` - 更新網路
 - `delete_network(fabric_name: str, network_name: str)` - 刪除網路
+  - 刪除前自動從所有交換器分離 Network
+  - 確保安全刪除，避免依賴衝突
+- `sync_attachments(fabric_name: str, role: str, switch_name: str)` - 同步 Network 附加到交換器
+  - 先分離不需要的 Network，再附加需要的 Network
+  - 確保交換器上的 Network 與 YAML 配置一致
 - `attach_networks(fabric_name: str, role: str, switch_name: str)` - 將網路附加到交換器
-  - 自動載入交換器配置和 Network 附加配置
-  - 解析介面清單並建構附加 payload
-  - 支援多個 Network 同時附加
+  - 自動載入交換器配置和序列號
+  - 附加該 fabric 下的所有 Network 到指定交換器
+  - 建構批次附加 payload 提升效率
 - `detach_networks(fabric_name: str, role: str, switch_name: str)` - 從交換器分離網路
+  - 自動檢測目前附加到交換器的 Network
+  - 批次分離所有已附加的 Network
 
 ## NetworkManager 配置檔案結構
 NetworkManager 使用 YAML 配置檔案來管理 Network 資訊：
@@ -57,7 +65,9 @@ Network Attachment:
 - **VRF 整合**: 自動處理 Network 與 VRF 的關聯
 - **延遲載入**: 配置檔案只在需要時載入，提升效能
 - **錯誤處理**: 完善的檔案存在性檢查和配置驗證
-- **介面解析**: 支援介面範圍表示法（如 Ethernet1/1-5）
+- **批次附加**: 支援將 fabric 下所有 Network 一次性附加到交換器
+- **安全刪除**: 刪除 Network 前自動處理分離作業
+- **重複檢查**: 創建前檢查是否已存在，避免重複操作
 
 ## Network 同步流程
 1. 獲取 fabric 中現有的所有 Network
@@ -68,11 +78,10 @@ Network Attachment:
 6. 按順序執行刪除、更新、建立操作
 
 ## Network 附加流程
-1. 載入交換器配置檔案
-2. 解析 Network Attachment 配置區段
+1. 載入交換器配置檔案並取得序列號
+2. 載入該 fabric 下的所有 Network 配置
 3. 為每個 Network 建構附加 payload
-4. 解析介面清單（支援範圍和清單格式）
-5. 呼叫 NDFC API 執行附加操作
+4. 呼叫 NDFC API 執行批次附加操作
 
 ## Layer 2 Only 網路處理
 - 當 `Layer 2 Only: true` 時，VRF Name 自動設為 "NA"
@@ -112,18 +121,6 @@ Network:
     Layer 2 Only: false
 ```
 
-### 交換器 Network 附加配置
-```yaml
-# In switch YAML file: network_configs/3_node/Site1/leaf/Site1-L1.yaml
-Network Attachment:
-  - Network Name: "bluenet1"
-    Interface: "Ethernet1/1,Ethernet1/2,Ethernet1/10-15"
-  - Network Name: "rednet1"
-    Interface: "Ethernet1/3,Ethernet1/4"
-  - Network Name: "mgmt_net"
-    Interface: "Ethernet1/48"
-```
-
 ## 使用範例
 ```python
 from modules.network import NetworkManager
@@ -139,10 +136,13 @@ network_manager.create_network("Site1", "bluenet1")
 # 更新 Network
 network_manager.update_network("Site1", "bluenet1")
 
-# 附加 Network 到交換器
+# 同步 Network 附加到交換器（分離不需要的，附加需要的）
+network_manager.sync_attachments("Site1", "leaf", "Site1-L1")
+
+# 附加所有 fabric 的 Network 到交換器
 network_manager.attach_networks("Site1", "leaf", "Site1-L1")
 
-# 從交換器分離 Network
+# 從交換器分離所有已附加的 Network
 network_manager.detach_networks("Site1", "leaf", "Site1-L1")
 
 # 刪除 Network

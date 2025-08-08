@@ -18,16 +18,21 @@
 - `sync(fabric_name: str)` - 完全同步 VRF（刪除多餘、更新現有、創建缺失的 VRF）
 - `create_vrf(fabric_name: str, vrf_name: str)` - 在指定 fabric 建立 VRF（先檢查是否已存在）
 - `update_vrf(fabric_name: str, vrf_name: str)` - 更新指定 VRF
-- `delete_vrf(fabric_name: str, vrf_name: str)` - 刪除指定 VRF
-- `attach_vrf(fabric_name: str, role: str, switch_name: str)` - 將 VRF 附加到指定交換器
-- `detach_vrf(fabric_name: str, role: str, switch_name: str)` - 從指定交換器分離 VRF
+- `delete_vrf(fabric_name: str, vrf_name: str)` - 刪除指定 VRF（自動分離後刪除）
+- `sync_attachments(fabric_name: str, role: str, switch_name: str)` - 同步 VRF 附加到指定交換器
+- `attach_vrf(fabric_name: str, role: str, switch_name: str, vrf_name: str)` - 將特定 VRF 附加到交換器
+- `attach_vrfs(fabric_name: str, role: str, switch_name: str)` - 將所有相關 VRF 附加到交換器（基於介面配置）
+- `detach_vrf(fabric_name: str, role: str, switch_name: str, vrf_name: str)` - 從交換器分離特定 VRF
+- `detach_vrfs(fabric_name: str, role: str, switch_name: str)` - 從交換器分離所有 VRF
 
 ## [NetworkManager](network/README.md)
-- `create_network(fabric_name: str, network_name: str)` - 建立網路
+- `sync(fabric_name: str)` - 完全同步 Network（刪除多餘、更新現有、創建缺失的 Network）
+- `create_network(fabric_name: str, network_name: str)` - 建立網路（先檢查是否已存在）
 - `update_network(fabric_name: str, network_name: str)` - 更新網路
-- `delete_network(fabric_name: str, network_name: str)` - 刪除網路
-- `attach_networks(fabric_name: str, role: str, switch_name: str)` - 將網路附加到交換器
-- `detach_networks(fabric_name: str, role: str, switch_name: str)` - 從交換器分離網路
+- `delete_network(fabric_name: str, network_name: str)` - 刪除網路（自動分離後刪除）
+- `sync_attachments(fabric_name: str, role: str, switch_name: str)` - 同步 Network 附加到交換器
+- `attach_networks(fabric_name: str, role: str, switch_name: str)` - 將所有 fabric Network 附加到交換器
+- `detach_networks(fabric_name: str, role: str, switch_name: str)` - 從交換器分離所有 Network
 
 ## [InterfaceManager](interface/README.md)
 - `update_switch_interfaces(fabric_name: str, role: str, switch_name: str)` - 更新指定交換器的所有介面配置
