@@ -9,6 +9,7 @@ Configuration:
 - NDFC IP is read from: network_configs/fabric_builder.yaml
 - Falls back to default if config file is not found
 """
+from operator import ge
 import sys
 import os
 import json
@@ -57,6 +58,19 @@ class FabricBuilder:
         scripts_dir = os.path.dirname(cisco_dir)                  # scripts
         root_dir = os.path.dirname(scripts_dir)                   # Repo_fabric
         return root_dir
+
+    def get_fabric_list(self):
+        """
+        Get the list of fabrics from the configuration.
+        Returns a list of fabric names.
+        """
+        fabric_list = []
+        fabric_dir = os.path.join(self.get_root_dir(), 'network_configs', '1_vxlan_evpn', 'fabric')
+        if os.path.exists(fabric_dir):
+            for fabric_file in os.listdir(fabric_dir):
+                if fabric_file.endswith('.yaml'):
+                    fabric_list.append(fabric_file[:-5])
+        return fabric_list
 
     def get_MSD_list(self):
         """
@@ -120,19 +134,14 @@ class FabricBuilder:
         """
         self.banner()
         # Get the structured switch data
-        all_switches_data = self.get_switch_list()
-        all_msd_list = self.get_MSD_list()
-        all_isn_list = self.get_ISN_list()
-        
-        # Filter to only use Site3-Test fabric
-        switches_data = {}
-        if "Site3-Test" in all_switches_data:
-            switches_data["Site3-Test"] = all_switches_data["Site3-Test"]
-        msd_list = [msd for msd in all_msd_list if msd.startswith("MSD-Test")]
-        isn_list = [isn for isn in all_isn_list if isn.startswith("ISN-Test")]
+        switches_data = self.get_switch_list()
+        fabric_list = self.get_fabric_list()
+        msd_list = self.get_MSD_list()
+        isn_list = self.get_ISN_list()
 
+        print("=" * 20 + "Step1. Create fabrics" + "=" * 20)
         # Step 1. Create fabrics
-        for fabric_name in switches_data.keys():
+        for fabric_name in fabric_list:
             self.fabric_manager.create_fabric(fabric_name)
         
         for msd in msd_list:
@@ -141,15 +150,20 @@ class FabricBuilder:
         for isn in isn_list:
             self.fabric_manager.create_fabric(isn)
 
+        print("=" * 20 + "Step2. Add switches to fabrics" + "=" * 20)
         # Step 2. Add switches to fabrics
         for fabric_name, roles in switches_data.items():
             for role_name, switches in roles.items():
                 for switch in switches:
-                    self.switch_manager.discover_switch(fabric_name, role_name, switch)
+                    preserve_config = False
+                    if fabric_name in isn_list:
+                        preserve_config = True
+                    self.switch_manager.discover_switch(fabric_name, role_name, switch, preserve_config=preserve_config)
                     self.switch_manager.set_switch_role(fabric_name, role_name, switch)
 
         # Step 3. Recalculate for each fabric
-        for fabric_name in switches_data.keys():
+        print("=" * 20 + "Step3. Recalculate for each fabric" + "=" * 20)
+        for fabric_name in fabric_list:
             success = self.fabric_manager.recalculate_config(fabric_name)
             while not success:
                 # Sleep for 30 secs
@@ -161,54 +175,70 @@ class FabricBuilder:
                 time.sleep(30)
                 success = self.fabric_manager.recalculate_config(fabric_name)
 
-            print(f"Recalculation complete for fabric {fabric_name}.")
+        # Step 3.5. Add fabrics to MSD
+        print("=" * 20 + "Step3.5. Add fabrics to MSD" + "=" * 20)
+        if msd_list and switches_data:
+            for msd in msd_list:
+                for fabric_name in fabric_list:
+                    self.fabric_manager.add_to_msd(msd, fabric_name)
+                for isn in isn_list:
+                    self.fabric_manager.add_to_msd(msd, isn)
 
-        # Step 4. Update VRFs (delete unwanted, update existing, create missing)
-        for fabric_name in switches_data.keys():
-            self.vrf_manager.sync(fabric_name)
+        # Step 4. Create VRFs (delete unwanted, update existing, create missing)
+        print("=" * 20 + "Step4. Create VRFs" + "=" * 20)
+        for msd in msd_list:
+            self.vrf_manager.sync(msd)
         
         # Step 5. Attach VRF to switches
+        print("=" * 20 + "Step5. Attach VRF to switches" + "=" * 20)
         for fabric_name, roles in switches_data.items():
+            if fabric_name in isn_list:
+                # Skip ISN fabrics for VRF attachment
+                continue
             for role_name, switches in roles.items():
                 for switch in switches:
                     self.vrf_manager.sync_attachments(fabric_name, role_name, switch)
 
-        # Step 6. Update Networks (delete unwanted, update existing, create missing)
-        for fabric_name in switches_data.keys():
-            self.network_manager.sync(fabric_name)
+        # Step 6. Create Networks (delete unwanted, update existing, create missing)
+        print("=" * 20 + "Step6. Create Networks" + "=" * 20)
+        for msd in msd_list:
+            self.network_manager.sync(msd)
 
         # Step 7. Attach Network 
+        print("=" * 20 + "Step7. Attach Network to switches" + "=" * 20)
         for fabric_name, roles in switches_data.items():
+            if fabric_name in isn_list:
+                # Skip ISN fabrics for network attachment
+                continue
             for role_name, switches in roles.items():
                 for switch in switches:
                     self.network_manager.sync_attachments(fabric_name, role_name, switch)
 
         # Step 8. Apply interface configurations
+        print("=" * 20 + "Step8. Apply interface configurations" + "=" * 20)
         for fabric_name, roles in switches_data.items():
             for role_name, switches in roles.items():
                 for switch in switches:
                     self.interface_manager.update_switch_interfaces(fabric_name, role_name, switch)
 
         # Step 9. Create VPC pairs for each fabric
-        for fabric_name in switches_data.keys():
+        print("=" * 20 + "Step9. Create VPC pairs" + "=" * 20)
+        for fabric_name in fabric_list:
             self.vpc_manager.create_vpc_pairs(fabric_name)
 
         # Step 10. Set switch freeform configs
+        print("=" * 20 + "Step10. Set switch freeform configs" + "=" * 20)
+        # This step is optional and can be used to set any freeform configurations on switches
         for fabric_name, roles in switches_data.items():
             for role_name, switches in roles.items():
                 for switch in switches:
                     self.switch_manager.set_switch_freeform(fabric_name, role_name, switch)
 
-        # Step 11. Add fabrics to MSD
-        if msd_list and switches_data:
-            for msd in msd_list:
-                for fabric_name in switches_data.keys():
-                    self.fabric_manager.add_to_msd(msd, fabric_name)
-                for isn in isn_list:
-                    self.fabric_manager.add_to_msd(msd, isn)
+        
 
         # Step 12. Final recalculate for each fabric
-        for fabric_name in switches_data.keys():
+        print("=" * 20 + "Step12. Final recalculate for each fabric" + "=" * 20)
+        for fabric_name in fabric_list:
             success = self.fabric_manager.recalculate_config(fabric_name)
             while not success:
                 time.sleep(10)
@@ -227,45 +257,39 @@ class FabricBuilder:
         """
         # Get the structured data
         switches_data = self.get_switch_list()
+        fabric_list = self.get_fabric_list()
         msd_list = self.get_MSD_list()
         isn_list = self.get_ISN_list()
         
-        # Filter to only use Site3-Test fabric (same as build)
-        filtered_switches_data = {}
-        if "Site3-Test" in switches_data:
-            filtered_switches_data["Site3-Test"] = switches_data["Site3-Test"]
-        filtered_msd_list = [msd for msd in msd_list if msd.startswith("MSD-Test")]
-        filtered_isn_list = [isn for isn in isn_list if isn.startswith("ISN-Test")]
-        
         # Delete all switches from all fabrics
-        for fabric_name, roles in filtered_switches_data.items():
+        for fabric_name, roles in switches_data.items():
             for role_name, switches in roles.items():
                 for switch in switches:
                     self.switch_manager.delete_switch(fabric_name, role_name, switch)
 
         # Remove fabrics from MSDs
-        if filtered_msd_list and filtered_switches_data:
-            for msd in filtered_msd_list:
-                for fabric_name in filtered_switches_data.keys():
+        if msd_list and switches_data:
+            for msd in msd_list:
+                for fabric_name in switches_data.keys():
                     self.fabric_manager.remove_from_msd(msd, fabric_name)
-                for isn in filtered_isn_list:
+                for isn in isn_list:
                     self.fabric_manager.remove_from_msd(msd, isn)
 
         # Delete all fabrics
-        for fabric_name in filtered_switches_data.keys():
+        for fabric_name in fabric_list:
             self.fabric_manager.delete_fabric(fabric_name)
         
         # Delete ISN fabrics
-        for isn in filtered_isn_list:
+        for isn in isn_list:
             self.fabric_manager.delete_fabric(isn)
         
         # Delete MSD fabrics
-        for msd in filtered_msd_list:
+        for msd in msd_list:
             self.fabric_manager.delete_fabric(msd)
 
 
 if __name__ == '__main__':
     builder = FabricBuilder()
     # builder.build()
-    # builder.delete()
+    builder.delete()
     pass

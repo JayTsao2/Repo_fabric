@@ -28,7 +28,7 @@ def get_switches(fabric, save_files: bool = False) -> List[Dict[str, Any]]:
         # Save each switch to a separate file
         for switch in switches:
             serial_number = switch.get("serialNumber", "unknown")
-            hostname = switch.get("hostName", "unknown")
+            hostname = switch.get("logicalName", "unknown")
             filename = f"{fabric_dir}/{serial_number}_{hostname}.json"
             with open(filename, "w") as f:
                 json.dump(switch, f, indent=4)

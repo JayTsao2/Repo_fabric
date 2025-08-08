@@ -126,7 +126,12 @@ class SwitchManager:
     def discover_switch(self, fabric_name: str, role: str, switch_name: str, preserve_config: bool = False) -> bool:
         """Discover switch based on YAML configuration."""
         print(f"[Switch] Discovering switch {switch_name} in fabric {fabric_name} with role {role}")
-        
+        switch_data = switch_api.get_switches(fabric_name)
+        for switch in switch_data:
+            if switch['logicalName'] == switch_name:
+                print(f"[Switch] Switch {switch_name} already exists in fabric {fabric_name}. Skipping discovery.")
+                return True
+
         switch_data = self._load_switch_config(fabric_name, role, switch_name)
         if not switch_data:
             return False

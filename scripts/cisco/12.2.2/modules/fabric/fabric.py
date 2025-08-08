@@ -180,7 +180,7 @@ class FabricManager:
             # Intra-fabric Links Additional Config
             intra_links_path = freeform_paths.get('intra_links')
             if intra_links_path and validate_file_exists(intra_links_path):
-                payload_data["INTRA_FABRIC_LINK_FREEFORM"] = read_freeform_config(intra_links_path)
+                payload_data["EXTRA_CONF_INTRA_LINKS"] = read_freeform_config(intra_links_path)
             elif intra_links_path:
                 print(f"[Fabric] Intra-fabric links freeform config file not found: {intra_links_path}")
                 
@@ -310,6 +310,12 @@ class FabricManager:
         print(f"[Fabric] Creating fabric '{fabric_name}'")
         
         try:
+            fabric_data = fabric_api.get_fabrics()
+            for fabric in fabric_data:
+                if fabric['fabricName'] == fabric_name:
+                    print(f"[Fabric] Fabric '{fabric_name}' already exists.")
+                    return True
+
             payload_data, template_name, fabric_name_resolved = self._build_complete_payload(fabric_name)
             
             # Determine config file path for logging

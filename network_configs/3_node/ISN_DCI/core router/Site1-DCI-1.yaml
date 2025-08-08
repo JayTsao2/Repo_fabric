@@ -1,7 +1,12 @@
 ---
+Change Mode: Normal # Normal <> maintenance 
+IP Netmask Length: 24 # For management interface
 IP Address: 10.192.195.80
 Role: Core Router
 Serial Number: 9IN4SP84L7L
+Hostname: Site1-DCI-1
+Platform: N9K-C9300v # For switch discovery
+Version: 9.3(15) # For switch discovery
 
 Interface:
 

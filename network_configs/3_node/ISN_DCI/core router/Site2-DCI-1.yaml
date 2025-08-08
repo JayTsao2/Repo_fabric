@@ -1,7 +1,12 @@
 ---
+Change Mode: Normal # Normal <> maintenance 
+IP Netmask Length: 24 # For management interface
 IP Address: 10.192.195.90
 Role: Core Router
 Serial Number: 9X87QGA7OKU
+Hostname: Site2-DCI-1
+Platform: N9K-C9300v # For switch discovery
+Version: 9.3(15) # For switch discovery
 
 Interface:
 
