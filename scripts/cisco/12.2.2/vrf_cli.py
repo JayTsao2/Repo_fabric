@@ -31,12 +31,13 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python vrf_cli.py create <fabric_name> <vrf_name>          # Create a VRF in specified fabric
-  python vrf_cli.py update <fabric_name> <vrf_name>          # Update a VRF in specified fabric
-  python vrf_cli.py delete <fabric_name> <vrf_name>          # Delete a VRF from specified fabric
-  python vrf_cli.py attach <fabric_name> <switch_role> <switch_name>  # Attach VRF to a specific switch
-  python vrf_cli.py detach <fabric_name> <switch_role> <switch_name>  # Detach VRF from a specific switch
-  python vrf_cli.py sync <fabric_name>                       # Synchronize all VRFs for a fabric
+  python vrf_cli.py sync <fabric_name>                                          # Synchronize all VRFs for a fabric
+  python vrf_cli.py sync-attachments <fabric_name> <switch_role> <switch_name>  # Sync attachments for a switch
+  python vrf_cli.py create <fabric_name> <vrf_name>                             # Create a VRF in specified fabric
+  python vrf_cli.py update <fabric_name> <vrf_name>                             # Update a VRF in specified fabric
+  python vrf_cli.py delete <fabric_name> <vrf_name>                             # Delete a VRF from specified fabric
+  python vrf_cli.py attach <fabric_name> <switch_role> <switch_name>            # Attach VRF to a specific switch
+  python vrf_cli.py detach <fabric_name> <switch_role> <switch_name>            # Detach VRF from a specific switch
         """
     )
     
@@ -74,6 +75,12 @@ Examples:
     # Sync VRFs command
     sync_parser = subparsers.add_parser('sync', help='Synchronize all VRFs for a fabric (delete unwanted, update existing, create missing)')
     sync_parser.add_argument('fabric_name', help='Name of the fabric to synchronize VRFs for')
+
+    # Sync attachments command
+    sync_attachments_parser = subparsers.add_parser('sync-attachments', help='Sync attachments for a switch')
+    sync_attachments_parser.add_argument('fabric_name', help='Name of the fabric')
+    sync_attachments_parser.add_argument('switch_role', help='Role of the switch (leaf, spine, border_gateway)')
+    sync_attachments_parser.add_argument('switch_name', help='Name of the switch')
     
     args = parser.parse_args()
     
@@ -104,6 +111,9 @@ Examples:
 
         elif args.command == 'sync':
             success = vrf_manager.sync(args.fabric_name)
+        
+        elif args.command == 'sync-attachments':
+            success = vrf_manager.sync_attachments(args.fabric_name, args.switch_role, args.switch_name)
             
         else:
             print(f"Unknown command: {args.command}")
