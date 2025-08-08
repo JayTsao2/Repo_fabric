@@ -1,4 +1,3 @@
-from ast import List
 import requests
 from urllib3.exceptions import InsecureRequestWarning
 import urllib3
@@ -6,6 +5,7 @@ urllib3.disable_warnings(InsecureRequestWarning)
 from .utils import *
 import json
 from dotenv import load_dotenv
+from typing import Dict, Any, List
 
 def get_switches(fabric, save_files: bool = False) -> List[Dict[str, Any]]:
     # range = show the switches from 0 to {range}
