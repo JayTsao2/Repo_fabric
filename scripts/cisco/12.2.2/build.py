@@ -181,7 +181,7 @@ class FabricBuilder:
         for fabric_name, roles in switches_data.items():
             for role_name, switches in roles.items():
                 for switch in switches:
-                    self.network_manager.attach_networks(fabric_name, role_name, switch)
+                    self.network_manager.sync_attachments(fabric_name, role_name, switch)
 
         # Step 8. Apply interface configurations
         for fabric_name, roles in switches_data.items():

@@ -99,7 +99,7 @@ def delete_network(fabric_name: str, network_name: str) -> bool:
     r = requests.delete(url, headers=headers, verify=False)
     return check_status_code(r, operation_name="Delete Network")
 
-def get_network_attachment(fabric: str, networkname: str, save_files: bool = True) -> List[Dict[str, Any]]:
+def get_network_attachment(fabric: str, save_files: bool = True) -> List[Dict[str, Any]]:
     """
     Get network attachments for a specific fabric and network.
     Args:
@@ -109,10 +109,10 @@ def get_network_attachment(fabric: str, networkname: str, save_files: bool = Tru
     Returns:
         List of network attachments for the specified fabric and network
     """
-    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric}/networks/{networkname}/attachments")
+    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric}/networks/attachments")
     headers = get_api_key_header()
     r = requests.get(url, headers=headers, verify=False)
-    check_status_code(r, f"Get Network Attachments for {networkname} in fabric {fabric}")
+    check_status_code(r, f"Get Network Attachments in fabric {fabric}")
 
     attachments = r.json()
     
@@ -126,11 +126,11 @@ def get_network_attachment(fabric: str, networkname: str, save_files: bool = Tru
         
         for attachment in attachments:
             attachment_switch_name = attachment.get("switchName", "unknown")
-            filename = f"{network_dir}/attachments/{fabric}_{networkname}_{attachment_switch_name}.json"
+            filename = f"{network_dir}/attachments/{fabric}_{attachment_switch_name}.json"
             with open(filename, "w") as f:
                 json.dump(attachment, f, indent=4)
-                print(f"Network attachments for {networkname} on switch {attachment_switch_name} are saved to {filename}")
-    
+                print(f"Network attachments for {fabric} on switch {attachment_switch_name} are saved to {filename}")
+
     # Return the attachments data for programmatic use
     return attachments
 
