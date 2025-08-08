@@ -107,10 +107,10 @@ def main():
         builder = create_builder(requested_version)
 
         # Execute build process
-        # builder.build()
+        builder.build()
         
         # print("Starting fabric delete process...")
-        builder.delete()
+        # builder.delete()
         # print("Delete process completed.")
         
     except Exception as e:

@@ -171,7 +171,7 @@ class FabricBuilder:
         for fabric_name, roles in switches_data.items():
             for role_name, switches in roles.items():
                 for switch in switches:
-                    self.vrf_manager.attach_vrf(fabric_name, role_name, switch)
+                    self.vrf_manager.sync_attachments(fabric_name, role_name, switch)
 
         # Step 6. Update Networks (delete unwanted, update existing, create missing)
         for fabric_name in switches_data.keys():
