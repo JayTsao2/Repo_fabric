@@ -7,8 +7,7 @@ Serial Number: 9W4GBLXU5CR
 Platform: N9K-C9300v # For switch discovery
 Version: 9.3(15) # For switch discovery
 
-Switch Freeform Config: FreeForm\Route_Leak
-Switch Freeform Config: FreeForm\Shared_VRF_Z01
+Switch Freeform Config: FreeForm\Route_Leak,FreeForm\Shared_VRF_Z01
 
 Interface:
 
