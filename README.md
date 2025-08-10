@@ -106,6 +106,30 @@ https://youtu.be/y8kl2KT0cNo
 **Network Create / Attach / Detach / Delete**
 https://youtu.be/iIEqcQEvCMU
 
+**vPC Pair / Unpair /  virtual Port Channel (vPC)**
+https://youtu.be/TURcycygqBg
+
+**Interface / Port Channel / Access / Trunk / Routed**
+https://youtu.be/tduGvL23-tc
+
+**Switch Freeform**
+https://youtu.be/2PWbmR33LzY
+
+**Update Fabric / Recaculate and Deploy**
+https://youtu.be/lNdeo0CLeHY
+
+**Update & Delete VRF / Network**
+https://youtu.be/qbBtvWIxCgM
+
+**Interface Freeform / Interface Enable Disable / PC & vPC Member add/delete**
+https://youtu.be/52xbcjnCtH8
+
+**Add & Delete Switch / Change Hostname**
+https://youtu.be/Klz4vQ1p0UE
+
+**Change Mgmt IP / Normal to Maintenance mode / RMA**
+https://youtu.be/U3OPj3fAprY
+
 
 
 
