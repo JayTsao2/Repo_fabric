@@ -8,6 +8,7 @@ This module provides a clean, unified interface for all interface operations wit
 - Freeform configuration integration
 - Policy-based interface management (access, trunk, routed)
 """
+import json
 import api.interface as interface_api
 from modules.config_utils import load_yaml_file, read_freeform_config
 from config.config_factory import config_factory
@@ -398,10 +399,9 @@ class InterfaceManager:
         if not existing_interface:
             print(f"[Interface] Warning: Interface {interface_name} not found in existing interfaces")
             return
-        
         # Get the original policy from the existing interface
-        original_policy = self._find_interface_policy(context.existing_interfaces_map, interface_name)
-        if not original_policy or original_policy not in updated_interfaces:
+        original_policy = self._find_interface_policy(context.serial_number, interface_name)
+        if not original_policy:
             print(f"[Interface] Warning: Could not determine original policy for interface {interface_name}")
             return
         
@@ -423,26 +423,27 @@ class InterfaceManager:
             "ifName": interface_name,
             "nvPairs": updated_nv_pairs
         }
+        if original_policy not in updated_interfaces:
+            updated_interfaces[original_policy] = []
         
         updated_interfaces[original_policy].append(interface_data)
-    
-    def _find_interface_policy(self, existing_interfaces_map: Dict[str, Dict[str, Any]], interface_name: str) -> str:
+
+    def _find_interface_policy(self, serial_number: str, interface_name: str) -> str:
         """Find which policy group an interface belongs to."""
-        # First try exact name match
-        for policy, interfaces in existing_interfaces_map.items():
-            if interface_name in interfaces:
-                return policy
-        
-        # Try normalized name match
-        normalized_search_name = self._normalize_interface_name(interface_name)
-        for policy, interfaces in existing_interfaces_map.items():
-            for existing_name in interfaces.keys():
-                normalized_existing = self._normalize_interface_name(existing_name)
-                if normalized_existing == normalized_search_name:
-                    return policy
-        
+        # use the api's get_interfaces to get the interface policy
+        existing_interfaces_data = interface_api.get_interfaces(
+            serial_number=serial_number, 
+            if_name=interface_name, 
+            save_files=False
+        )
+        if not existing_interfaces_data:
+            print(f"[Interface] No existing interfaces found for serial number {serial_number} and interface {interface_name}")
+            return None
+        for data in existing_interfaces_data:
+            if data.get("policy"):
+                return data["policy"]
         return None
-    
+
     def _create_or_update_interface(self, context: InterfaceProcessingContext, interface_name: str, 
                                   yaml_config: Dict[str, Any], is_port_channel: bool) -> Dict[str, Any]:
         """Create or update a single interface based on YAML configuration."""
@@ -508,10 +509,9 @@ class InterfaceManager:
             for interface_name, existing_interface in interfaces.items():
                 is_port_channel = interface_name.startswith(('Port-channel', 'port-channel'))
                 is_processed = interface_name in processed_interfaces
-                is_excluded = interface_name.startswith(('mgmt', 'loopback', 'nve'))
-                
-                
-                if (not is_processed and not is_excluded and not is_port_channel):
+                is_ethernet = interface_name.startswith('Ethernet')
+
+                if (not is_processed and is_ethernet and not is_port_channel):
                     updated_nv_pairs = existing_interface["nvPairs"].copy()
                     updated_nv_pairs.update({
                         "ADMIN_STATE": "false",
@@ -735,23 +735,22 @@ class InterfaceManager:
         """Apply interface updates to NDFC."""
         success = True
         
-        # Define the order to process policies - port channels first
-        policy_order = [
-            "int_port_channel_trunk_host",
-            "int_port_channel_trunk_member_11_1",
-            "int_port_channel_access_host",
-            "int_port_channel_access_member_11_1",
-            "int_access_host",
-            "int_trunk_host",
-            "int_routed_host"
-        ]
-        
-        for policy in policy_order:
-            interfaces = updated_interfaces.get(policy, [])
+        for policy, interfaces in updated_interfaces.items():
             if not interfaces:
                 continue
             
-            print(f"[Interface] Updating {len(interfaces)} {policy} interfaces")
-            success = interface_api.update_interface(policy, interfaces)
+            print(f"[Interface] Applying updates for policy: {policy}")
+            if policy == "int_trunk_host":
+                for interface in interfaces:
+                    # For trunk host interfaces, we need to ensure they are not port channels
+                    if not interface["ifName"].startswith("Ethernet"):
+                        print(f"[Interface] Warning: Interface {interface['ifName']} in policy {policy} is not a valid trunk host interface")
+            try:
+                # Call the API to update interfaces
+                interface_api.update_interface(policy=policy, interfaces_payload=interfaces)
+                print(f"[Interface] Successfully updated {len(interfaces)} interfaces for policy {policy}")
+            except Exception as e:
+                print(f"[Interface] Error updating interfaces for policy {policy}: {e}")
+                success = False
         
         return success
