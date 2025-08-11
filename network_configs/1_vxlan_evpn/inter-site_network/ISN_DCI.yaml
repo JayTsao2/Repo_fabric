@@ -5,6 +5,6 @@ Fabric:
 
 Advanced:
   Fabric Freeform: # Additional CLIs, added before interface configurations, for all Leafs as captured from Show Running Configuration
-    Freeform: ISN-Test_FreeForm\Fabric Freeform.sh
+    Freeform: ISN_DCI_FreeForm\Fabric Freeform.sh
   AAA Freeform Config: 
-    Freeform: ISN-Test_FreeForm\AAA Freeform Config.sh
+    Freeform: ISN_DCI_FreeForm\AAA Freeform Config.sh
