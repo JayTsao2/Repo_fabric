@@ -119,14 +119,10 @@ def get_vrf_attachment(fabric: str, vrf_dir: str = "vrfs", save_files: bool = Tr
             os.makedirs(vrf_dir)
         if not os.path.exists(f"{vrf_dir}/attachments"):
             os.makedirs(f"{vrf_dir}/attachments")
-        
-        for attachment in attachments:
-            # Check for multiple possible field names for switch name
-            attachment_switch_name = attachment.get("switchSerialNo")
-            filename = f"{vrf_dir}/attachments/{fabric}_{attachment_switch_name}.json"
-            with open(filename, "w") as f:
-                json.dump(attachment, f, indent=4)
-                print(f"VRF attachments for fabric {fabric} on switch {attachment_switch_name} are saved to {filename}")
+        filename = f"{vrf_dir}/attachments/{fabric}.json"
+        with open(filename, "w") as f:
+            json.dump(attachments, f, indent=4)
+            print(f"VRF attachments for fabric {fabric} are saved to {filename}")
 
     # Return the attachments data for programmatic use
     return attachments

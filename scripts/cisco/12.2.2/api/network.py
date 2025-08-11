@@ -124,12 +124,10 @@ def get_network_attachment(fabric: str, save_files: bool = True) -> List[Dict[st
         if not os.path.exists(f"{network_dir}/attachments"):
             os.makedirs(f"{network_dir}/attachments")
         
-        for attachment in attachments:
-            attachment_switch_name = attachment.get("switchName", "unknown")
-            filename = f"{network_dir}/attachments/{fabric}_{attachment_switch_name}.json"
-            with open(filename, "w") as f:
-                json.dump(attachment, f, indent=4)
-                print(f"Network attachments for {fabric} on switch {attachment_switch_name} are saved to {filename}")
+        filename = f"{network_dir}/attachments/{fabric}.json"
+        with open(filename, "w") as f:
+            json.dump(attachments, f, indent=4)
+            print(f"Network attachments for {fabric} are saved to {filename}")
 
     # Return the attachments data for programmatic use
     return attachments

@@ -328,7 +328,6 @@ class NetworkManager:
             network_name = data['network_name']
             serial_number = data['serial_number']
             vlan_id = data['vlan_id']
-            switch_name = data.get('switch_name', 'unknown')
             
             network_payload = {
                 "networkName": network_name,
@@ -342,7 +341,7 @@ class NetworkManager:
                 }]
             }
             payload.append(network_payload)
-            print(f"[Network] Added network '{network_name}' on switch '{switch_name}' (SN: {serial_number}, VLAN: {vlan_id}) to detach payload")
+            print(f"[Network] Added network '{network_name}' on switch (SN: {serial_number}, VLAN: {vlan_id}) to detach payload")
         
         return payload
     
@@ -379,19 +378,18 @@ class NetworkManager:
             if not switch_ip:
                 print(f"[Network] Error: IP Address not found in switch configuration")
                 return False
-            
             # Get all networks for the specified fabric
-            fabric_networks = [net for net in self.networks if net.get('Fabric') == fabric_name]
-            
-            if not fabric_networks:
+            attachments = network_api.get_network_attachment(fabric_name, save_files=False)
+
+            if not attachments:
                 print(f"[Network] No networks found for fabric '{fabric_name}'")
                 return True  # No networks to process is considered success
             
             # Build payload for all networks
             payload = []
-            for network in fabric_networks:
-                network_name = network.get('Network Name')
-                
+            for attachment in attachments:
+                network_name = attachment.get('networkName')
+
                 if network_name:
                     network_payload = {
                         "networkName": network_name,
@@ -402,9 +400,6 @@ class NetworkManager:
                     }
                     payload.append(network_payload)
                     print(f"[Network] Added network '{network_name}' to attach payload")
-                else:
-                    print(f"[Network] Skipping network with missing name: {network}")
-            
             if not payload:
                 print(f"[Network] No valid networks to attach")
                 return True
