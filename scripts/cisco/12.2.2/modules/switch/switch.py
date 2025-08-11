@@ -300,7 +300,17 @@ class SwitchManager:
         
         # Use config_utils function to read the freeform config
         cli_commands = read_freeform_config(str(config_file_path))
-        
+
+        if "$BGP_ASN" in cli_commands:
+            fabric_dir = self.config_base_path / ".." / "1_vxlan_evpn" / "fabric"
+            fabric_config_path = fabric_dir / f"{fabric_name}.yaml"
+            fabric_config = load_yaml_file(str(fabric_config_path))
+            bgp_asn = fabric_config.get("BGP ASN")
+            if not bgp_asn:
+                print(f"[Switch] Error: BGP ASN not found in fabric {fabric_name} configuration")
+                return None
+            cli_commands = cli_commands.replace("$BGP_ASN", str(bgp_asn))
+
         if not cli_commands:
             print(f"[Switch] Warning: No freeform config found or file is empty")
             return None
