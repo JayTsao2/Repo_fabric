@@ -105,7 +105,6 @@ line console
 line vty
   session-limit 10
   exec-timeout 60
-  access-class NETWORK_ADMIN in
 
 logging logfile messages 6 size 81920
 logging source-interface mgmt0
