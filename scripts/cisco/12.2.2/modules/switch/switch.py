@@ -265,30 +265,33 @@ class SwitchManager:
             print(f"[Switch] Error: Serial Number not found in {switch_name} configuration")
             return False
         
-        freeform_config_path = switch_data.get("Switch Freeform Config")
-        if not freeform_config_path:
-            print(f"[Switch] Error: Switch Freeform Config not found in {switch_name} configuration")
+        freeform_config_paths = switch_data.get("Switch Freeform Config")
+        if not freeform_config_paths:
+            print(f"[Switch] Switch Freeform Config not found in {switch_name} configuration, skipping freeform policy creation")
             return False
-        
-        print(f"[Switch] Using freeform config file: {freeform_config_path}")
-        
-        policy_api.delete_existing_policies_for_switch(switch_name, serial_number)
-        
-        cli_commands = self._parse_freeform_config(fabric_name, role, freeform_config_path)
-        if not cli_commands:
-            return False
-        
-        policy_id = policy_api.create_policy_with_random_id(
-            switch_name, serial_number, fabric_name, cli_commands
-        )
+        freeform_config_paths = freeform_config_paths.split(',')
+        for freeform_config_path in freeform_config_paths:
+            freeform_config_path = freeform_config_path.strip()
+            print(f"[Switch] Using freeform config file: {freeform_config_path}")
 
-        if not policy_id:
-            print(f"Failed to create policy for switch {switch_name}")
-            return False
+            policy_api.delete_existing_policies_for_switch(switch_name, serial_number)
 
-        print(f"[*] Retrieving and saving policy {policy_id}")
-        numeric_id = policy_id.split('-')[1]
-        return policy_api.get_policy_by_id(numeric_id, switch_name=switch_name)
+            cli_commands = self._parse_freeform_config(fabric_name, role, freeform_config_path)
+            if not cli_commands:
+                return False
+            
+            policy_id = policy_api.create_policy_with_random_id(
+                switch_name, serial_number, fabric_name, cli_commands
+            )
+
+            if not policy_id:
+                print(f"Failed to create policy for switch {switch_name}")
+                return False
+
+            print(f"[*] Retrieving and saving policy {policy_id}")
+            numeric_id = policy_id.split('-')[1]
+            policy_api.get_policy_by_id(numeric_id, switch_name=switch_name)
+        return True
     
     def _parse_freeform_config(self, fabric_name: str, role: str, freeform_config_path: str) -> Optional[str]:
         """Parse freeform configuration file and return CLI commands."""
