@@ -168,7 +168,7 @@ class FabricBuilder:
             while not success:
                 # Sleep for 30 secs
                 time.sleep(30)
-                print(f"Rediscovering Switches for fabric {fabric_name}...")
+                print("=" * 20 + f"Rediscovering Switches for fabric {fabric_name}..." + "=" * 20)
                 for role_name, switches in switches_data[fabric_name].items():
                     for switch in switches:
                         self.switch_manager.rediscover_switch(fabric_name, role_name, switch)
@@ -270,7 +270,7 @@ class FabricBuilder:
         # Remove fabrics from MSDs
         if msd_list and switches_data:
             for msd in msd_list:
-                for fabric_name in switches_data.keys():
+                for fabric_name in fabric_list:
                     self.fabric_manager.remove_from_msd(msd, fabric_name)
                 for isn in isn_list:
                     self.fabric_manager.remove_from_msd(msd, isn)
@@ -290,6 +290,6 @@ class FabricBuilder:
 
 if __name__ == '__main__':
     builder = FabricBuilder()
-    # builder.build()
-    builder.delete()
+    builder.build()
+    # builder.delete()
     pass

@@ -9,6 +9,7 @@ This module provides a clean, unified interface for all interface operations wit
 - Policy-based interface management (access, trunk, routed)
 """
 import json
+import time
 import api.interface as interface_api
 from modules.config_utils import load_yaml_file, read_freeform_config
 from config.config_factory import config_factory
@@ -435,18 +436,22 @@ class InterfaceManager:
     
     def _apply_interface_updates(self, updated_interfaces):
         """Apply interface updates to NDFC."""
-        success = True
         
         for policy, interfaces in updated_interfaces.items():
             if not interfaces:
                 continue
             
             print(f"[Interface] Applying updates for policy: {policy}")
-            try:
-                interface_api.update_interface(policy=policy, interfaces_payload=interfaces)
-                print(f"[Interface] Successfully updated {len(interfaces)} interfaces for policy {policy}")
-            except Exception as e:
-                print(f"[Interface] Error updating interfaces for policy {policy}: {e}")
-                success = False
+            success = False
+            count = 0
+            while not success and count < 5:
+                if interface_api.update_interface(policy=policy, interfaces_payload=interfaces):
+                    print(f"[Interface] Successfully updated {len(interfaces)} interfaces for policy {policy}")
+                    success = True
+                else:
+                    count = count + 1
+                    print(f"[Interface] Failed to update interfaces for policy {policy}, retrying ({count}/5)")
+                    time.sleep(5)  # Retry after delay
+
         
-        return success
+        return True

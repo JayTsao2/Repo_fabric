@@ -59,8 +59,6 @@ class SwitchManager:
         if not config_path.exists():
             print(f"Switch configuration not found: {config_path}")
             return None
-        
-        print(f"[*] Loading config: {config_path}")
         return load_yaml_file(str(config_path))
     
     def _extract_model_name(self, platform: str) -> str:
@@ -159,8 +157,6 @@ class SwitchManager:
     
     def set_switch_role(self, fabric_name: str, role: str, switch_name: str) -> bool:
         """Set switch role based on YAML configuration."""
-        print(f"[Switch] Setting role for switch {switch_name} in fabric {fabric_name}")
-        
         switch_data = self._load_switch_config(fabric_name, role, switch_name)
         if not switch_data:
             return False
@@ -181,8 +177,8 @@ class SwitchManager:
             return False
         
         switch_role_lower = switch_role.lower().strip()
-        print(f"[Switch] Setting role for switch {switch_name} to {switch_role_lower}")
-        
+        print(f"[Switch] Setting role for switch '{switch_name}' to '{switch_role_lower}'")
+
         return switch_api.set_switch_role(serial_number, switch_role_lower)
     
     def change_switch_ip(self, fabric_name: str, role: str, switch_name: str, 
@@ -361,8 +357,6 @@ class SwitchManager:
         
     def rediscover_switch(self, fabric_name: str, role: str, switch_name: str) -> bool:
         """Rediscover a switch by its name."""
-        print(f"[Switch] Rediscovering switch {switch_name}")
-        
         switch_data = self._load_switch_config(fabric_name, role, switch_name)
         if not switch_data:
             return False
