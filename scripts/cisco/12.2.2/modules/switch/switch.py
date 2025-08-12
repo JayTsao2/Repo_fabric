@@ -305,7 +305,8 @@ class SwitchManager:
             fabric_dir = self.config_base_path / ".." / "1_vxlan_evpn" / "fabric"
             fabric_config_path = fabric_dir / f"{fabric_name}.yaml"
             fabric_config = load_yaml_file(str(fabric_config_path))
-            bgp_asn = fabric_config.get("BGP ASN")
+            general = fabric_config.get("General Parameter")
+            bgp_asn = general.get("BGP ASN")
             if not bgp_asn:
                 print(f"[Switch] Error: BGP ASN not found in fabric {fabric_name} configuration")
                 return None
