@@ -13,7 +13,7 @@ import time
 import api.interface as interface_api
 from modules.config_utils import load_yaml_file, read_freeform_config
 from config.config_factory import config_factory
-from typing import Dict, Set, Any
+from typing import Dict, Any, List
 
 class InterfaceManager:
     """Unified interface operations manager with YAML configuration support."""
@@ -54,8 +54,14 @@ class InterfaceManager:
             if not switch_config:
                 return False
             
-            # Get existing interfaces
-            existing_data = interface_api.get_interfaces(serial_number=switch_config["Serial Number"], save_files=False)
+            serial_number = switch_config.get("Serial Number")
+            if not serial_number:
+                print("[Interface] Error: No serial number found in switch config")
+                return False    
+            
+            # Get existing interfaces by api
+            existing_data = interface_api.get_interfaces(serial_number=serial_number, save_files=False)
+
             if not existing_data:
                 print("[Interface] No existing interfaces found from NDFC")
                 return False
@@ -73,8 +79,8 @@ class InterfaceManager:
             for name, config in yaml_map.items():
                 is_pc = name.startswith(('Port-channel', 'port-channel'))
                 self._process_interface(name, config, existing_map, updated_interfaces, processed, 
-                                     pc_mapping, switch_config["Serial Number"], fabric_name, role, is_pc)
-            
+                                     pc_mapping, serial_number, fabric_name, role, is_pc)
+
             # Handle unprocessed Ethernet interfaces
             self._process_unspecified_interfaces(existing_map, processed, updated_interfaces)
             
@@ -91,7 +97,6 @@ class InterfaceManager:
     def _load_config(self, fabric_name: str, role: str, switch_name: str) -> Dict[str, Any]:
         """Load and validate switch configuration from YAML file."""
         config_path = self.config_base_path / fabric_name / role / f"{switch_name}.yaml"
-        print(f"[Interface] Loading switch configuration from: {config_path}")
         
         if not config_path.exists():
             print(f"[Interface] Switch configuration not found: {config_path}")
@@ -100,10 +105,6 @@ class InterfaceManager:
         switch_config = load_yaml_file(str(config_path))
         if not switch_config or "Interface" not in switch_config:
             print("[Interface] No interfaces found to process")
-            return None
-        
-        if not switch_config.get("Serial Number"):
-            print("[Interface] Error: No serial number found in switch config")
             return None
         
         return switch_config
@@ -183,7 +184,7 @@ class InterfaceManager:
     def _process_interface(self, name, config, existing_map, updated_interfaces, processed, 
                           pc_mapping, serial_number, fabric_name, role, is_port_channel):
         """Process a single interface configuration."""
-        print(f"[Interface] Processing interface: {name}")
+        # print(f"[Interface] Processing interface: {name}")
         processed.add(name)
         
         policy = config.get("policy")
@@ -452,6 +453,4 @@ class InterfaceManager:
                     count = count + 1
                     print(f"[Interface] Failed to update interfaces for policy {policy}, retrying ({count}/5)")
                     time.sleep(5)  # Retry after delay
-
-        
         return True
