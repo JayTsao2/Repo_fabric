@@ -139,8 +139,8 @@ class FabricBuilder:
         msd_list = self.get_MSD_list()
         isn_list = self.get_ISN_list()
 
-        print("=" * 20 + "Step1. Create fabrics" + "=" * 20)
-        # Step 1. Create fabrics
+        # Create fabrics
+        print("=" * 20 + "Create fabrics" + "=" * 20)
         for fabric_name in fabric_list:
             self.fabric_manager.create_fabric(fabric_name)
         
@@ -150,8 +150,8 @@ class FabricBuilder:
         for isn in isn_list:
             self.fabric_manager.create_fabric(isn)
 
-        print("=" * 20 + "Step2. Add switches to fabrics" + "=" * 20)
-        # Step 2. Add switches to fabrics
+        # Add switches to fabrics
+        print("=" * 20 + "Add switches to fabrics" + "=" * 20)
         for fabric_name, roles in switches_data.items():
             for role_name, switches in roles.items():
                 for switch in switches:
@@ -161,8 +161,8 @@ class FabricBuilder:
                     self.switch_manager.discover_switch(fabric_name, role_name, switch, preserve_config=preserve_config)
                     self.switch_manager.set_switch_role(fabric_name, role_name, switch)
 
-        # Step 3. Recalculate for each fabric
-        print("=" * 20 + "Step3. Recalculate for each fabric" + "=" * 20)
+        # Recalculate for each fabric
+        print("=" * 20 + "Recalculate for each fabric" + "=" * 20)
         for fabric_name in fabric_list:
             success = self.fabric_manager.recalculate_config(fabric_name)
             while not success:
@@ -175,8 +175,8 @@ class FabricBuilder:
                 time.sleep(30)
                 success = self.fabric_manager.recalculate_config(fabric_name)
 
-        # Step 3.5. Add fabrics to MSD
-        print("=" * 20 + "Step3.5. Add fabrics to MSD" + "=" * 20)
+        # Add fabrics to MSD
+        print("=" * 20 + "Add fabrics to MSD" + "=" * 20)
         if msd_list and switches_data:
             for msd in msd_list:
                 for fabric_name in fabric_list:
@@ -184,13 +184,13 @@ class FabricBuilder:
                 for isn in isn_list:
                     self.fabric_manager.add_to_msd(msd, isn)
 
-        # Step 4. Create VRFs (delete unwanted, update existing, create missing)
-        print("=" * 20 + "Step4. Create VRFs" + "=" * 20)
+        # Create VRFs (delete unwanted, update existing, create missing)
+        print("=" * 20 + "Create VRFs" + "=" * 20)
         for msd in msd_list:
             self.vrf_manager.sync(msd)
         
-        # Step 5. Attach VRF to switches
-        print("=" * 20 + "Step5. Attach VRF to switches" + "=" * 20)
+        # Attach VRF to switches
+        print("=" * 20 + "Attach VRF to switches" + "=" * 20)
         for fabric_name, roles in switches_data.items():
             if fabric_name in isn_list:
                 # Skip ISN fabrics for VRF attachment
@@ -199,13 +199,13 @@ class FabricBuilder:
                 for switch in switches:
                     self.vrf_manager.sync_attachments(fabric_name, role_name, switch)
 
-        # Step 6. Create Networks (delete unwanted, update existing, create missing)
-        print("=" * 20 + "Step6. Create Networks" + "=" * 20)
+        # Create Networks (delete unwanted, update existing, create missing)
+        print("=" * 20 + "Create Networks" + "=" * 20)
         for msd in msd_list:
             self.network_manager.sync(msd)
 
-        # Step 7. Attach Network 
-        print("=" * 20 + "Step7. Attach Network to switches" + "=" * 20)
+        # Attach Network to switches
+        print("=" * 20 + "Attach Network to switches" + "=" * 20)
         for fabric_name, roles in switches_data.items():
             if fabric_name in isn_list:
                 # Skip ISN fabrics for network attachment
@@ -214,30 +214,28 @@ class FabricBuilder:
                 for switch in switches:
                     self.network_manager.sync_attachments(fabric_name, role_name, switch)
 
-        # Step 8. Apply interface configurations
-        print("=" * 20 + "Step8. Apply interface configurations" + "=" * 20)
+        # Apply interface configurations
+        print("=" * 20 + "Apply interface configurations" + "=" * 20)
         for fabric_name, roles in switches_data.items():
             for role_name, switches in roles.items():
                 for switch in switches:
                     self.interface_manager.update_switch_interfaces(fabric_name, role_name, switch)
 
-        # Step 9. Create VPC pairs for each fabric
-        print("=" * 20 + "Step9. Create VPC pairs" + "=" * 20)
+        # Create VPC pairs for each fabric
+        print("=" * 20 + "Create VPC pairs" + "=" * 20)
         for fabric_name in fabric_list:
             self.vpc_manager.create_vpc_pairs(fabric_name)
 
-        # Step 10. Set switch freeform configs
-        print("=" * 20 + "Step10. Set switch freeform configs" + "=" * 20)
+        # Set switch freeform configs
+        print("=" * 20 + "Set switch freeform configs" + "=" * 20)
         # This step is optional and can be used to set any freeform configurations on switches
         for fabric_name, roles in switches_data.items():
             for role_name, switches in roles.items():
                 for switch in switches:
                     self.switch_manager.set_switch_freeform(fabric_name, role_name, switch)
 
-        
-
-        # Step 12. Final recalculate for each fabric
-        print("=" * 20 + "Step12. Final recalculate for each fabric" + "=" * 20)
+        # Final recalculate for each fabric
+        print("=" * 20 + "Final recalculate for each fabric" + "=" * 20)
         for fabric_name in fabric_list:
             success = self.fabric_manager.recalculate_config(fabric_name)
             while not success:
@@ -247,7 +245,7 @@ class FabricBuilder:
             # Get pending configs
             self.fabric_manager.get_pending_config(fabric_name)
 
-        # Step 13. Deploy fabric
+        # Deploy fabric
         # for fabric_name in switches_data.keys():
         #     self.fabric_manager.deploy_fabric(fabric_name)
 
