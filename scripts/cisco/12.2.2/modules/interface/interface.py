@@ -233,20 +233,44 @@ class InterfaceManager:
     
     def _apply_interface_updates(self, updated_interfaces):
         """Apply interface updates to NDFC."""
-        
-        for policy, interfaces in updated_interfaces.items():
-            if not interfaces:
-                continue
+        policy_order = [
+            # Port channel member interfaces first
+            'int_port_channel_access_member_11_1',
+            'int_port_channel_trunk_member_11_1',
             
-            # print(f"[Interface] Applying updates for policy: {policy}")
-            success = False
-            count = 0
-            while not success and count < 5:
-                if interface_api.update_interface(policy=policy, interfaces_payload=interfaces):
-                    print(f"[Interface] {self.GREEN}{self.BOLD}Successfully updated {len(interfaces)} interfaces for policy {policy}{self.END}")
-                    success = True
-                else:
-                    count = count + 1
-                    print(f"[Interface] {self.YELLOW}{self.BOLD}Failed to update interfaces for policy {policy}, retrying ({count}/5){self.END}")
-                    time.sleep(5)  # Retry after delay
+            # Then regular interfaces
+            'int_access_host',
+            'int_trunk_host', 
+            'int_routed_host',
+            'int_loopback0',
+            
+            # Port channel host interfaces last
+            'int_port_channel_access_host',
+            'int_port_channel_trunk_host'
+        ]
+        # Process policies in order
+        processed_policies = set()
+        for policy in policy_order:
+            if policy in updated_interfaces and updated_interfaces[policy]:
+                self._process_policy_interfaces(policy, updated_interfaces[policy])
+                processed_policies.add(policy)
+        
+        # Process any remaining policies not in the order list
+        for policy, interfaces in updated_interfaces.items():
+            if policy not in processed_policies and interfaces:
+                self._process_policy_interfaces(policy, interfaces)
+        
         return True
+    
+    def _process_policy_interfaces(self, policy, interfaces):
+        """Process interfaces for a specific policy with retry logic."""
+        success = False
+        count = 0
+        while not success and count < 5:
+            if interface_api.update_interface(policy=policy, interfaces_payload=interfaces):
+                print(f"[Interface] {self.GREEN}{self.BOLD}Successfully updated {len(interfaces)} interfaces for policy {policy}{self.END}")
+                success = True
+            else:
+                count = count + 1
+                print(f"[Interface] {self.YELLOW}{self.BOLD}Failed to update interfaces for policy {policy}, retrying ({count}/5){self.END}")
+                time.sleep(5)  # Retry after delay
