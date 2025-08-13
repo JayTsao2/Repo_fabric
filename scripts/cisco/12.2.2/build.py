@@ -173,7 +173,7 @@ class FabricBuilder:
                 for role_name, switches in switches_data[fabric_name].items():
                     for switch in switches:
                         self.switch_manager.rediscover_switch(fabric_name, role_name, switch)
-                time.sleep(30)
+                time.sleep(20)
                 success = self.fabric_manager.recalculate_config(fabric_name)
 
         # Add fabrics to MSD
@@ -183,6 +183,13 @@ class FabricBuilder:
                 for fabric_name in fabric_list:
                     self.fabric_manager.add_to_msd(msd, fabric_name)
 
+        print(f"{self.BOLD}{'=' * 20}Recalculate for MSD{'=' * 20}{self.END}")
+        for fabric_name in msd_list:
+            success = self.fabric_manager.recalculate_config(fabric_name)
+            while not success:
+                # Sleep for 30 secs
+                time.sleep(30)
+                success = self.fabric_manager.recalculate_config(fabric_name)
         # Create VRFs (delete unwanted, update existing, create missing)
         print(f"{self.BOLD}{'=' * 20}Create VRFs{'=' * 20}{self.END}")
         for msd in msd_list:
@@ -242,6 +249,12 @@ class FabricBuilder:
                 success = self.fabric_manager.recalculate_config(fabric_name)
         
             # Get pending configs
+            self.fabric_manager.get_pending_config(fabric_name)
+        for fabric_name in msd_list:
+            success = self.fabric_manager.recalculate_config(fabric_name)
+            while not success:
+                time.sleep(10)
+                success = self.fabric_manager.recalculate_config(fabric_name)
             self.fabric_manager.get_pending_config(fabric_name)
 
         # Deploy fabric
