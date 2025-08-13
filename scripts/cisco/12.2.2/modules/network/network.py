@@ -31,7 +31,12 @@ class NetworkManager:
         self._defaults = None
         self._field_mapping = None
         self._networks = None
-    
+
+        self.GREEN = '\033[92m'
+        self.YELLOW = '\033[93m'
+        self.BOLD = '\033[1m'
+        self.END = '\033[0m'
+
     @property
     def defaults(self) -> Dict[str, Any]:
         """Get corp defaults with lazy loading."""
@@ -208,30 +213,30 @@ class NetworkManager:
     
     def sync(self, fabric_name: str) -> bool:
         """Update all networks for a fabric - delete unwanted, update existing, and create missing networks."""
-        print(f"[Network] Updating all networks in fabric '{fabric_name}'")
-        
+        print(f"[Network] {self.GREEN}{self.BOLD}Updating all networks in fabric '{fabric_name}'{self.END}")
+
         try:
             # Get existing networks from the fabric
             existing_networks = network_api.get_networks(fabric_name)
             existing_network_names = {net.get('networkName') for net in existing_networks}
-            print(f"[Network] Found {len(existing_network_names)} existing networks: {existing_network_names}")
+            # print(f"[Network] Found {len(existing_network_names)} existing networks: {existing_network_names}")
             
             # Get networks from YAML config for this fabric
             fabric_networks = [net for net in self.networks if net.get('Fabric') == fabric_name]
             yaml_network_names = {net.get('Network Name') for net in fabric_networks}
-            print(f"[Network] Found {len(yaml_network_names)} networks in YAML: {yaml_network_names}")
+            # print(f"[Network] Found {len(yaml_network_names)} networks in YAML: {yaml_network_names}")
             
             # Find networks to delete (exist in fabric but not in YAML)
             networks_to_delete = existing_network_names - yaml_network_names
-            print(f"[Network] Networks to delete: {networks_to_delete if networks_to_delete else 'None'}")
+            # print(f"[Network] Networks to delete: {networks_to_delete if networks_to_delete else 'None'}")
             
             # Find networks to create (exist in YAML but not in fabric)
             networks_to_create = yaml_network_names - existing_network_names
-            print(f"[Network] Networks to create: {networks_to_create if networks_to_create else 'None'}")
+            # print(f"[Network] Networks to create: {networks_to_create if networks_to_create else 'None'}")
             
             # Find networks to update (exist in both fabric and YAML)
             networks_to_update = existing_network_names.intersection(yaml_network_names)
-            print(f"[Network] Networks to update: {networks_to_update if networks_to_update else 'None'}")
+            # print(f"[Network] Networks to update: {networks_to_update if networks_to_update else 'None'}")
             
             overall_success = True
             
@@ -251,9 +256,9 @@ class NetworkManager:
                     overall_success = False
 
             if overall_success:
-                print(f"[Network] Successfully synchronized all networks in fabric '{fabric_name}'")
+                print(f"[Network] {self.GREEN}{self.BOLD}Successfully synchronized all networks in fabric '{fabric_name}'{self.END}")
             else:
-                print(f"[Network] Network synchronization completed with some errors in fabric '{fabric_name}'")
+                print(f"[Network] {self.YELLOW}{self.BOLD}Network synchronization completed with some errors in fabric '{fabric_name}'{self.END}")
 
             return overall_success
             
@@ -263,8 +268,8 @@ class NetworkManager:
     
     def create_network(self, fabric_name: str, network_name: str) -> bool:
         """Create a network using YAML configuration."""
-        print(f"[Network] Creating network '{network_name}' in fabric '{fabric_name}'")
-        
+        print(f"[Network] {self.GREEN}Creating network '{network_name}' in fabric '{fabric_name}'{self.END}")
+
         try:
             # Check if network already exists
             existing_networks = network_api.get_networks(fabric_name)
@@ -283,14 +288,14 @@ class NetworkManager:
     
     def update_network(self, fabric_name: str, network_name: str) -> bool:
         """Update a network using YAML configuration."""
-        print(f"[Network] Updating network '{network_name}' in fabric '{fabric_name}'")
+        print(f"[Network] {self.GREEN}Updating network '{network_name}' in fabric '{fabric_name}'{self.END}")
         payload, template_config = self._build_complete_payload(fabric_name, network_name)
         return network_api.update_network(fabric_name, payload, template_config)
 
     
     def delete_network(self, fabric_name: str, network_name: str) -> bool:
         """Delete a network after detaching from all switches."""
-        print(f"[Network] Deleting network '{network_name}' in fabric '{fabric_name}'")
+        print(f"[Network] {self.YELLOW}Deleting network '{network_name}' in fabric '{fabric_name}'{self.END}")
         print(f"[Network] Trying to detach '{network_name}' from all switches in fabric '{fabric_name}' before deletion")
         if not self._detach_network_by_serial_number(fabric_name, network_name):
             print(f"[Network] Failed to detach '{network_name}' from all switches in fabric '{fabric_name}', aborting deletion")
@@ -341,7 +346,7 @@ class NetworkManager:
                 }]
             }
             payload.append(network_payload)
-            print(f"[Network] Added network '{network_name}' on switch (SN: {serial_number}, VLAN: {vlan_id}) to detach payload")
+            # print(f"[Network] Added network '{network_name}' on switch (SN: {serial_number}, VLAN: {vlan_id}) to detach payload")
         
         return payload
     
@@ -349,21 +354,18 @@ class NetworkManager:
     
     def sync_attachments(self, fabric_name: str, role: str, switch_name: str) -> bool:
         """Sync network attachments for a specific switch."""
-        print(f"[Network] Syncing network attachments for switch '{switch_name}' in fabric '{fabric_name}'")
+        print(f"[Network] {self.GREEN}{self.BOLD}Syncing network attachments for switch '{switch_name}' in fabric '{fabric_name}'{self.END}")
         success = True
-        print(f"[Network] Step 1: Detaching unwanted networks from switch '{switch_name}' ({role}) in fabric '{fabric_name}'")
         if not self.detach_networks(fabric_name, role, switch_name):
             success = False
-        print(f"[Network] Step 2: Attaching networks to switch '{switch_name}' ({role}) in fabric '{fabric_name}'")
         if not self.attach_networks(fabric_name, role, switch_name):
             success = False
-        print(f"[Network] Sync attachments completed for switch '{switch_name}' in fabric '{fabric_name}'")
+        print(f"[Network] {self.GREEN}{self.BOLD}Sync attachments completed for switch '{switch_name}' in fabric '{fabric_name}'{self.END}")
         return success
     
     def attach_networks(self, fabric_name: str, role: str, switch_name: str) -> bool:
         """Attach all networks to a device based on YAML configuration."""
-        print(f"[Network] Attaching networks to switch '{switch_name}' ({role}) in fabric '{fabric_name}'")
-
+        print(f"[Network] {self.GREEN}Attaching networks to switch '{switch_name}' ({role}) in fabric '{fabric_name}'{self.END}")
         try:
             # Load switch configuration to get serial number and IP
             serial_number = self._get_serial_number(fabric_name, role, switch_name)
@@ -399,7 +401,7 @@ class NetworkManager:
                         "allSwitches": [switch_name]
                     }
                     payload.append(network_payload)
-                    print(f"[Network] Added network '{network_name}' to attach payload")
+                    # print(f"[Network] Added network '{network_name}' to attach payload")
             if not payload:
                 print(f"[Network] No valid networks to attach")
                 return True
@@ -413,6 +415,7 @@ class NetworkManager:
     
     def detach_networks(self, fabric_name: str, role: str, switch_name: str) -> bool:
         """Detach networks that are currently attached in the NDFC by given switch."""
+        print(f"[Network] {self.YELLOW}Detaching networks from switch '{switch_name}' ({role}) in fabric '{fabric_name}'{self.END}")
         try:
             # Load and validate switch configuration
             serial_number = self._get_serial_number(fabric_name, role, switch_name)

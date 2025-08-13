@@ -40,6 +40,8 @@ class FabricBuilder:
         self.switch_manager = SwitchManager()
         self.interface_manager = InterfaceManager()
         self.vpc_manager = VPCManager()
+        self.BOLD = '\033[1m'
+        self.END = '\033[0m'  # Reset to default color
 
     def banner(self):
         """Print a banner for the builder."""
@@ -138,20 +140,19 @@ class FabricBuilder:
         fabric_list = self.get_fabric_list()
         msd_list = self.get_MSD_list()
         isn_list = self.get_ISN_list()
+        for isn in isn_list:
+            fabric_list.append(isn)  # Include ISNs in the fabric list
 
         # Create fabrics
-        print("=" * 20 + "Create fabrics" + "=" * 20)
+        print(f"{self.BOLD}{'=' * 20}Create fabrics{'=' * 20}{self.END}")
         for fabric_name in fabric_list:
             self.fabric_manager.create_fabric(fabric_name)
         
         for msd in msd_list:
             self.fabric_manager.create_fabric(msd)
-            
-        for isn in isn_list:
-            self.fabric_manager.create_fabric(isn)
 
         # Add switches to fabrics
-        print("=" * 20 + "Add switches to fabrics" + "=" * 20)
+        print(f"{self.BOLD}{'=' * 20}Add switches to fabrics{'=' * 20}{self.END}")
         for fabric_name, roles in switches_data.items():
             for role_name, switches in roles.items():
                 for switch in switches:
@@ -162,13 +163,13 @@ class FabricBuilder:
                     self.switch_manager.set_switch_role(fabric_name, role_name, switch)
 
         # Recalculate for each fabric
-        print("=" * 20 + "Recalculate for each fabric" + "=" * 20)
+        print(f"{self.BOLD}{'=' * 20}Recalculate for each fabric{'=' * 20}{self.END}")
         for fabric_name in fabric_list:
             success = self.fabric_manager.recalculate_config(fabric_name)
+            print(f"{self.BOLD}{'=' * 20}Rediscovering Switches for fabric {fabric_name}{'=' * 20}{self.END}")
             while not success:
                 # Sleep for 30 secs
                 time.sleep(30)
-                print("=" * 20 + f"Rediscovering Switches for fabric {fabric_name}..." + "=" * 20)
                 for role_name, switches in switches_data[fabric_name].items():
                     for switch in switches:
                         self.switch_manager.rediscover_switch(fabric_name, role_name, switch)
@@ -176,21 +177,19 @@ class FabricBuilder:
                 success = self.fabric_manager.recalculate_config(fabric_name)
 
         # Add fabrics to MSD
-        print("=" * 20 + "Add fabrics to MSD" + "=" * 20)
+        print(f"{self.BOLD}{'=' * 20}Add fabrics to MSD{'=' * 20}{self.END}")
         if msd_list and switches_data:
             for msd in msd_list:
                 for fabric_name in fabric_list:
                     self.fabric_manager.add_to_msd(msd, fabric_name)
-                for isn in isn_list:
-                    self.fabric_manager.add_to_msd(msd, isn)
 
         # Create VRFs (delete unwanted, update existing, create missing)
-        print("=" * 20 + "Create VRFs" + "=" * 20)
+        print(f"{self.BOLD}{'=' * 20}Create VRFs{'=' * 20}{self.END}")
         for msd in msd_list:
             self.vrf_manager.sync(msd)
         
         # Attach VRF to switches
-        print("=" * 20 + "Attach VRF to switches" + "=" * 20)
+        print(f"{self.BOLD}{'=' * 20}Attach VRF to switches{'=' * 20}{self.END}")
         for fabric_name, roles in switches_data.items():
             if fabric_name in isn_list:
                 # Skip ISN fabrics for VRF attachment
@@ -200,12 +199,12 @@ class FabricBuilder:
                     self.vrf_manager.sync_attachments(fabric_name, role_name, switch)
 
         # Create Networks (delete unwanted, update existing, create missing)
-        print("=" * 20 + "Create Networks" + "=" * 20)
+        print(f"{self.BOLD}{'=' * 20}Create Networks{'=' * 20}{self.END}")
         for msd in msd_list:
             self.network_manager.sync(msd)
 
         # Attach Network to switches
-        print("=" * 20 + "Attach Network to switches" + "=" * 20)
+        print(f"{self.BOLD}{'=' * 20}Attach Network to switches{'=' * 20}{self.END}")
         for fabric_name, roles in switches_data.items():
             if fabric_name in isn_list:
                 # Skip ISN fabrics for network attachment
@@ -215,19 +214,19 @@ class FabricBuilder:
                     self.network_manager.sync_attachments(fabric_name, role_name, switch)
 
         # Apply interface configurations
-        print("=" * 20 + "Apply interface configurations" + "=" * 20)
+        print(f"{self.BOLD}{'=' * 20}Apply interface configurations{'=' * 20}{self.END}")
         for fabric_name, roles in switches_data.items():
             for role_name, switches in roles.items():
                 for switch in switches:
                     self.interface_manager.update_switch_interfaces(fabric_name, role_name, switch)
 
         # Create VPC pairs for each fabric
-        print("=" * 20 + "Create VPC pairs" + "=" * 20)
-        for fabric_name in fabric_list:
-            self.vpc_manager.create_vpc_pairs(fabric_name)
+        # print(f"{self.BOLD}{'=' * 20}Create VPC pairs{'=' * 20}{self.END}")
+        # for fabric_name in fabric_list:
+        #     self.vpc_manager.create_vpc_pairs(fabric_name)
 
         # Set switch freeform configs
-        print("=" * 20 + "Set switch freeform configs" + "=" * 20)
+        print(f"{self.BOLD}{'=' * 20}Set switch freeform configs{'=' * 20}{self.END}")
         # This step is optional and can be used to set any freeform configurations on switches
         for fabric_name, roles in switches_data.items():
             for role_name, switches in roles.items():
@@ -235,7 +234,7 @@ class FabricBuilder:
                     self.switch_manager.set_switch_freeform(fabric_name, role_name, switch)
 
         # Final recalculate for each fabric
-        print("=" * 20 + "Final recalculate for each fabric" + "=" * 20)
+        print(f"{self.BOLD}{'=' * 20}Final recalculate for each fabric{'=' * 20}{self.END}")
         for fabric_name in fabric_list:
             success = self.fabric_manager.recalculate_config(fabric_name)
             while not success:

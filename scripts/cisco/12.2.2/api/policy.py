@@ -24,7 +24,7 @@ def save_policy_config(data, policy_dir="policies", switch_name=None):
         os.makedirs(policy_dir)
     with open(filename, "w") as f:
         json.dump(data, f, indent=4)
-        print(f"{policy_id} is saved to {filename}")
+        # print(f"{policy_id} is saved to {filename}")
 
     # Note: Freeform config is not saved separately as it exists in network_configs
 
@@ -71,7 +71,7 @@ def delete_existing_policies_for_switch(switch_name, serial_number, policy_dir="
         print(f"No existing policies found for switch {switch_name} ({serial_number})")
         return True
     
-    print(f"Found {len(existing_policies)} existing policies for switch {switch_name}")
+    # print(f"Found {len(existing_policies)} existing policies for switch {switch_name}")
     
     for policy_info in existing_policies:
         policy_id = policy_info['policy_id']
@@ -82,16 +82,16 @@ def delete_existing_policies_for_switch(switch_name, serial_number, policy_dir="
             # Extract numeric ID from POLICY-123456
             numeric_id = policy_id.split('-')[1]
             
-            print(f"Deleting policy {policy_id} from NDFC...")
+            print(f"[Switch] Deleting policy {policy_id} from NDFC...")
             delete_policy(numeric_id)
             
             # Delete local file
             if os.path.exists(full_path):
                 os.remove(full_path)
-                print(f"Deleted local file: {filename}")
+                print(f"[Switch] Deleted local file: {filename}")
                 
         except Exception as e:
-            print(f"Error deleting policy {policy_id}: {e}")
+            print(f"[Switch] Error deleting policy {policy_id}: {e}")
             return False
     
     return True
@@ -104,7 +104,7 @@ def create_policy_with_random_id(switch_name, serial_number, fabric_name, freefo
         policy_id = random.randint(100000, 999999)
         policy_id_str = f"POLICY-{policy_id}"
         
-        print(f"Attempt {attempt + 1}: Trying policy ID {policy_id_str}")
+        print(f"[Switch] Attempt {attempt + 1}: Trying policy ID {policy_id_str}")
         
         # Create the payload based on the template
         payload = {
@@ -133,17 +133,14 @@ def create_policy_with_random_id(switch_name, serial_number, fabric_name, freefo
             "status": "NA"
         }
         
-        try:
-            if create_policy(payload):
-                print(f"[+] Successfully created policy {policy_id_str}")
-                return policy_id_str
-        except Exception as e:
-            print(f"[-] Failed to create policy {policy_id_str}: {e}")
+        if create_policy(payload):
+            print(f"[Switch] Successfully created policy {policy_id_str}")
+            return policy_id_str
             
         # Wait a bit before trying again
         time.sleep(0.5)
     
-    print(f"[-] Failed to create policy after {max_attempts} attempts")
+    print(f"[Switch] Failed to create policy after {max_attempts} attempts")
     return None
 
 def get_policies_by_serial_number(serial_number):

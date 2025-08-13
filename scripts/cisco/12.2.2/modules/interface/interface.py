@@ -24,6 +24,11 @@ class InterfaceManager:
         current_file = Path(__file__).resolve()
         self.root_path = current_file.parents[5]
         self.switch_base_path = self.root_path / "network_configs" / "3_node"
+        self.GREEN = "\033[92m"
+        self.YELLOW = "\033[93m"
+        self.RED = "\033[91m"
+        self.BOLD = "\033[1m"
+        self.END = "\033[0m"
 
     def _load_config(self, fabric_name: str, role: str, switch_name: str) -> Dict[str, Any]:
         """Load and validate switch configuration from YAML file."""
@@ -31,17 +36,17 @@ class InterfaceManager:
     
     def update_switch_interfaces(self, fabric_name: str, role: str, switch_name: str) -> bool:
         """Update all interfaces for a switch based on YAML configuration."""
-        print(f"[Interface] Updating interfaces for switch '{switch_name}' ({role}) in fabric '{fabric_name}'")
+        print(f"[Interface] {self.GREEN}{self.BOLD}Updating interfaces for switch '{switch_name}' ({role}) in fabric '{fabric_name}'{self.END}")
 
         try:
             switch_config = self._load_config(fabric_name, role, switch_name)
             if not switch_config or "Interface" not in switch_config:
-                print(f"[Interface] Error: No interface configuration found for '{switch_name}'")
+                print(f"[Interface] {self.RED}Error: No interface configuration found for '{switch_name}'{self.END}")
                 return False
             
             serial_number = switch_config.get("Serial Number")
             if not serial_number:
-                print(f"[Interface] Error: No serial number found in switch config for '{switch_name}'")
+                print(f"[Interface] {self.RED}Error: No serial number found in switch config for '{switch_name}'{self.END}")
                 return False    
             
             # Process all interfaces
@@ -144,7 +149,7 @@ class InterfaceManager:
 
     def _handle_no_policy_interface(self, name, serial_number, config):
         """Handle interfaces without policy - update admin state only."""
-        print(f"[Interface] Interface {name} has no policy specified, updating admin status only")
+        print(f"[Interface] {self.YELLOW}Interface {name} has no policy specified, updating admin status only{self.END}")
         admin_status = config.get("Enable Interface", False)
         nv_pairs = {
             "ADMIN_STATE": "true" if admin_status else "false"
@@ -233,15 +238,15 @@ class InterfaceManager:
             if not interfaces:
                 continue
             
-            print(f"[Interface] Applying updates for policy: {policy}")
+            # print(f"[Interface] Applying updates for policy: {policy}")
             success = False
             count = 0
             while not success and count < 5:
                 if interface_api.update_interface(policy=policy, interfaces_payload=interfaces):
-                    print(f"[Interface] Successfully updated {len(interfaces)} interfaces for policy {policy}")
+                    print(f"[Interface] {self.GREEN}{self.BOLD}Successfully updated {len(interfaces)} interfaces for policy {policy}{self.END}")
                     success = True
                 else:
                     count = count + 1
-                    print(f"[Interface] Failed to update interfaces for policy {policy}, retrying ({count}/5)")
+                    print(f"[Interface] {self.YELLOW}{self.BOLD}Failed to update interfaces for policy {policy}, retrying ({count}/5){self.END}")
                     time.sleep(5)  # Retry after delay
         return True

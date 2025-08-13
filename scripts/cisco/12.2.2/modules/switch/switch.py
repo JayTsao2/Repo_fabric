@@ -41,7 +41,10 @@ class SwitchManager:
         """Initialize with centralized configuration paths."""
         self.config_paths = config_factory.create_switch_config()
         self.config_base_path = self.config_paths['configs_dir']
-    
+        self.GREEN = '\033[92m'
+        self.YELLOW = '\033[93m'
+        self.END = '\033[0m'
+
     def _validate_switch_role(self, role: str) -> bool:
         """Validate if the role is in the allowed enum values."""
         role_lower = role.lower().strip()
@@ -123,11 +126,11 @@ class SwitchManager:
     
     def discover_switch(self, fabric_name: str, role: str, switch_name: str, preserve_config: bool = False) -> bool:
         """Discover switch based on YAML configuration."""
-        print(f"[Switch] Discovering switch {switch_name} in fabric {fabric_name} with role {role}")
+        print(f"[Switch] {self.GREEN}Discovering switch {switch_name} in fabric {fabric_name}{self.END}")
         switch_data = switch_api.get_switches(fabric_name)
         for switch in switch_data:
             if switch['logicalName'] == switch_name:
-                print(f"[Switch] Switch {switch_name} already exists in fabric {fabric_name}. Skipping discovery.")
+                print(f"[Switch] {self.YELLOW}Switch {switch_name} already exists in fabric {fabric_name}. Skipping discovery.{self.END}")
                 return True
 
         switch_data = self._load_switch_config(fabric_name, role, switch_name)
@@ -177,7 +180,7 @@ class SwitchManager:
             return False
         
         switch_role_lower = switch_role.lower().strip()
-        print(f"[Switch] Setting role for switch '{switch_name}' to '{switch_role_lower}'")
+        print(f"[Switch] {self.GREEN}Setting role for switch '{switch_name}' to '{switch_role_lower}'{self.END}")
 
         return switch_api.set_switch_role(serial_number, switch_role_lower)
     
@@ -250,8 +253,8 @@ class SwitchManager:
     
     def set_switch_freeform(self, fabric_name: str, role: str, switch_name: str) -> bool:
         """Create a freeform policy for switch based on YAML configuration."""
-        print(f"[Switch] Creating freeform policy for switch {switch_name}")
-        
+        print(f"[Switch] {self.GREEN}Creating freeform policy for switch {switch_name}{self.END}")
+
         switch_data = self._load_switch_config(fabric_name, role, switch_name)
         if not switch_data:
             return False
@@ -284,7 +287,7 @@ class SwitchManager:
                 print(f"Failed to create policy for switch {switch_name}")
                 return False
 
-            print(f"[*] Retrieving and saving policy {policy_id}")
+            print(f"[Switch] Retrieving and saving policy {policy_id}")
             numeric_id = policy_id.split('-')[1]
             policy_api.get_policy_by_id(numeric_id, switch_name=switch_name)
         return True
@@ -376,6 +379,6 @@ class SwitchManager:
         if not serial_number:
             print(f"[Switch] Error: Serial Number not found in {switch_name} configuration")
             return False
-        
-        print(f"[Switch] Rediscovering switch {switch_name} with serial {serial_number}")
+
+        print(f"[Switch] {self.YELLOW}Rediscovering switch {switch_name} with serial {serial_number}{self.END}")
         return switch_api.rediscover_device(fabric_name, serial_number)

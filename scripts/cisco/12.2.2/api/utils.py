@@ -98,13 +98,15 @@ def check_status_code(response: requests.Response, operation_name: str = "API op
     Returns:
         True if successful (status 200), False otherwise
     """
+    RED = '\033[91m'
+    END = '\033[0m'
     if response.status_code == 200:
         # print(f"[+] Success: {operation_name}")
         return True
     else:
-        print(f"[-] Fail: {operation_name}")
-        print(f"[*] Status Code: {response.status_code}")
-        print(f"[*] Message: {response.text}")
+        print(f"{RED}[-] Fail: {operation_name}{END}")
+        print(f"{RED}[*] Status Code: {response.status_code}{END}")
+        print(f"{RED}[*] Message: {response.text}{END}")
         return False
 
 def get_api_timeout() -> int:

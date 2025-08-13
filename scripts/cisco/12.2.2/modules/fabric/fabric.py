@@ -45,7 +45,11 @@ class FabricManager:
         """Initialize with centralized configuration paths."""
         # Get fabric paths from factory
         self.fabric_paths = config_factory.get_fabric_paths()
-        
+        self.GREEN = '\033[92m'
+        self.YELLOW = '\033[93m'
+        self.BOLD = '\033[1m'
+        self.END = '\033[0m'
+
     def _determine_fabric_type_from_file(self, fabric_name: str) -> Optional[FabricType]:
         """Determine the fabric type by reading the YAML configuration file."""
         # Try each possible fabric type configuration path
@@ -307,13 +311,13 @@ class FabricManager:
     
     def create_fabric(self, fabric_name: str) -> bool:
         """Create a fabric using YAML configuration."""
-        print(f"[Fabric] Creating fabric '{fabric_name}'")
-        
+        print(f"[Fabric] {self.GREEN}{self.BOLD}Creating fabric '{fabric_name}'{self.END}")
+
         try:
             fabric_data = fabric_api.get_fabrics()
             for fabric in fabric_data:
                 if fabric['fabricName'] == fabric_name:
-                    print(f"[Fabric] Fabric '{fabric_name}' already exists.")
+                    print(f"[Fabric] {self.YELLOW}Fabric '{fabric_name}' already exists.{self.END}")
                     return True
 
             payload_data, template_name, fabric_name_resolved = self._build_complete_payload(fabric_name)
@@ -367,34 +371,34 @@ class FabricManager:
     
     def delete_fabric(self, fabric_name: str) -> bool:
         """Delete a fabric."""
-        print(f"[Fabric] Deleting fabric '{fabric_name}'")
+        print(f"[Fabric] {self.YELLOW}Deleting fabric '{fabric_name}'{self.END}")
         return fabric_api.delete_fabric(fabric_name)
     
     # --- Configuration Operations ---
     
     def recalculate_config(self, fabric_name: str) -> bool:
         """Recalculate fabric configuration."""
-        print(f"[Fabric] Recalculating configuration for fabric '{fabric_name}'")
+        print(f"[Fabric] {self.GREEN}{self.BOLD}Recalculating configuration for fabric '{fabric_name}'{self.END}")
         return fabric_api.recalculate_config(fabric_name)
     
     def get_pending_config(self, fabric_name: str) -> Optional[Dict[str, Any]]:
         """Get pending configuration with formatted output."""
-        print(f"[Fabric] Getting pending configuration for fabric '{fabric_name}'")
+        print(f"[Fabric] {self.GREEN}{self.BOLD}Getting pending configuration for fabric '{fabric_name}'{self.END}")
         return fabric_api.get_pending_config(fabric_name, save_files=True)
 
     def deploy_fabric(self, fabric_name: str) -> bool:
         """Deploy fabric configuration."""
-        print(f"[Fabric] Deploying configuration for fabric '{fabric_name}'")
+        print(f"[Fabric] {self.GREEN}{self.BOLD}Deploying configuration for fabric '{fabric_name}'{self.END}")
         return fabric_api.deploy_fabric_config(fabric_name)
     
     # --- Multi-Site Domain Operations ---
     
     def add_to_msd(self, parent_fabric: str, child_fabric: str) -> bool:
         """Add a child fabric to a Multi-Site Domain."""
-        print(f"[Fabric] Adding fabric '{child_fabric}' to MSD '{parent_fabric}'")
+        print(f"[Fabric] {self.GREEN}{self.BOLD}Adding fabric '{child_fabric}' to MSD '{parent_fabric}'{self.END}")
         return fabric_api.add_MSD(parent_fabric, child_fabric)
     
     def remove_from_msd(self, parent_fabric: str, child_fabric: str, force: bool = False) -> bool:
         """Remove a child fabric from a Multi-Site Domain."""
-        print(f"[Fabric] Removing fabric '{child_fabric}' from MSD '{parent_fabric}'")
+        print(f"[Fabric] {self.YELLOW}{self.BOLD}Removing fabric '{child_fabric}' from MSD '{parent_fabric}'{self.END}")
         return fabric_api.remove_MSD(parent_fabric, child_fabric)

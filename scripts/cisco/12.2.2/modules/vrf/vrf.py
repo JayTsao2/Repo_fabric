@@ -36,7 +36,12 @@ class VRFManager:
         self._defaults = None
         self._field_mapping = None
         self._vrfs = None
-    
+
+        self.GREEN = '\033[92m'
+        self.YELLOW = '\033[93m'
+        self.BOLD = '\033[1m'
+        self.END = '\033[0m'
+
     @property
     def defaults(self) -> Dict[str, Any]:
         """Get corp defaults with lazy loading."""
@@ -171,30 +176,28 @@ class VRFManager:
     
     def sync(self, fabric_name: str) -> bool:
         """Update all VRFs for a fabric - delete unwanted, update existing, and create missing VRFs."""
-        print(f"[VRF] Updating all VRFs in fabric '{fabric_name}'")
-        
+        print(f"[VRF] {self.GREEN}{self.BOLD}Updating all VRFs in fabric '{fabric_name}'{self.END}")
+
         try:
             # Get existing VRFs from the fabric
             existing_vrfs = vrf_api.get_VRFs(fabric_name)
             existing_vrf_names = {vrf.get('vrfName') for vrf in existing_vrfs}
-            print(f"[VRF] Found {len(existing_vrf_names)} existing VRFs: {existing_vrf_names}")
             
             # Get VRFs from YAML config for this fabric
             fabric_vrfs = [vrf for vrf in self.vrfs if vrf.get('Fabric') == fabric_name]
             yaml_vrf_names = {vrf.get('VRF Name') for vrf in fabric_vrfs}
-            print(f"[VRF] Found {len(yaml_vrf_names)} VRFs in YAML: {yaml_vrf_names}")
             
             # Find VRFs to delete (exist in fabric but not in YAML)
             vrfs_to_delete = existing_vrf_names - yaml_vrf_names
-            print(f"[VRF] VRFs to delete: {vrfs_to_delete if vrfs_to_delete else 'None'}")
+            # print(f"[VRF] VRFs to delete: {vrfs_to_delete if vrfs_to_delete else 'None'}")
 
             # Find VRFs to create (exist in YAML but not in fabric)
             vrfs_to_create = yaml_vrf_names - existing_vrf_names
-            print(f"[VRF] VRFs to create: {vrfs_to_create if vrfs_to_create else 'None'}")
+            # print(f"[VRF] VRFs to create: {vrfs_to_create if vrfs_to_create else 'None'}")
 
             # Find VRFs to update (exist in both fabric and YAML)
             vrfs_to_update = existing_vrf_names.intersection(yaml_vrf_names)
-            print(f"[VRF] VRFs to update: {vrfs_to_update if vrfs_to_update else 'None'}")
+            # print(f"[VRF] VRFs to update: {vrfs_to_update if vrfs_to_update else 'None'}")
             
             overall_success = True
             
@@ -214,9 +217,9 @@ class VRFManager:
                     overall_success = False
 
             if overall_success:
-                print(f"[VRF] Successfully synchronized all VRFs in fabric '{fabric_name}'")
+                print(f"[VRF] {self.GREEN}{self.BOLD}Successfully synchronized all VRFs in fabric '{fabric_name}'{self.END}")
             else:
-                print(f"[VRF] VRF synchronization completed with some errors in fabric '{fabric_name}'")
+                print(f"[VRF] {self.YELLOW}{self.BOLD}VRF synchronization completed with some errors in fabric '{fabric_name}'{self.END}")
 
             return overall_success
             
@@ -226,8 +229,8 @@ class VRFManager:
     
     def create_vrf(self, fabric_name: str, vrf_name: str) -> bool:
         """Create a VRF using YAML configuration."""
-        print(f"[VRF] Creating VRF '{vrf_name}' in fabric '{fabric_name}'")
-        
+        print(f"[VRF] {self.GREEN}Creating VRF '{vrf_name}' in fabric '{fabric_name}'{self.END}")
+
         try:
             # Check if VRF already exists
             existing_vrfs = vrf_api.get_VRFs(fabric_name)
@@ -246,13 +249,13 @@ class VRFManager:
     
     def update_vrf(self, fabric_name: str, vrf_name: str) -> bool:
         """Update a VRF using YAML configuration."""
-        print(f"[VRF] Updating VRF '{vrf_name}' in fabric '{fabric_name}'")
+        print(f"[VRF] {self.GREEN}Updating VRF '{vrf_name}' in fabric '{fabric_name}'{self.END}")
         payload, template_config = self._build_complete_payload(fabric_name, vrf_name)
         return vrf_api.update_vrf(fabric_name, vrf_name, payload, template_config)
     
     def delete_vrf(self, fabric_name: str, vrf_name: str) -> bool:
         """Delete a VRF after detaching from all switches."""
-        print(f"[VRF] Deleting VRF '{vrf_name}' in fabric '{fabric_name}'")
+        print(f"[VRF] {self.YELLOW}Deleting VRF '{vrf_name}' in fabric '{fabric_name}'{self.END}")
         print(f"[VRF] Trying to detach '{vrf_name}' from all switches in fabric '{fabric_name}' before deletion")
         if not self._detach_vrf_by_serial_number(fabric_name, vrf_name):
             print(f"[VRF] Failed to detach '{vrf_name}' from all switches in fabric '{fabric_name}', aborting deletion")
@@ -262,21 +265,19 @@ class VRFManager:
     # --- VRF Attachment Operations ---
     def sync_attachments(self, fabric_name: str, role: str, switch_name: str) -> bool:
         """Sync VRF attachments for a specific switch."""
-        print(f"[VRF] Syncing VRF attachments for switch '{switch_name}' in fabric '{fabric_name}'")
+        print(f"[VRF] {self.GREEN}{self.BOLD}Syncing VRF attachments for switch '{switch_name}' in fabric '{fabric_name}'{self.END}")
         success = True
-        print(f"[VRF] Step 1: Detaching unwanted VRFs from switch '{switch_name}' ({role}) in fabric '{fabric_name}'")
         if not self.detach_vrfs(fabric_name, role, switch_name):
             success = False
-        print(f"[VRF] Step 2: Attaching VRFs to switch '{switch_name}' ({role}) in fabric '{fabric_name}'")
         if not self.attach_vrfs(fabric_name, role, switch_name):
             success = False
-        print(f"[VRF] Sync attachments completed for switch '{switch_name}' in fabric '{fabric_name}'")
+        print(f"[VRF] {self.GREEN}{self.BOLD}Sync attachments completed for switch '{switch_name}' in fabric '{fabric_name}'{self.END}")
         return success
 
     def attach_vrf(self, fabric_name: str, role: str, switch_name: str, vrf_name: str) -> bool:
         """Attach a specific VRF to a switch."""
-        print(f"[VRF] Attaching VRF '{vrf_name}' to switch '{switch_name}' in fabric '{fabric_name}'")
-        
+        print(f"[VRF] {self.GREEN}Attaching VRF '{vrf_name}' to switch '{switch_name}' in fabric '{fabric_name}'{self.END}")
+
         try:
             # Load and validate switch configuration
             serial_number = self._get_serial_number(fabric_name, role, switch_name)
@@ -304,10 +305,11 @@ class VRFManager:
 
     def attach_vrfs(self, fabric_name: str, role: str, switch_name: str) -> bool:
         """Attach all VRFs found on switch interfaces based on YAML configuration."""
+        print(f"[VRF] {self.GREEN}{self.BOLD}Attaching VRFs to switch '{switch_name}' in fabric '{fabric_name}'{self.END}")
         try:
             # Load and validate switch configuration
             config_path = self.switch_config_paths['configs_dir'] / fabric_name / role / f"{switch_name}.yaml"
-            print(f"[VRF] Loading switch config from: {config_path}")
+            # print(f"[VRF] Loading switch config from: {config_path}")
             switch_config = load_yaml_file(str(config_path))
             if not switch_config:   
                 print(f"[VRF] Failed to load switch configuration: {config_path}")
@@ -382,7 +384,7 @@ class VRFManager:
     
     def detach_vrf(self, fabric_name: str, role: str, switch_name: str, vrf_name: str) -> bool:
         """Detach a specific VRF from a switch."""
-        print(f"[VRF] Detaching VRF '{vrf_name}' from switch '{switch_name}' in fabric '{fabric_name}'")
+        print(f"[VRF] {self.YELLOW}Detaching VRF '{vrf_name}' from switch '{switch_name}' in fabric '{fabric_name}'{self.END}")
 
         try:
             serial_number = self._get_serial_number(fabric_name, role, switch_name)
@@ -398,6 +400,7 @@ class VRFManager:
 
     def detach_vrfs(self, fabric_name: str, role: str, switch_name: str) -> bool:
         """Detach VRFs that are currently attached in the NDFC by given switch."""
+        print(f"[VRF] {self.YELLOW}{self.BOLD}Detaching VRFs from switch '{switch_name}' ({role}) in fabric '{fabric_name}'{self.END}")
         try:
             # Load and validate switch configuration
             serial_number = self._get_serial_number(fabric_name, role, switch_name)
@@ -440,6 +443,6 @@ class VRFManager:
                 }]
             }
             payload.append(vrf_payload)
-            print(f"[VRF] Added VRF '{item.get('vrf_name')}' on switch (SN: {item.get('serial_number')}, VLAN: {item.get('vlan_id')}) to {'attach' if item.get('deployment') else 'detach'} payload")
+            # print(f"[VRF] Added VRF '{item.get('vrf_name')}' on switch (SN: {item.get('serial_number')}, VLAN: {item.get('vlan_id')}) to {'attach' if item.get('deployment') else 'detach'} payload")
 
         return payload
