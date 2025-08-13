@@ -26,9 +26,6 @@ def update_interface(policy: str, interfaces_payload: List[Dict[str, Any]]) -> b
         "interfaces": interfaces_payload
     }
     r = requests.put(url, headers=headers, json=payload, verify=False)
-    # print if the policy == "int_port_channel_trunk_host"
-    # if "int_port_channel_trunk_host" == policy.lower():
-    #     print(json.dumps(payload, indent=2, ensure_ascii=False))
     return check_status_code(r, operation_name=f"Update Interfaces")
 
 def create_interface(policy: str, interfaces_payload: List[Dict[str, Any]]) -> bool:
@@ -112,3 +109,30 @@ def get_interfaces(serial_number: str = None, if_name: str = None, template_name
         print(f"Interfaces data saved to {interface_dir}/interfaces.json")
     
     return r.json()
+
+def change_interface_admin_status(serial_number: str, if_name: str, payload: Dict[str, Any], admin_status: bool) -> bool:
+    """
+    Change the administrative status of an interface using NDFC API (POST method).
+
+    Args:
+        serial_number: Device serial number
+        if_name: Interface name (e.g., "Ethernet1/1")
+        admin_status: New administrative status (e.g., True or False)
+
+    Returns:
+        Boolean indicating success
+    """
+    status = "Noshut"
+    if admin_status == True:
+        status = "shut"
+    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/interface/adminstatus/{status}/onlySave")
+    headers = get_api_key_header()
+
+    payload = [{
+        "serialNumber": serial_number,
+        "ifName": if_name,
+        "adminStatus": admin_status
+    }]
+
+    r = requests.post(url, headers=headers, json=payload, verify=False)
+    return check_status_code(r, operation_name=f"Change Interface Admin Status")
