@@ -57,10 +57,6 @@ spanning-tree port type edge bpdufilter default
 spanning-tree vlan 1-3967 priority 8192
 line console
   exec-timeout 60
-line vty
-  session-limit 10
-  exec-timeout 60
-  access-class ACL-Telnet in
 logging logfile messages 6 size 81920
 logging server 10.70.32.147 6 use-vrf management
 logging source-interface mgmt0

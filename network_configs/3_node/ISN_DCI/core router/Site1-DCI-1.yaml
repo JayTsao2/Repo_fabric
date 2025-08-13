@@ -11,7 +11,7 @@ Version: 9.3(15) # For switch discovery
 Interface:
 
   - Loopback0:
-      policy: int_loopback0
+      policy: int_loopback
       Interface IP: 192.168.240.1
 
   - Ethernet1/1:
