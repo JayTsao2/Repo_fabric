@@ -249,7 +249,7 @@ class FabricManager:
         else:
             print(f"[Fabric] Leaf Border iBGP Peer-Template Config file not found: {leaf_border_template_path}")
     
-    def _build_complete_payload(self, fabric_name: str) -> Tuple[Dict[str, Any], str, str]:
+    def _build_complete_payload(self, fabric_name: str, use_freeform: bool = True) -> Tuple[Dict[str, Any], str, str]:
         """Build complete fabric payload for API operations."""
         # Determine fabric type
         fabric_type = self._determine_fabric_type_from_file(fabric_name)
@@ -289,19 +289,18 @@ class FabricManager:
         payload_data = self._build_fabric_payload(
             fabric_config, defaults_config, field_mapping, fabric_name, fabric_type
         )
-        
         # Add freeform content for supported fabric types
         if fabric_type in [FabricType.VXLAN_EVPN, FabricType.INTER_SITE_NETWORK]:
             freeform_paths = self._get_freeform_paths(fabric_name, fabric_type, fabric_config)
             
             # Log the freeform config paths being used
-            if freeform_paths:
+            if freeform_paths and use_freeform:
                 print("[Fabric] Using freeform config files:")
                 for config_type, path in freeform_paths.items():
                     if path:
                         print(f"  {config_type.title()}: {path}")
             
-            self._add_freeform_content_to_payload(payload_data, fabric_type, freeform_paths, fabric_config)
+                self._add_freeform_content_to_payload(payload_data, fabric_type, freeform_paths, fabric_config)
         # Get template name from fabric type
         template_name = fabric_type.value
         
@@ -320,8 +319,7 @@ class FabricManager:
                     print(f"[Fabric] {self.YELLOW}Fabric '{fabric_name}' already exists.{self.END}")
                     return True
 
-            payload_data, template_name, fabric_name_resolved = self._build_complete_payload(fabric_name)
-            
+            payload_data, template_name, fabric_name_resolved = self._build_complete_payload(fabric_name, False)
             # Determine config file path for logging
             fabric_type = self._determine_fabric_type_from_file(fabric_name)
             if fabric_type == FabricType.VXLAN_EVPN:
@@ -344,11 +342,9 @@ class FabricManager:
     
     def update_fabric(self, fabric_name: str) -> bool:
         """Update a fabric using YAML configuration."""
-        print(f"[Fabric] Updating fabric '{fabric_name}'")
-        
+        print(f"[Fabric] {self.GREEN}{self.BOLD}Updating fabric '{fabric_name}'{self.END}")
         try:
-            payload_data, template_name, fabric_name_resolved = self._build_complete_payload(fabric_name)
-            
+            payload_data, template_name, fabric_name_resolved = self._build_complete_payload(fabric_name, True)
             # Determine config file path for logging
             fabric_type = self._determine_fabric_type_from_file(fabric_name)
             if fabric_type == FabricType.VXLAN_EVPN:
@@ -359,7 +355,6 @@ class FabricManager:
                 config_path = str(self.fabric_paths['inter_site'] / f"{fabric_name}.yaml")
             
             print(f"[Fabric] Using config file: {config_path}")
-            
             return fabric_api.update_fabric(
                 fabric_name=fabric_name_resolved,
                 template_name=template_name,
@@ -371,7 +366,7 @@ class FabricManager:
     
     def delete_fabric(self, fabric_name: str) -> bool:
         """Delete a fabric."""
-        print(f"[Fabric] {self.YELLOW}Deleting fabric '{fabric_name}'{self.END}")
+        print(f"[Fabric] {self.YELLOW}{self.BOLD}Deleting fabric '{fabric_name}'{self.END}")
         return fabric_api.delete_fabric(fabric_name)
     
     # --- Configuration Operations ---

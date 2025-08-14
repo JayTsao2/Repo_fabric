@@ -3,6 +3,7 @@ Configuration Utilities - High-level utilities for fabric configuration manageme
 Contains YAML processing, config merging, and build-specific functions.
 Used by build_fabric.py for configuration processing.
 """
+import json
 import yaml
 from typing import Dict, Any, Optional, List, Tuple
 from pathlib import Path
@@ -78,6 +79,8 @@ def apply_field_mapping(config: Dict[str, Any], mapping: Dict[str, Any]) -> Dict
     mapped_config = {}
     for key, value in config.items():
         if key in mapping and mapping[key] is not None:
+            if isinstance(value, str) and (".sh" in value or "Banner" in value):
+                continue
             mapped_config[mapping[key]] = value
         elif key not in mapping:
             # Keep unmapped fields as-is
