@@ -319,7 +319,7 @@ class FabricManager:
                     print(f"[Fabric] {self.YELLOW}Fabric '{fabric_name}' already exists.{self.END}")
                     return True
 
-            payload_data, template_name, fabric_name_resolved = self._build_complete_payload(fabric_name, False)
+            payload_data, template_name, fabric_name_resolved = self._build_complete_payload(fabric_name)
             # Determine config file path for logging
             fabric_type = self._determine_fabric_type_from_file(fabric_name)
             if fabric_type == FabricType.VXLAN_EVPN:
