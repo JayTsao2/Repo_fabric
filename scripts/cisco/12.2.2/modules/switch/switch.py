@@ -43,6 +43,7 @@ class SwitchManager:
         self.config_base_path = self.config_paths['configs_dir']
         self.GREEN = '\033[92m'
         self.YELLOW = '\033[93m'
+        self.BOLD = '\033[1m'
         self.END = '\033[0m'
 
     def _validate_switch_role(self, role: str) -> bool:
@@ -371,14 +372,30 @@ class SwitchManager:
         
     def rediscover_switch(self, fabric_name: str, role: str, switch_name: str) -> bool:
         """Rediscover a switch by its name."""
-        switch_data = self._load_switch_config(fabric_name, role, switch_name)
-        if not switch_data:
+        config = self._load_switch_config(fabric_name, role, switch_name)
+        if not config:
+            print(f"[Switch] Error: Switch {switch_name} configuration not found")
             return False
-        
-        serial_number = switch_data.get("Serial Number")
+
+        serial_number = config.get("Serial Number")
         if not serial_number:
             print(f"[Switch] Error: Serial Number not found in {switch_name} configuration")
             return False
-
-        print(f"[Switch] {self.YELLOW}Rediscovering switch {switch_name} with serial {serial_number}{self.END}")
-        return switch_api.rediscover_device(fabric_name, serial_number)
+        
+        success = False
+        check_interval = 10
+        while not success:
+            print(f"[Switch] {self.GREEN}{self.BOLD}Rediscovering switch {switch_name} with serial {serial_number}{self.END}")
+            switch_data = switch_api.get_switches(fabric_name)
+            for switch in switch_data:
+                if switch['logicalName'] != switch_name:
+                    continue
+                status = switch["status"]
+                if status == "ok":
+                    print(f"[Switch] {self.GREEN}Status of switch {switch_name} is now OK.{self.END}")
+                    success = True
+                    break
+                print(f"[Switch] {self.YELLOW}Status of switch {switch_name} is {status}, retrying...{self.END}")
+                switch_api.rediscover_device(fabric_name, serial_number)
+                time.sleep(check_interval)
+        return True
