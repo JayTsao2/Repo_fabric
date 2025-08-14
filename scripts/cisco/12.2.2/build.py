@@ -40,6 +40,8 @@ class FabricBuilder:
         self.switch_manager = SwitchManager()
         self.interface_manager = InterfaceManager()
         self.vpc_manager = VPCManager()
+
+        self.YELLOW = '\033[93m'
         self.BOLD = '\033[1m'
         self.END = '\033[0m'  # Reset to default color
 
@@ -162,19 +164,12 @@ class FabricBuilder:
                     self.switch_manager.discover_switch(fabric_name, role_name, switch, preserve_config=preserve_config)
                     self.switch_manager.set_switch_role(fabric_name, role_name, switch)
 
-        # Recalculate for each fabric
-        print(f"{self.BOLD}{'=' * 20}Recalculate for each fabric{'=' * 20}{self.END}")
+        # Check switch reachability
+        print(f"{self.BOLD}{'=' * 20}Checking switch reachability for each fabric{'=' * 20}{self.END}")
         for fabric_name in fabric_list:
-            success = self.fabric_manager.recalculate_config(fabric_name)
-            print(f"{self.BOLD}{'=' * 20}Rediscovering Switches for fabric {fabric_name}{'=' * 20}{self.END}")
-            while not success:
-                # Sleep for 30 secs
-                time.sleep(30)
-                for role_name, switches in switches_data[fabric_name].items():
-                    for switch in switches:
-                        self.switch_manager.rediscover_switch(fabric_name, role_name, switch)
-                time.sleep(20)
-                success = self.fabric_manager.recalculate_config(fabric_name)
+            for role_name, switches in switches_data[fabric_name].items():
+                for switch in switches:
+                    self.switch_manager.rediscover_switch(fabric_name, role_name, switch)
 
         # Add fabrics to MSD
         print(f"{self.BOLD}{'=' * 20}Add fabrics to MSD{'=' * 20}{self.END}")
@@ -183,13 +178,32 @@ class FabricBuilder:
                 for fabric_name in fabric_list:
                     self.fabric_manager.add_to_msd(msd, fabric_name)
 
-        print(f"{self.BOLD}{'=' * 20}Recalculate for MSD{'=' * 20}{self.END}")
+        print(f"{self.BOLD}{'=' * 20}Recalculate & deploy for each fabric{'=' * 20}{self.END}")
+        for fabric_name in fabric_list:
+            success = self.fabric_manager.recalculate_config(fabric_name)
+            while not success:
+                # Sleep for 30 secs
+                time.sleep(30)
+                success = self.fabric_manager.recalculate_config(fabric_name)
+            self.fabric_manager.deploy_fabric(fabric_name)
         for fabric_name in msd_list:
             success = self.fabric_manager.recalculate_config(fabric_name)
             while not success:
                 # Sleep for 30 secs
                 time.sleep(30)
                 success = self.fabric_manager.recalculate_config(fabric_name)
+            self.fabric_manager.deploy_fabric(fabric_name)
+        
+        for fabric_name in fabric_list:
+            for role_name, switches in switches_data[fabric_name].items():
+                retry_time = 10
+                for switch in switches:
+                    # Check interface operation status
+                    print(f"{self.BOLD}{'=' * 20}Check interface operation status for {switch} in {fabric_name}{self.END}")
+                    while not self.interface_manager.check_interface_operation_status(fabric_name, role_name, switch):
+                        print(f"{self.BOLD}{self.YELLOW}Interface operation status check failed for {switch} in {fabric_name}. Trying in {retry_time} seconds.{self.END}")
+                        time.sleep(retry_time)
+                        
         # Create VRFs (delete unwanted, update existing, create missing)
         print(f"{self.BOLD}{'=' * 20}Create VRFs{'=' * 20}{self.END}")
         for msd in msd_list:
@@ -226,6 +240,7 @@ class FabricBuilder:
             for role_name, switches in roles.items():
                 for switch in switches:
                     self.interface_manager.update_switch_interfaces(fabric_name, role_name, switch)
+                    # self.interface_manager.deploy_switch_interfaces(fabric_name, role_name, switch)
 
         # Create VPC pairs for each fabric
         # print(f"{self.BOLD}{'=' * 20}Create VPC pairs{'=' * 20}{self.END}")
@@ -239,7 +254,7 @@ class FabricBuilder:
             for role_name, switches in roles.items():
                 for switch in switches:
                     self.switch_manager.set_switch_freeform(fabric_name, role_name, switch)
-
+                    
         # Final recalculate for each fabric
         print(f"{self.BOLD}{'=' * 20}Final recalculate for each fabric{'=' * 20}{self.END}")
         for fabric_name in fabric_list:
