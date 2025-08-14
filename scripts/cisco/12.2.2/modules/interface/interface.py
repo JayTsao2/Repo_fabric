@@ -39,27 +39,27 @@ class InterfaceManager:
         print(f"[Interface] {self.GREEN}{self.BOLD}Checking interface operation status for switch '{switch_name}' ({role}) in fabric '{fabric_name}'{self.END}")
         switch_config = self._load_config(fabric_name, role, switch_name)
         if not switch_config or "Interface" not in switch_config:
-            print(f"[Interface] {self.RED}Error: No interface configuration found for '{switch_name}'{self.END}")
-            return False
+            print(f"[Interface] {self.YELLOW}Warning: No interface configuration found for '{switch_name}', skipping.{self.END}")
+            return True
         
         serial_number = switch_config.get("Serial Number")
         if not serial_number:
-            print(f"[Interface] {self.RED}Error: No serial number found in switch config for '{switch_name}'{self.END}")
-            return False    
-        
+            print(f"[Interface] {self.YELLOW}Warning: No serial number found in switch config for '{switch_name}', skipping.{self.END}")
+            return True
+
         for interface_dict in switch_config["Interface"]:
             interface_name = next(iter(interface_dict.keys()))
             interface_config = interface_dict[interface_name]
 
-            admin_status = interface_config.get("Enable Interface")
-            if admin_status is None:
-                admin_status = interface_config.get("Enable Port Channel")
-            
-            if admin_status is None:
+            admin_status_config = interface_config.get("Enable Interface")
+            if admin_status_config is None:
+                admin_status_config = interface_config.get("Enable Port Channel")
+
+            if admin_status_config is None:
                 print(f"[Interface] {self.YELLOW}Warning: No admin status found for interface '{interface_name}' in config, skipping.{self.END}")
                 continue
 
-            if admin_status == False:
+            if admin_status_config == False:
                 print(f"[Interface] {self.YELLOW}Interface '{interface_name}' is administratively down, skip interface operation status check.{self.END}")
                 continue
             policy = interface_config.get("policy", "").lower()
@@ -71,9 +71,10 @@ class InterfaceManager:
             if not data:
                 print(f"[Interface] {self.RED}Error: No data found for interface '{interface_name}'{self.END}")
                 continue
-            status = data.get("operStatusStr", "unknown")
-            if status != "up":
-                print(f"[Interface] {self.RED}Error: Operation status for Interface '{interface_name}' is {status}{self.END}")
+            oper_status = data.get("operStatusStr", "unknown")
+            admin_status = data.get("adminStatusStr", "unknown")
+            if oper_status != admin_status:
+                print(f"[Interface] {self.RED}Error: Operation status for Interface '{interface_name}' is {oper_status}, but admin status is {admin_status}.{self.END}")
                 return False
         print(f"[Interface] {self.GREEN}{self.BOLD}All interfaces for switch '{switch_name}' are operational.{self.END}")
         return True
