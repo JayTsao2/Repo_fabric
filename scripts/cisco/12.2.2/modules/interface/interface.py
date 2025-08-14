@@ -33,7 +33,51 @@ class InterfaceManager:
     def _load_config(self, fabric_name: str, role: str, switch_name: str) -> Dict[str, Any]:
         """Load and validate switch configuration from YAML file."""
         return load_yaml_file(str(self.switch_base_path / fabric_name / role / f"{switch_name}.yaml"))
-    
+
+    def check_interface_operation_status(self, fabric_name: str, role: str, switch_name: str) -> bool:
+        """Check the operational status of interfaces for a switch."""
+        print(f"[Interface] {self.GREEN}{self.BOLD}Checking interface operation status for switch '{switch_name}' ({role}) in fabric '{fabric_name}'{self.END}")
+        switch_config = self._load_config(fabric_name, role, switch_name)
+        if not switch_config or "Interface" not in switch_config:
+            print(f"[Interface] {self.RED}Error: No interface configuration found for '{switch_name}'{self.END}")
+            return False
+        
+        serial_number = switch_config.get("Serial Number")
+        if not serial_number:
+            print(f"[Interface] {self.RED}Error: No serial number found in switch config for '{switch_name}'{self.END}")
+            return False    
+        
+        for interface_dict in switch_config["Interface"]:
+            interface_name = next(iter(interface_dict.keys()))
+            interface_config = interface_dict[interface_name]
+
+            admin_status = interface_config.get("Enable Interface")
+            if admin_status is None:
+                admin_status = interface_config.get("Enable Port Channel")
+            
+            if admin_status is None:
+                print(f"[Interface] {self.YELLOW}Warning: No admin status found for interface '{interface_name}' in config, skipping.{self.END}")
+                continue
+
+            if admin_status == False:
+                print(f"[Interface] {self.YELLOW}Interface '{interface_name}' is administratively down, skip interface operation status check.{self.END}")
+                continue
+            policy = interface_config.get("policy", "").lower()
+            if policy:
+                continue
+            # print(f"[Interface] Interface '{interface_name}' does not have a policy defined, checking the operation status.{self.END}")
+            data = interface_api.get_interface_details(serial_number, interface_name)
+            data = data[0] if isinstance(data, list) and len(data) > 0 else data
+            if not data:
+                print(f"[Interface] {self.RED}Error: No data found for interface '{interface_name}'{self.END}")
+                continue
+            status = data.get("operStatusStr", "unknown")
+            if status != "up":
+                print(f"[Interface] {self.RED}Error: Operation status for Interface '{interface_name}' is {status}{self.END}")
+                return False
+        print(f"[Interface] {self.GREEN}{self.BOLD}All interfaces for switch '{switch_name}' are operational.{self.END}")
+        return True
+
     def update_switch_interfaces(self, fabric_name: str, role: str, switch_name: str) -> bool:
         """Update all interfaces for a switch based on YAML configuration."""
         print(f"[Interface] {self.GREEN}{self.BOLD}Updating interfaces for switch '{switch_name}' ({role}) in fabric '{fabric_name}'{self.END}")
@@ -83,6 +127,30 @@ class InterfaceManager:
             print(f"[Interface] Error updating switch interfaces: {e}")
             return False
     
+    def deploy_switch_interfaces(self, fabric_name: str, role: str, switch_name: str) -> bool:
+        """Deploy the interfaces configuration"""
+        print(f"[Interface] {self.GREEN}{self.BOLD}Deploying interfaces for switch '{switch_name}' ({role}) in fabric '{fabric_name}'{self.END}")
+        try:
+            switch_config = self._load_config(fabric_name, role, switch_name)
+            if not switch_config or "Interface" not in switch_config:
+                print(f"[Interface] {self.RED}Error: No interface configuration found for '{switch_name}'{self.END}")
+                return False
+            serial_number = switch_config.get("Serial Number")
+            if not serial_number:
+                print(f"[Interface] {self.RED}Error: No serial number found in switch config for '{switch_name}'{self.END}")
+                return False
+
+            # Process all interfaces
+            for interface_dict in switch_config["Interface"]:
+                interface_name = next(iter(interface_dict.keys()))
+                if not interface_api.deploy_interface(serial_number, interface_name):
+                    print(f"[Interface] {self.RED}Error deploying interface '{interface_name}' on switch '{switch_name}'{self.END}")
+            print(f"[Interface] {self.GREEN}{self.BOLD}Successfully deployed interfaces for switch '{switch_name}'{self.END}")
+            return True
+
+        except Exception as e:
+            print(f"[Interface] Error deploying switch interfaces: {e}")
+            return False
 
     def _create_port_channel_mapping(self, name, data):
         """Create mapping of member interfaces to port channel names."""

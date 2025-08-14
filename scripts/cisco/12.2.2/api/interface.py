@@ -136,3 +136,47 @@ def change_interface_admin_status(serial_number: str, if_name: str, payload: Dic
 
     r = requests.post(url, headers=headers, json=payload, verify=False)
     return check_status_code(r, operation_name=f"Change Interface Admin Status")
+
+def get_interface_details(serial_number: str, if_name: str) -> Dict[str, Any]:
+    """
+    Get detailed information about a specific interface using NDFC API (GET method).
+
+    Args:
+        serial_number: Device serial number
+        if_name: Interface name (e.g., "Ethernet1/1")
+
+    Returns:
+        Dictionary containing interface details
+    """
+    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/interface/detail/filter")
+    headers = get_api_key_header()
+    query_params = {
+        "serialNumber": serial_number,
+        "ifName": if_name
+    }
+
+    r = requests.get(url, headers=headers, params=query_params, verify=False)
+    check_status_code(r, operation_name="Get Interface Details")
+
+    return r.json()
+
+def deploy_interface(serial_number: str, if_name: str) -> bool:
+    """
+    Deploy the interface configuration using NDFC API (POST method).
+
+    Args:
+        serial_number: Device serial number
+        if_name: Interface name (e.g., "Ethernet1/1")
+
+    Returns:
+        Boolean indicating success
+    """
+    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/interface/deploy")
+    headers = get_api_key_header()
+    payload = [{
+        "serialNumber": serial_number,
+        "ifName": if_name
+    }]
+
+    r = requests.post(url, headers=headers, json=payload, verify=False)
+    return check_status_code(r, operation_name=f"Deploy Interface")
