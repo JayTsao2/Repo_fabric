@@ -145,7 +145,7 @@ class SwitchManager:
     
     def delete_switch(self, fabric_name: str, role: str, switch_name: str) -> bool:
         """Delete switch based on YAML configuration."""
-        print(f"[Switch] Deleting switch {switch_name} from fabric {fabric_name}")
+        print(f"[Switch] {self.YELLOW}{self.BOLD}Deleting switch {switch_name} from fabric {fabric_name}{self.END}")
         
         switch_data = self._load_switch_config(fabric_name, role, switch_name)
         if not switch_data:
@@ -155,8 +155,6 @@ class SwitchManager:
         if not serial_number:
             print(f"[Switch] Error: Serial Number not found in {switch_name} configuration")
             return False
-        
-        print(f"[Switch] Deleting switch {switch_name} with serial {serial_number}")
         return switch_api.delete_switch(fabric_name, serial_number)
     
     def set_switch_role(self, fabric_name: str, role: str, switch_name: str) -> bool:
