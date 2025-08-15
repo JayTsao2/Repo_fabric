@@ -1,5 +1,6 @@
 ---
 Fabric:
+  Name: Site1
   type: Data Center VXLAN EVPN
   Location: San Jose, US
 
@@ -16,14 +17,14 @@ Manageability:
   Syslog Server IPs: 10.228.90.42,10.228.90.43,10.11.116.100,10.11.117.100
 
   AAA Freeform Config: 
-    Freeform: Site1_FreeForm\AAA Freeform Config
+    Freeform: Site1_FreeForm\AAA Freeform Config.sh
 
 Advanced:
   Leaf Freeform Config: # Additional CLIs, added before interface configurations, for all Leafs as captured from Show Running Configuration
-    Freeform: Site1_FreeForm\Leaf Freeform Config
+    Freeform: Site1_FreeForm\Leaf Freeform Config.sh
   Spine Freeform Config: 
-    Freeform: Site1_FreeForm\Spine Freeform Config
+    Freeform: Site1_FreeForm\Spine Freeform Config.sh
   Intra-fabric Links Additional Config: 
-    Freeform: Site1_FreeForm\Intra-fabric Links Additional Config
+    Freeform: Site1_FreeForm\Intra-fabric Links Additional Config.sh
 
 

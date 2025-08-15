@@ -1,5 +1,6 @@
 ---
 Change Mode: Normal # Normal <> maintenance 
+Hostname: Site2-L1
 IP Address: 10.192.195.81
 IP Netmask Length: 24 # For management interface
 Role: Leaf
@@ -7,7 +8,7 @@ Serial Number: 9JF2ODAS3WZ
 Platform: N9K-C9300v # For switch discovery
 Version: 9.3(15) # For switch discovery
 
-Switch Freeform Config: FreeForm\Route_Leak,FreeForm\VPC11
+Switch Freeform Config: FreeForm\Route_Leak.sh, FreeForm\VPC11.sh
 
 Interface:
 

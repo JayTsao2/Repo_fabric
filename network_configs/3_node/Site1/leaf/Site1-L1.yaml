@@ -1,5 +1,6 @@
 ---
 Change Mode: Normal # Normal <> maintenance 
+Hostname: Site1-L1
 IP Address: 10.192.195.71
 IP Netmask Length: 24 # For management interface
 Role: Leaf
@@ -7,7 +8,7 @@ Serial Number: 9W4GBLXU5CR
 Platform: N9K-C9300v # For switch discovery
 Version: 9.3(15) # For switch discovery
 
-Switch Freeform Config: FreeForm\Route_Leak,FreeForm\Shared_VRF_Z01
+Switch Freeform Config: FreeForm\Route_Leak.sh, FreeForm\Shared_VRF_Z01.sh
 
 Interface:
 
@@ -108,7 +109,7 @@ Interface:
       MTU: 9100
       SPEED: Auto
       Enable Interface: True
-      Freeform Config: FreeForm\L3_Link_Local
+      Freeform Config: FreeForm\L3_Link_Local.sh
 
   - Ethernet1/16:
       policy: int_routed_host
@@ -119,21 +120,25 @@ Interface:
       MTU: 9100
       SPEED: Auto
       Enable Interface: True
-      Freeform Config: FreeForm\L3_Link_Local
+      Freeform Config: FreeForm\L3_Link_Local.sh
 
   - Ethernet1/17:
+      policy: int_port_channel_trunk_member_11_1
       Interface Description: Port-channel501
       Enable Interface: True
 
   - Ethernet1/18: 
+      policy: int_port_channel_trunk_member_11_1
       Interface Description: Port-channel501
       Enable Interface: True
 
   - Ethernet1/19:
+      policy: int_port_channel_trunk_member_11_1
       Interface Description: Port-channel501
       Enable Interface: True
 
   - Ethernet1/20:
+      policy: int_port_channel_trunk_member_11_1
       Interface Description: Port-channel501
       Enable Interface: True
 

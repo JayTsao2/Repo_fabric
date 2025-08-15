@@ -6,8 +6,6 @@ Provides configuration objects for different modules.
 Centralizes configuration creation and management.
 """
 
-from pathlib import Path
-from typing import Any, Dict
 from .paths import project_paths
 
 class ConfigFactory:
@@ -17,22 +15,15 @@ class ConfigFactory:
     def create_vrf_config():
         """Create VRF configuration."""
         paths = project_paths.get_vrf_paths()
-        # Import here to avoid circular imports
-        from modules.vrf import VRFConfig
+        # Return simple configuration object instead of importing VRFConfig
+        class VRFConfig:
+            def __init__(self, config_path, defaults_path, field_mapping_path):
+                self.config_path = config_path
+                self.defaults_path = defaults_path
+                self.field_mapping_path = field_mapping_path
+        
         return VRFConfig(
             config_path=str(paths['configs']),
-            defaults_path=str(paths['defaults']),
-            field_mapping_path=str(paths['field_mapping'])
-        )
-    
-    @staticmethod
-    def create_fabric_config(fabric_name: str):
-        """Create fabric configuration."""
-        paths = project_paths.get_fabric_paths()
-        # Import here to avoid circular imports
-        from modules.fabric import FabricConfig
-        return FabricConfig(
-            config_path=str(paths['configs'] / f"{fabric_name}.yaml"),
             defaults_path=str(paths['defaults']),
             field_mapping_path=str(paths['field_mapping'])
         )
@@ -84,10 +75,5 @@ class ConfigFactory:
         """Get fabric-related paths."""
         return project_paths.get_fabric_paths()
     
-    @staticmethod
-    def get_freeform_paths(fabric_name: str = None):
-        """Get freeform configuration paths."""
-        return project_paths.get_freeform_paths(fabric_name)
-
 # Global factory instance
 config_factory = ConfigFactory()

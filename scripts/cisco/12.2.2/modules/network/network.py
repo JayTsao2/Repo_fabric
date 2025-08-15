@@ -7,7 +7,7 @@ This module provides a clean, unified interface for all network operations with:
 - Network CRUD operations with configuration merging
 - Template payload generation with field mapping
 - Corp defaults integration and Layer 2 Only support
-- Network attachment/detachment to switch interfaces
+- Network attachment/detachment to switches (reads switch config for serial number, no interface parsing)
 """
 
 from typing import List, Dict, Any, Tuple, Optional
@@ -27,13 +27,16 @@ class NetworkManager:
         self.defaults_path = self.config_paths['defaults_path']
         self.field_mapping_path = self.config_paths['field_mapping_path']
         self.config_path = self.config_paths['config_path']
-        # Initialize network API
-        self.network_api = network_api
         # Lazy-loaded cached configurations
         self._defaults = None
         self._field_mapping = None
         self._networks = None
-    
+
+        self.GREEN = '\033[92m'
+        self.YELLOW = '\033[93m'
+        self.BOLD = '\033[1m'
+        self.END = '\033[0m'
+
     @property
     def defaults(self) -> Dict[str, Any]:
         """Get corp defaults with lazy loading."""
@@ -58,19 +61,19 @@ class NetworkManager:
     def _load_networks(self) -> None:
         """Load network configurations from YAML file."""
         try:
+            print(f"[Network] Loading network config from: {self.config_path}")
             config_data = load_yaml_file(str(self.config_path))
             self._networks = config_data.get('Network', [])
         except Exception as e:
             print(f"Error loading network configuration: {e}")
             self._networks = []
     
-    def _get_network(self, fabric_name: str, network_name: str) -> Optional[Dict[str, Any]]:
-        """Find network by fabric and name."""
-        return next(
-            (net for net in self.networks 
-             if net.get('Fabric') == fabric_name and net.get('Network Name') == network_name),
-            None
-        )
+    def _get_network(self, network_name: str) -> Optional[Dict[str, Any]]:
+        """Find network by name regardless of fabric."""
+        for net in self.networks:
+            if net.get('Network Name') == network_name:
+                return net
+        return None
     
     def _get_effective_vrf(self, network: Dict[str, Any]) -> str:
         """Return VRF name, 'NA' if Layer 2 Only."""
@@ -80,7 +83,7 @@ class NetworkManager:
         """Validate required resource files exist."""
         validate_configuration_files([str(self.defaults_path), str(self.field_mapping_path)])
     
-    def _build_network_template_config(self, fabric_name: str, network_name: str, network: Dict[str, Any]) -> Dict[str, Any]:
+    def _build_network_template_config(self, network_name: str, network: Dict[str, Any]) -> Dict[str, Any]:
         """Build network template configuration dictionary."""
         # Extract required fields from network data
         vlan_name = network.get('VLAN Name', '')
@@ -173,246 +176,275 @@ class NetworkManager:
         """Build complete network payload for API operations."""
         self._validate_resources()
         
-        network = self._get_network(fabric_name, network_name)
+        network = self._get_network(network_name)
         if not network:
-            raise ValueError(f"Network '{network_name}' not found in fabric '{fabric_name}'")
+            raise ValueError(f"Network '{network_name}' not found in configuration")
         
         # Build network payload using dictionary approach
         payload = self._build_network_payload(fabric_name, network_name, network)
         
         # Build template config using dictionary approach
-        template_config = self._build_network_template_config(fabric_name, network_name, network)
-        
+        template_config = self._build_network_template_config(network_name, network)
+
         # Return both payload and template config as dictionaries
         # The API layer will handle JSON encoding
         return payload, template_config
+
+    def _get_serial_number(self, fabric_name: str, role: str, switch_name: str) -> Optional[str]:
+        """Get the serial number of a switch in a fabric."""
+        switch_path = self.switch_config_paths['configs_dir'] / fabric_name / role / f"{switch_name}.yaml"
+        if not switch_path.exists():
+            print(f"[Network] Switch configuration not found: {switch_path}")
+            return None
+
+        switch_config = load_yaml_file(str(switch_path))
+        if not switch_config:
+            print(f"[Network] Failed to load switch configuration: {switch_path}")
+            return None
+
+        serial_number = switch_config.get('Serial Number', '')
+        if not serial_number:
+            print(f"[Network] No serial number found in switch configuration: {switch_name}")
+            return None
+
+        return serial_number
     
     # --- Network CRUD Operations ---
     
+    def sync(self, fabric_name: str) -> bool:
+        """Update all networks for a fabric - delete unwanted, update existing, and create missing networks."""
+        print(f"[Network] {self.GREEN}{self.BOLD}Updating all networks in fabric '{fabric_name}'{self.END}")
+
+        try:
+            # Get existing networks from the fabric
+            existing_networks = network_api.get_networks(fabric_name)
+            existing_network_names = {net.get('networkName') for net in existing_networks}
+            # print(f"[Network] Found {len(existing_network_names)} existing networks: {existing_network_names}")
+            
+            # Get networks from YAML config for this fabric
+            fabric_networks = [net for net in self.networks if net.get('Fabric') == fabric_name]
+            yaml_network_names = {net.get('Network Name') for net in fabric_networks}
+            # print(f"[Network] Found {len(yaml_network_names)} networks in YAML: {yaml_network_names}")
+            
+            # Find networks to delete (exist in fabric but not in YAML)
+            networks_to_delete = existing_network_names - yaml_network_names
+            # print(f"[Network] Networks to delete: {networks_to_delete if networks_to_delete else 'None'}")
+            
+            # Find networks to create (exist in YAML but not in fabric)
+            networks_to_create = yaml_network_names - existing_network_names
+            # print(f"[Network] Networks to create: {networks_to_create if networks_to_create else 'None'}")
+            
+            # Find networks to update (exist in both fabric and YAML)
+            networks_to_update = existing_network_names.intersection(yaml_network_names)
+            # print(f"[Network] Networks to update: {networks_to_update if networks_to_update else 'None'}")
+            
+            overall_success = True
+            
+            # Delete unwanted networks
+            for network_name in networks_to_delete:
+                if not self.delete_network(fabric_name, network_name):
+                    overall_success = False
+    
+            # Update existing networks
+            for network_name in networks_to_update:
+                if not self.update_network(fabric_name, network_name):
+                    overall_success = False
+
+            # Create missing networks
+            for network_name in networks_to_create:
+                if not self.create_network(fabric_name, network_name):
+                    overall_success = False
+
+            if overall_success:
+                print(f"[Network] {self.GREEN}{self.BOLD}Successfully synchronized all networks in fabric '{fabric_name}'{self.END}")
+            else:
+                print(f"[Network] {self.YELLOW}{self.BOLD}Network synchronization completed with some errors in fabric '{fabric_name}'{self.END}")
+
+            return overall_success
+            
+        except Exception as e:
+            print(f"[Network] Error updating networks: {e}")
+            return False
+    
     def create_network(self, fabric_name: str, network_name: str) -> bool:
         """Create a network using YAML configuration."""
-        print(f"[Network] Creating network: {network_name} in fabric: {fabric_name}")
-        payload, template_config = self._build_complete_payload(fabric_name, network_name)
-        return network_api.create_network(fabric_name, payload, template_config)
+        print(f"[Network] {self.GREEN}Creating network '{network_name}' in fabric '{fabric_name}'{self.END}")
+
+        try:
+            # Check if network already exists
+            existing_networks = network_api.get_networks(fabric_name)
+            existing_network_names = {net.get('networkName') for net in existing_networks}
+            
+            if network_name in existing_network_names:
+                print(f"[Network] Network '{network_name}' already exists in fabric '{fabric_name}', skipping creation")
+                return True
+            
+            payload, template_config = self._build_complete_payload(fabric_name, network_name)
+            return network_api.create_network(fabric_name, payload, template_config)
+            
+        except Exception as e:
+            print(f"[Network] Error creating network '{network_name}': {e}")
+            return False
     
     def update_network(self, fabric_name: str, network_name: str) -> bool:
         """Update a network using YAML configuration."""
-        print(f"[Network] Updating network: {network_name} in fabric: {fabric_name}")
+        print(f"[Network] {self.GREEN}Updating network '{network_name}' in fabric '{fabric_name}'{self.END}")
         payload, template_config = self._build_complete_payload(fabric_name, network_name)
         return network_api.update_network(fabric_name, payload, template_config)
 
     
     def delete_network(self, fabric_name: str, network_name: str) -> bool:
-        """Delete a network."""
-        print(f"[Network] Deleting network: {network_name} in fabric: {fabric_name}")
+        """Delete a network after detaching from all switches."""
+        print(f"[Network] {self.YELLOW}Deleting network '{network_name}' in fabric '{fabric_name}'{self.END}")
+        print(f"[Network] Trying to detach '{network_name}' from all switches in fabric '{fabric_name}' before deletion")
+        if not self._detach_network_by_serial_number(fabric_name, network_name):
+            print(f"[Network] Failed to detach '{network_name}' from all switches in fabric '{fabric_name}', aborting deletion")
+            return False
         return network_api.delete_network(fabric_name, network_name)
+    
+    def _detach_network_by_serial_number(self, fabric_name: str, network_name: str, serial_number: str = None) -> bool:
+        """Detach a network from a switch by serial number."""
+        network_attachments = network_api.get_network_attachment(fabric_name, save_files=False)
+        detach_data = []
+        for attachment in network_attachments:
+            lan_attach_list = attachment.get('lanAttachList', [])
+            for lan_attach in lan_attach_list:
+                if lan_attach.get('switchSerialNo') != serial_number:
+                    continue
+                if not lan_attach.get('isLanAttached'):
+                    continue
+                network_name = lan_attach.get('networkName', 'unknown')
+                detach_data.append({
+                    'network_name': network_name,
+                    'serial_number': serial_number,
+                    'vlan_id': lan_attach.get('vlanId', -1),
+                })
+        payload = self._build_detach_payload(fabric_name, detach_data)
+        if not payload:
+            print(f"[Network] No networks to detach from switch ({serial_number}) in fabric '{fabric_name}'")
+            return True
+
+        return network_api.detach_network(fabric_name, payload)
+    
+    def _build_detach_payload(self, fabric_name: str, detach_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Build detach payload from normalized data structure."""
+        payload = []
+        for data in detach_data:
+            network_name = data['network_name']
+            serial_number = data['serial_number']
+            vlan_id = data['vlan_id']
+            
+            network_payload = {
+                "networkName": network_name,
+                "lanAttachList": [{
+                    "fabric": fabric_name,
+                    "networkName": network_name,
+                    "serialNumber": serial_number,
+                    "vlan": vlan_id,
+                    "switchPorts": "",
+                    "detachSwitchPorts": "",
+                }]
+            }
+            payload.append(network_payload)
+            # print(f"[Network] Added network '{network_name}' on switch (SN: {serial_number}, VLAN: {vlan_id}) to detach payload")
+        
+        return payload
     
     # --- Network Attachment Operations ---
     
+    def sync_attachments(self, fabric_name: str, role: str, switch_name: str) -> bool:
+        """Sync network attachments for a specific switch."""
+        print(f"[Network] {self.GREEN}{self.BOLD}Syncing network attachments for switch '{switch_name}' in fabric '{fabric_name}'{self.END}")
+        success = True
+        if not self.detach_networks(fabric_name, role, switch_name):
+            success = False
+        if not self.attach_networks(fabric_name, role, switch_name):
+            success = False
+        print(f"[Network] {self.GREEN}{self.BOLD}Sync attachments completed for switch '{switch_name}' in fabric '{fabric_name}'{self.END}")
+        return success
+    
     def attach_networks(self, fabric_name: str, role: str, switch_name: str) -> bool:
-        """Attach networks to switch interfaces based on YAML configuration."""
-        print(f"[Network] Attaching networks to switch: {switch_name} in fabric: {fabric_name}, role: {role}")
-        
+        """Attach all networks to a device based on YAML configuration."""
+        print(f"[Network] {self.GREEN}Attaching networks to switch '{switch_name}' ({role}) in fabric '{fabric_name}'{self.END}")
         try:
-            # Load and validate switch configuration
+            # Load switch configuration to get serial number and IP
+            serial_number = self._get_serial_number(fabric_name, role, switch_name)
+            if not serial_number:
+                print(f"[Network] No serial number found for switch '{switch_name}'")
+                return False
+            
             switch_path = self.switch_config_paths['configs_dir'] / fabric_name / role / f"{switch_name}.yaml"
-            if not switch_path.exists():
-                print(f"[Network] Switch configuration not found: {switch_path}")
-                return False
-            
             switch_config = load_yaml_file(str(switch_path))
-            if not switch_config:
+            switch_ip = switch_config.get('IP Address')
+            
+            if not switch_ip:
+                print(f"[Network] Error: IP Address not found in switch configuration")
                 return False
+            # Get all networks for the specified fabric
+            attachments = network_api.get_network_attachment(fabric_name, save_files=False)
+
+            if not attachments:
+                print(f"[Network] No networks found for fabric '{fabric_name}'")
+                return True  # No networks to process is considered success
             
-            if not switch_config.get('Serial Number'):
-                print(f"[Network] Error: Serial Number not found in switch configuration")
-                return False
+            # Build payload for all networks
+            payload = []
+            for attachment in attachments:
+                network_name = attachment.get('networkName')
+
+                if network_name:
+                    network_payload = {
+                        "networkName": network_name,
+                        "switchName": switch_name,
+                        "switchIP": switch_ip,
+                        "switchSN": serial_number,
+                        "allSwitches": [switch_name]
+                    }
+                    payload.append(network_payload)
+                    # print(f"[Network] Added network '{network_name}' to attach payload")
+            if not payload:
+                print(f"[Network] No valid networks to attach")
+                return True
             
-            if 'Interface' not in switch_config:
-                print("[Network] No interfaces found to process")
-                return True  # No interfaces to process is considered success
-            
-            # Build network lookup table for the fabric
-            network_lookup = {
-                net.get('VLAN ID'): {
-                    'network_name': net.get('Network Name'),
-                    'vlan_id': net.get('VLAN ID')
-                }
-                for net in self.networks 
-                if net.get('Fabric') == fabric_name and net.get('VLAN ID')
-            }
-            
-            serial_number = switch_config.get('Serial Number')
-            overall_success = True
-            
-            # Process all interfaces
-            for interface_config in switch_config['Interface']:
-                for interface_name, interface_data in interface_config.items():
-                    success = self._process_interface(
-                        interface_name, interface_data, network_lookup, 
-                        'attach', fabric_name, serial_number
-                    )
-                    if not success:
-                        overall_success = False
-            
-            return overall_success
+            # Call API with complete payload
+            return network_api.attach_network(payload)
             
         except Exception as e:
             print(f"[Network] Error attaching networks: {e}")
             return False
     
     def detach_networks(self, fabric_name: str, role: str, switch_name: str) -> bool:
-        """Detach networks from switch interfaces based on YAML configuration."""
-        print(f"[Network] Detaching networks from switch: {switch_name} in fabric: {fabric_name}, role: {role}")
-        
+        """Detach networks that are currently attached in the NDFC by given switch."""
+        print(f"[Network] {self.YELLOW}Detaching networks from switch '{switch_name}' ({role}) in fabric '{fabric_name}'{self.END}")
         try:
             # Load and validate switch configuration
-            switch_path = self.switch_config_paths['configs_dir'] / fabric_name / role / f"{switch_name}.yaml"
-            if not switch_path.exists():
-                print(f"[Network] Switch configuration not found: {switch_path}")
+            serial_number = self._get_serial_number(fabric_name, role, switch_name)
+            if not serial_number:
+                print(f"[Network] No serial number found for switch '{switch_name}'")
                 return False
             
-            switch_config = load_yaml_file(str(switch_path))
-            if not switch_config:
-                return False
-            
-            if not switch_config.get('Serial Number'):
-                print(f"[Network] Error: Serial Number not found in switch configuration")
-                return False
-            
-            if 'Interface' not in switch_config:
-                print("[Network] No interfaces found to process")
-                return True  # No interfaces to process is considered success
-            
-            # Build network lookup table for the fabric
-            network_lookup = {
-                net.get('VLAN ID'): {
-                    'network_name': net.get('Network Name'),
-                    'vlan_id': net.get('VLAN ID')
-                }
-                for net in self.networks 
-                if net.get('Fabric') == fabric_name and net.get('VLAN ID')
-            }
-            
-            serial_number = switch_config.get('Serial Number')
-            overall_success = True
-            
-            # Process all interfaces
-            for interface_config in switch_config['Interface']:
-                for interface_name, interface_data in interface_config.items():
-                    success = self._process_interface(
-                        interface_name, interface_data, network_lookup, 
-                        'detach', fabric_name, serial_number
-                    )
-                    if not success:
-                        overall_success = False
-            
-            return overall_success
-            
-        except Exception as e:
-            print(f"[Network] Error detaching networks: {e}")
-            return False
-    
-    def _process_interface(self, interface_name: str, interface_data: Dict[str, Any], 
-                          network_lookup: Dict[int, Dict[str, Any]], operation: str, 
-                          fabric_name: str, serial_number: str) -> bool:
-        """Process a single interface based on its policy."""
-        policy = interface_data.get('policy')
-        
-        if policy == 'int_access_host':
-            # Process access interface
-            access_vlan = interface_data.get('Access Vlan')
-            if not access_vlan:
-                return True  # No VLAN configured is not an error
-            
-            try:
-                vlan_id = int(access_vlan)
-                network_info = network_lookup.get(vlan_id)
-                if not network_info:
-                    return True  # Network not found in lookup is not an error
-                
-                network_name = network_info['network_name']
-                
-                if operation == 'attach':
-                    result = self.network_api.attach_network(
-                        fabric_name, network_name, serial_number, interface_name, vlan_id
-                    )
-                else:  # detach
-                    result = self.network_api.detach_network(
-                        fabric_name, network_name, serial_number, interface_name, vlan_id
-                    )
-                
-                if result:
-                    print(f"[Network] Successfully {operation}ed network {network_name} (VLAN {vlan_id}) "
-                          f"to interface {interface_name}")
-                else:
-                    print(f"[Network] Failed to {operation} network {network_name} (VLAN {vlan_id}) "
-                          f"to interface {interface_name}")
-                
-                return result
-            except ValueError:
-                print(f"[Network] Invalid VLAN ID '{access_vlan}' for interface {interface_name}")
-                return False
-        
-        elif policy == 'int_trunk_host':
-            # Process trunk interface
-            trunk_vlans = interface_data.get('Trunk Allowed Vlans')
-            if not trunk_vlans:
-                trunk_vlans = "all"
-            print(f"[Network] Processing trunk VLANs for {interface_name}: {trunk_vlans}")
-            
-            try:
-                # Handle "all" case - attach to all available networks
-                if str(trunk_vlans).strip().lower() == 'all':
-                    print(f"[Network] Attaching interface {interface_name} to ALL networks in fabric {fabric_name}")
-                    vlan_ids = list(network_lookup.keys())
-                    if not vlan_ids:
-                        print(f"[Network] No networks found in fabric {fabric_name}")
-                        return True
-                else:
-                    # Parse specific VLAN IDs
-                    vlan_ids = [int(vlan.strip()) for vlan in str(trunk_vlans).split(',') 
-                               if vlan.strip() and vlan.strip().isdigit()]
-                
-                if not vlan_ids:
-                    print(f"[Network] No valid VLAN IDs found for interface {interface_name}")
-                    return True
-                
-                print(f"[Network] Will process VLANs: {vlan_ids}")
-                
-                # Process each VLAN
-                for vlan_id in vlan_ids:
-                    if vlan_id not in network_lookup:
-                        print(f"[Network] Warning: Network for VLAN {vlan_id} not found in fabric {fabric_name}")
+            network_attachments = network_api.get_network_attachment(fabric_name, save_files=False)
+            detach_data = []
+            for attachment in network_attachments:
+                lan_attach_list = attachment.get('lanAttachList', [])
+                for lan_attach in lan_attach_list:
+                    if lan_attach.get('switchSerialNo') != serial_number:
                         continue
-                    
-                    network_info = network_lookup[vlan_id]
-                    network_name = network_info['network_name']
-                    
-                    try:
-                        if operation == "attach":
-                            result = self.network_api.attach_network(
-                                fabric_name, network_name, serial_number, interface_name, vlan_id
-                            )
-                        else:  # detach
-                            result = self.network_api.detach_network(
-                                fabric_name, network_name, serial_number, interface_name, vlan_id
-                            )
-                        
-                        if result:
-                            print(f"[Network] Successfully {operation}ed network {network_name} (VLAN {vlan_id}) "
-                                  f"to interface {interface_name}")
-                        else:
-                            print(f"[Network] Failed to {operation} network {network_name} (VLAN {vlan_id}) "
-                                  f"to interface {interface_name}")
-                            return False
-                    except Exception as e:
-                        print(f"[Network] Error during {operation} operation for VLAN {vlan_id}: {e}")
-                        return False
-                
+                    if not lan_attach.get('isLanAttached'):
+                        continue
+                    network_name = lan_attach.get('networkName', 'unknown')
+                    detach_data.append({
+                        'network_name': network_name,
+                        'serial_number': serial_number,
+                        'vlan_id': lan_attach.get('vlanId', -1),
+                    })
+            payload = self._build_detach_payload(fabric_name, detach_data)
+            if not payload:
+                print(f"[Network] No networks to detach from switch ({serial_number}) in fabric '{fabric_name}'")
                 return True
-            except ValueError as e:
-                print(f"[Network] Error parsing trunk VLANs for {interface_name}: {e}")
-                return False
-        
-        return True  # Unknown policy types are skipped but not considered failure
+
+            return network_api.detach_network(fabric_name, payload)
+
+        except Exception as e:
+            print(f"[Network] Error detaching unwanted networks from switch '{switch_name}': {e}")
+            return False

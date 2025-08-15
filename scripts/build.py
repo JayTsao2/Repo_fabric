@@ -1,118 +1,123 @@
 #!/usr/bin/env python3
 """
-Build Script - Import all NDFC modules for fabric automation
-
-This script automatically loads the NDFC management IP from fabric_builder.yaml
-and provides access to all cisco 12.2.2 automation modules.
-
-Configuration:
-- NDFC IP is read from: network_configs/fabric_builder.yaml
-- Falls back to default if config file is not found
+Build Script Factory - Dynamically loads builder based on YAML config
 """
 import sys
 import os
+import yaml
+import importlib.util
 
-# Add the cisco 12.2.2 directory to the Python path
-sys.path.append(os.path.join(os.path.dirname(__file__), 'cisco', '12.2.2'))
+def get_root_dir():
+    """Get the root directory of the repository."""
+    return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# Import all the manager classes from different modules
-from modules.fabric import FabricManager
-from modules.vrf import VRFManager  
-from modules.network import NetworkManager
-from modules.switch import SwitchManager
-from modules.interface import InterfaceManager
-from modules.vpc import VPCManager
-import time
+def load_fabric_config():
+    """Load and return fabric builder configuration."""
+    config_path = os.path.join(get_root_dir(), 'network_configs', 'fabric_builder.yaml')
+    
+    try:
+        with open(config_path, 'r') as file:
+            config = yaml.safe_load(file)
+            return config['Cisco']['NDFC']
+    except (FileNotFoundError, KeyError) as e:
+        print(f"Config error: {e}.")
+        exit(1)
 
+def get_available_versions():
+    """Get list of available builder versions."""
+    cisco_path = os.path.join(get_root_dir(), 'scripts', 'cisco')
+    available_versions = []
+    
+    if os.path.exists(cisco_path):
+        for item in os.listdir(cisco_path):
+            version_path = os.path.join(cisco_path, item)
+            build_file = os.path.join(version_path, 'build.py')
+            if os.path.isdir(version_path) and os.path.exists(build_file):
+                available_versions.append(item)
+    
+    return sorted(available_versions)
 
-fabric_manager = FabricManager()
-vrf_manager = VRFManager()
-network_manager = NetworkManager()
-switch_manager = SwitchManager()
-interface_manager = InterfaceManager()
-vpc_manager = VPCManager()
+def create_builder(version):
+    """Factory function to create appropriate builder instance."""
+    # Check if version exists
+    version_path = os.path.join(get_root_dir(), 'scripts', 'cisco', version)
+    build_file_path = os.path.join(version_path, 'build.py')
+    
+    if not os.path.exists(version_path):
+        available = get_available_versions()
+        raise FileNotFoundError(
+            f"Version {version} not found. Available versions: {', '.join(available)}"
+        )
+    
+    if not os.path.exists(build_file_path):
+        raise FileNotFoundError(
+            f"build.py not found for version {version} at {build_file_path}"
+        )
+    
+    try:
+        # Use importlib to dynamically import the module
+        spec = importlib.util.spec_from_file_location(f"build_{version}", build_file_path)
+        build_module = importlib.util.module_from_spec(spec)
+        
+        # Add version path to sys.path temporarily for any module dependencies
+        if version_path not in sys.path:
+            sys.path.insert(0, version_path)
+        
+        try:
+            spec.loader.exec_module(build_module)
+            return build_module.FabricBuilder()
+        finally:
+            # Clean up sys.path
+            if version_path in sys.path:
+                sys.path.remove(version_path)
+                
+    except AttributeError:
+        raise ImportError(f"FabricBuilder class not found in version {version}")
+    except Exception as e:
+        raise ImportError(f"Error importing FabricBuilder for version {version}: {e}")
 
-FABRIC = "Site3-Test"
-MSD = "MSD-Test1"
-ISN = "ISN-Test"
-SWITCH_1 = "Site1-L3"
-SWITCH_2 = "Site2-L3"
-SWITCH_LIST = [SWITCH_1, SWITCH_2]
-VRF_LIST = ["bluevrf", "bluevrf2"]
-NETWORK_LIST = ["bluenet1", "bluenet2", "ExternalNetwork"]
+def validate_version_compatibility(version):
+    """Validate that the version is supported and compatible."""
+    available_versions = get_available_versions()
+    
+    if not available_versions:
+        raise RuntimeError("No builder versions found in scripts/cisco/")
+    
+    if version not in available_versions:
+        print(f"Warning: Version {version} not found.")
+        print(f"Available versions: {', '.join(available_versions)}")
+        exit(1)
+    
+    return version
+
 def main():
-    # Step 1. Create fabrics
-    fabric_manager.create_fabric(FABRIC)
-    fabric_manager.create_fabric(MSD)
-    fabric_manager.create_fabric(ISN)
-
-    # Step 2. Add switches to fabrics
-    for switch in SWITCH_LIST:
-        switch_manager.discover_switch(FABRIC, "leaf", switch)
-        switch_manager.set_switch_role(FABRIC, "leaf", switch)
-
-    # Step 3. Recalculate
-    success = fabric_manager.recalculate_config(FABRIC)
-    while not success:
-        # Sleep for 5 secs
-        time.sleep(30)
-        print("Rediscovering Switches...")
-        for switch in SWITCH_LIST:
-            switch_manager.rediscover_switch(FABRIC, "leaf", switch)
-        time.sleep(30)
-        success = fabric_manager.recalculate_config(FABRIC)
-
-    print("Recalculation complete.")
-
-    # fabric_manager.deploy_fabric(FABRIC)
-
-    # Step 4. Create VRF
-    for vrf in VRF_LIST:
-        vrf_manager.create_vrf(FABRIC, vrf)
+    """Main execution function."""
+    # Load configuration
+    ndfc_config = load_fabric_config()
+    requested_version = ndfc_config['version']
+    ip = ndfc_config['ip']
     
-    # Step 5. Attach VRF to switches
-    for switch in SWITCH_LIST:
-        vrf_manager.attach_vrf(FABRIC, "leaf", switch)
-
-    # Step 6. Create Network
-    for network in NETWORK_LIST:
-        network_manager.create_network(FABRIC, network)
-
-    # Step 7. Attach Network 
-    for switch in SWITCH_LIST:
-        network_manager.attach_networks(FABRIC, "leaf", switch)
-
-    # Step 8. Apply interface configurations
-    for switch in SWITCH_LIST:
-        interface_manager.update_switch_interfaces(FABRIC, "leaf", switch)
-
-    # Step 9. Set switch freeform configs
-    for switch in SWITCH_LIST:
-        switch_manager.set_switch_freeform(FABRIC, "leaf", switch)
-
-    # Step 10. recalculate
-    success = fabric_manager.recalculate_config(FABRIC)
-    while not success:
-        time.sleep(10)
-        success = fabric_manager.recalculate_config(FABRIC)
+    print(f"Requested NDFC Builder v{requested_version} for {ip}")
     
-    # Get pending configs
-    fabric_manager.get_pending_config(FABRIC)
+    try:
+        # Validate and get actual version to use
+        validate_version_compatibility(requested_version)
 
-    # Step 11. Deploy fabric
-    # fabric_manager.deploy_fabric(FABRIC)
+        # Create builder instance
+        builder = create_builder(requested_version)
 
-def delete():
-    switch_manager.delete_switch(FABRIC, "leaf", SWITCH_1)
-    switch_manager.delete_switch(FABRIC, "leaf", SWITCH_2)
-
-    # fabric_manager.remove_from_msd(MSD, FABRIC)
-    # fabric_manager.remove_from_msd(MSD, ISN)
-    fabric_manager.delete_fabric(FABRIC)
-    fabric_manager.delete_fabric(ISN)
-    fabric_manager.delete_fabric(MSD)
-    pass
+        # Execute build process
+        builder.build()
+        
+        # print("Starting fabric delete process...")
+        # builder.delete()
+        # print("Delete process completed.")
+        
+    except Exception as e:
+        print(f"Error: {e}")
+        return 1
+    
+    return 0
 
 if __name__ == '__main__':
-    main()
-    # delete()
+    exit(main())

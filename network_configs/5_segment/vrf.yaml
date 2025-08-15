@@ -41,7 +41,7 @@ VRF:
     VRF Interface Description: INT_VPC11
     VRF Description: VRF_VPC11
 
-- Fabric: Site3-Test
+- Fabric: MSD_DCI
   VRF Name: bluevrf
   VRF ID: 50000
   VLAN ID: 2000
@@ -51,7 +51,7 @@ VRF:
     VRF Interface Description: bluevrf
     VRF Description: bluevrf
     
-- Fabric: Site3-Test
+- Fabric: MSD_DCI
   VRF Name: bluevrf2
   VRF ID: 50001
   VLAN ID: 2001

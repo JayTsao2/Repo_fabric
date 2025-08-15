@@ -163,9 +163,9 @@ Advanced:
   MST Instance Range: "" # unused
   Spanning Tree Bridge Priority: "" # unused
   Leaf Freeform Config: # Additional CLIs, added before interface configurations, for all Leafs as captured from Show Running Configuration
-    Freeform: Leaf Freeform Config
+    Freeform: ""
   Spine Freeform Config: 
-    Freeform: Spine Freeform Config
+    Freeform: ""
   ToR Freeform Config: 
     Freeform: "" # unused
   Intra-fabric Links Additional Config: 

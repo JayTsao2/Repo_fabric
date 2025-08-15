@@ -51,7 +51,7 @@ Network:
   VLAN Name: VPC10_VLAN_1121
   Interface Description: VPC10_VLAN_1121
 
-- Fabric: Site3-Test
+- Fabric: MSD_DCI
   Network Name: bluenet1
   Layer 2 Only: False
   VRF Name: bluevrf
@@ -61,7 +61,7 @@ Network:
   VLAN Name: bluenet1
   Interface Description: bluenet1
 
-- Fabric: Site3-Test
+- Fabric: MSD_DCI
   Network Name: bluenet2
   Layer 2 Only: False
   VRF Name: bluevrf
@@ -71,7 +71,7 @@ Network:
   VLAN Name: bluenet2
   Interface Description: bluenet2
 
-- Fabric: Site3-Test
+- Fabric: MSD_DCI
   Network Name: ExternalNetwork
   Layer 2 Only: True
   VRF Name: NA

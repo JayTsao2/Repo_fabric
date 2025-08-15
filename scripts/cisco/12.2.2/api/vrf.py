@@ -4,40 +4,17 @@ import urllib3
 urllib3.disable_warnings(InsecureRequestWarning)
 from .utils import *
 import json
+import os
 from typing import Dict, Any, List
 
-def get_VRFs(fabric, vrf_dir="vrfs", vrf_template_config_dir="vrf_template_config_dirs", vrf_filter="", range=0):
-    # range = show the vrfs from 0 to {range}
+def get_VRFs(fabric):
+    # range = show the vrfs from 0 to 9999
     url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric}/vrfs")
     headers = get_api_key_header()
-    headers["range"] = f"0-{range}"
-    query_params = {}
-    if vrf_filter != "":
-        query_params["filter"] = vrf_filter
-    r = requests.get(url, headers=headers, params=query_params, verify=False)
-    check_status_code(r)
-
-    vrfs = r.json()
-    # if the directory does not exist, create it
-    if not os.path.exists(vrf_dir):
-        os.makedirs(vrf_dir)
-    if not os.path.exists(vrf_template_config_dir):
-        os.makedirs(vrf_template_config_dir)
-    # Save vrfs to a file, vrfs is a array of vrf objects
-    for vrf in vrfs:
-        vrf_id = vrf.get("vrfId", "unknown")
-        vrf_name = vrf.get("vrfName", "unknown")
-        vrf_template_config = vrf.get("vrfTemplateConfig", {})
-        filename = f"{vrf_dir}/{fabric}_{vrf_id}_{vrf_name}.json"
-        with open(filename, "w") as f:
-            json.dump(vrf, f, indent=4)
-            print(f"VRF config for {vrf_name} (ID: {vrf_id}) is saved to {filename}")
-        if vrf_template_config:
-            vrf_template_config = json.loads(vrf_template_config) if isinstance(vrf_template_config, str) else vrf_template_config
-            vrf_template_config_filename = f"{vrf_template_config_dir}/{fabric}_{vrf_id}_{vrf_name}.json"
-            with open(vrf_template_config_filename, "w") as f:
-                json.dump(vrf_template_config, f, indent=4)
-                print(f"VRF config template for {vrf_name} (ID: {vrf_id}) is saved to {vrf_template_config_filename}")
+    headers["range"] = f"0-9999"
+    r = requests.get(url, headers=headers, verify=False)
+    check_status_code(r, f"Get VRFs for fabric {fabric}")
+    return r.json()
 
 def create_vrf(fabric_name: str, vrf_payload: Dict[str, Any], template_payload: Dict[str, Any]) -> bool:
     """
@@ -60,7 +37,7 @@ def create_vrf(fabric_name: str, vrf_payload: Dict[str, Any], template_payload: 
         
         url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric_name}/vrfs")
         r = requests.post(url, headers=headers, json=vrf_payload, verify=False)
-        return check_status_code(r)
+        return check_status_code(r, operation_name=f"Create VRF {vrf_payload.get('vrfName', 'unknown')}")
     except Exception as e:
         print(f"Error creating VRF {vrf_payload.get('vrfName', 'unknown')}: {e}")
         return False
@@ -88,8 +65,8 @@ def update_vrf(fabric_name: str, vrf_name: str, vrf_payload: Dict[str, Any], tem
         url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric_name}/vrfs/{vrf_name}")
         
         r = requests.put(url, headers=headers, json=vrf_payload, verify=False)
-        return check_status_code(r)
-        
+        return check_status_code(r, operation_name=f"Update VRF {vrf_name}")
+
     except Exception as e:
         print(f"Error updating VRF {vrf_name}: {e}")
         return False
@@ -110,11 +87,45 @@ def delete_vrf(fabric_name: str, vrf_name: str) -> bool:
         headers = get_api_key_header()
         
         r = requests.delete(url, headers=headers, verify=False)
-        return check_status_code(r)
+        return check_status_code(r, operation_name=f"Delete VRF {vrf_name}")
         
     except Exception as e:
         print(f"Error deleting VRF {vrf_name}: {e}")
         return False
+
+def get_vrf_attachment(fabric: str, vrf_dir: str = "vrfs", save_files: bool = True) -> List[Dict[str, Any]]:
+    """
+    Get VRF attachment details.
+    
+    Args:
+        fabric: Name of the fabric
+        vrf_dir: Directory to save attachment files (default: "vrfs")
+        vrfname: Name of the VRF
+        save_files: Whether to save attachment files to disk (default: True)
+        
+    Returns:
+        List[Dict[str, Any]]: List of VRF attachment data
+    """
+    url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric}/vrfs/attachments")
+    headers = get_api_key_header()
+    r = requests.get(url, headers=headers, verify=False)
+    check_status_code(r, f"Get VRF Attachments for fabric {fabric}")
+
+    attachments = r.json()
+    
+    # Only save files if requested
+    if save_files:
+        if not os.path.exists(vrf_dir):
+            os.makedirs(vrf_dir)
+        if not os.path.exists(f"{vrf_dir}/attachments"):
+            os.makedirs(f"{vrf_dir}/attachments")
+        filename = f"{vrf_dir}/attachments/{fabric}.json"
+        with open(filename, "w") as f:
+            json.dump(attachments, f, indent=4)
+            print(f"VRF attachments for fabric {fabric} are saved to {filename}")
+
+    # Return the attachments data for programmatic use
+    return attachments
 
 def update_vrf_attachment(fabric_name: str, attachment_payload: Dict[str, Any]) -> bool:
     """
@@ -131,78 +142,11 @@ def update_vrf_attachment(fabric_name: str, attachment_payload: Dict[str, Any]) 
         headers = get_api_key_header()
         headers['Content-Type'] = 'application/json'
         
-        print(f"Updating VRF attachment in fabric {fabric_name}...")
         url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric_name}/vrfs/attachments")
         
         r = requests.post(url, headers=headers, json=attachment_payload, verify=False)
-        return check_status_code(r)
+        return check_status_code(r, operation_name=f"Update VRF Attachment")
 
     except Exception as e:
         print(f"Error updating VRF attachment: {e}")
-        return False
-
-def attach_vrf_to_switches(fabric_name: str, vrf_name: str, attachment_payload: List[Dict[str, Any]]) -> bool:
-    """
-    Attach VRF to switches by setting deployment=true in the attachment configuration.
-    
-    Args:
-        fabric_name: Name of the fabric
-        vrf_name: Name of the VRF to attach
-        attachment_payload: VRF attachment configuration payload (array format)
-        
-    Returns:
-        bool: True if successful, False otherwise
-    """
-    try:
-        headers = get_api_key_header()
-        headers['Content-Type'] = 'application/json'
-        
-        # Ensure deployment is set to true for attachment
-        for vrf_attachment in attachment_payload:
-            if "lanAttachList" in vrf_attachment:
-                for attach_item in vrf_attachment["lanAttachList"]:
-                    attach_item["deployment"] = True
-        
-        print(f"Attaching VRF {vrf_name} to switches in fabric {fabric_name}...")
-        
-        url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric_name}/vrfs/attachments")
-        
-        r = requests.post(url, headers=headers, json=attachment_payload, verify=False)
-        return check_status_code(r)
-        
-    except Exception as e:
-        print(f"❌ Error attaching VRF {vrf_name} to switches: {e}")
-        return False
-
-def detach_vrf_from_switches(fabric_name: str, vrf_name: str, attachment_payload: List[Dict[str, Any]]) -> bool:
-    """
-    Detach VRF from switches by setting deployment=false in the attachment configuration.
-    
-    Args:
-        fabric_name: Name of the fabric
-        vrf_name: Name of the VRF to detach
-        attachment_payload: VRF attachment configuration payload (array format)
-        
-    Returns:
-        bool: True if successful, False otherwise
-    """
-    try:
-        headers = get_api_key_header()
-        headers['Content-Type'] = 'application/json'
-        
-        # Ensure deployment is set to false for detachment
-        for vrf_attachment in attachment_payload:
-            if "lanAttachList" in vrf_attachment:
-                for attach_item in vrf_attachment["lanAttachList"]:
-                    attach_item["deployment"] = False
-        
-        print(f"Detaching VRF {vrf_name} from switches in fabric {fabric_name}...")
-        
-        url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/top-down/fabrics/{fabric_name}/vrfs/attachments")
-        
-        r = requests.post(url, headers=headers, json=attachment_payload, verify=False)
-        return check_status_code(r)
-        
-    except Exception as e:
-        print(f"❌ Error detaching VRF {vrf_name} from switches: {e}")
         return False

@@ -6,45 +6,39 @@ from .utils import *
 import json
 from typing import Dict, Any, Optional
 
-def get_fabrics():
+def get_fabrics(save_files: bool = False) -> Optional[Dict[str, Any]]:
     """Get all fabrics from NDFC."""
     url = get_url("/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics")
     headers = get_api_key_header()
 
     r = requests.get(url=url, headers=headers, verify=False)
-    success = check_status_code(r)
+    success = check_status_code(r, operation_name="Get Fabrics")
     
     if success:
         fabrics = r.json()
-        with open("fabrics.json", "w") as f:
-            json.dump(fabrics, f, indent=4)
+        if save_files:
+            with open("fabrics.json", "w") as f:
+                json.dump(fabrics, f, indent=4)
         return fabrics
     else:
         return None
 
-def get_fabric(fabric_name: str, fabric_dir: str = "fabrics") -> Optional[Dict[str, Any]]:
+def get_fabric(fabric_name: str, save_files: bool = False) -> Optional[Dict[str, Any]]:
     """Get specific fabric configuration from NDFC."""
     url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric_name}")
     
     headers = get_api_key_header()
 
     r = requests.get(url=url, headers=headers, verify=False)
-    success = check_status_code(r)
+    success = check_status_code(r, f"Get Fabric {fabric_name}")
     
-    if not success:
-        return None
-    
-    try: 
-        data = r.json()
-        if not os.path.exists(fabric_dir):
-            os.makedirs(fabric_dir)
-        filename = f"{fabric_dir}/{fabric_name}.json"
-        with open(filename, "w") as f:
-            json.dump(data, f, indent=4)
-            print(f"Fabric {fabric_name} data is saved to {filename}")
-        return data
-    except Exception as e:
-        print(f"Error: {e}")
+    if success:
+        fabric_data = r.json()
+        if save_files:
+            with open(f"{fabric_name}.json", "w") as f:
+                json.dump(fabric_data, f, indent=4)
+        return fabric_data
+    else:
         return None
 
 def delete_fabric(fabric_name: str) -> bool:
@@ -54,7 +48,7 @@ def delete_fabric(fabric_name: str) -> bool:
     headers = get_api_key_header()
     r = requests.delete(url=url, headers=headers, verify=False)
 
-    return check_status_code(r, operation_name="Delete Fabric")
+    return check_status_code(r, operation_name=f"Delete Fabric {fabric_name}")
 
 def create_fabric(fabric_name: str, template_name: str, payload_data: Dict[str, Any]) -> bool:
     """
@@ -79,7 +73,7 @@ def create_fabric(fabric_name: str, template_name: str, payload_data: Dict[str, 
     
     r = requests.post(url, headers=headers, data=json.dumps(cleaned_payload), verify=False)
 
-    return check_status_code(r, operation_name="Create Fabric")
+    return check_status_code(r, operation_name=f"Create Fabric {fabric_name}")
 
 def update_fabric(fabric_name: str, template_name: str, payload_data: Dict[str, Any]) -> bool:
     """
@@ -104,7 +98,7 @@ def update_fabric(fabric_name: str, template_name: str, payload_data: Dict[str, 
     
     r = requests.put(url, headers=headers, data=json.dumps(cleaned_payload), verify=False)
 
-    return check_status_code(r, operation_name="Update Fabric")
+    return check_status_code(r, operation_name=f"Update Fabric {fabric_name}")
 
 def recalculate_config(fabric_name: str) -> bool:
     """Recalculate fabric configuration."""
@@ -112,7 +106,7 @@ def recalculate_config(fabric_name: str) -> bool:
     headers = get_api_key_header()
     r = requests.post(url, headers=headers, verify=False)
 
-    return check_status_code(r, operation_name="Recalculate Config")
+    return check_status_code(r, operation_name=f"Recalculate Config for {fabric_name}")
 
 def deploy_fabric_config(fabric_name: str) -> bool:
     """Deploy fabric configuration."""
@@ -120,22 +114,22 @@ def deploy_fabric_config(fabric_name: str) -> bool:
     headers = get_api_key_header()
     r = requests.post(url, headers=headers, verify=False)
 
-    return check_status_code(r, operation_name="Deploy Fabric Config")
+    return check_status_code(r, operation_name=f"Deploy Fabric Config for {fabric_name}")
 
-def get_pending_config(fabric_name: str) -> Optional[Dict[str, Any]]:
+def get_pending_config(fabric_name: str, save_files: bool = False) -> Optional[Dict[str, Any]]:
     """Get pending configuration for a fabric and save in formatted text file."""
     url = get_url(f"/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{fabric_name}/config-preview")
     headers = get_api_key_header()
     
     r = requests.get(url=url, headers=headers, verify=False)
     
-    if not check_status_code(r):
+    if not check_status_code(r, operation_name=f"Get Pending Config for {fabric_name}"):
         return None
     
-    try:
-        data = r.json()
-        
-        txt_filename = "pending.txt"
+    data = r.json()
+    
+    if save_files:
+        txt_filename = f"{fabric_name}_pending.txt"
         with open(txt_filename, "w") as f:
             for switch_data in data:
                 switch_name = switch_data.get("switchName", "Unknown")
@@ -147,11 +141,7 @@ def get_pending_config(fabric_name: str) -> Optional[Dict[str, Any]]:
                 f.write("===\n")
         
         print(f"Formatted pending configuration for fabric {fabric_name} saved to {txt_filename}")
-        return data
-        
-    except Exception as e:
-        print(f"Error getting pending config for fabric {fabric_name}: {e}")
-        return None
+    return data
 
 def add_MSD(parent_fabric_name: str, child_fabric_name: str) -> bool:
     """Add a child fabric to a Multi-Site Domain."""
@@ -162,7 +152,7 @@ def add_MSD(parent_fabric_name: str, child_fabric_name: str) -> bool:
         "sourceFabric": child_fabric_name
     }
     r = requests.post(url, headers=headers, json=payload, verify=False)
-    return check_status_code(r, operation_name="Add MSD")
+    return check_status_code(r, operation_name=f"Add MSD for {parent_fabric_name} to {child_fabric_name}")
 
 def remove_MSD(parent_fabric_name: str, child_fabric_name: str) -> bool:
     """Remove a child fabric from a Multi-Site Domain."""
@@ -173,4 +163,4 @@ def remove_MSD(parent_fabric_name: str, child_fabric_name: str) -> bool:
         "sourceFabric": child_fabric_name
     }
     r = requests.post(url, headers=headers, json=payload, verify=False)
-    return check_status_code(r, operation_name="Remove MSD")
+    return check_status_code(r, operation_name=f"Remove MSD for {parent_fabric_name} from {child_fabric_name}")

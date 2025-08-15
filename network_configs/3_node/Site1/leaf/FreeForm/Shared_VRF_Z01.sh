@@ -4,4 +4,3 @@ router bgp $BGP_ASN
       inherit peer ebgp-peer-template-node
     neighbor Ethernet1/16
       inherit peer ebgp-peer-template-node
-

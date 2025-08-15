@@ -41,7 +41,11 @@ class SwitchManager:
         """Initialize with centralized configuration paths."""
         self.config_paths = config_factory.create_switch_config()
         self.config_base_path = self.config_paths['configs_dir']
-    
+        self.GREEN = '\033[92m'
+        self.YELLOW = '\033[93m'
+        self.BOLD = '\033[1m'
+        self.END = '\033[0m'
+
     def _validate_switch_role(self, role: str) -> bool:
         """Validate if the role is in the allowed enum values."""
         role_lower = role.lower().strip()
@@ -59,8 +63,6 @@ class SwitchManager:
         if not config_path.exists():
             print(f"Switch configuration not found: {config_path}")
             return None
-        
-        print(f"[*] Loading config: {config_path}")
         return load_yaml_file(str(config_path))
     
     def _extract_model_name(self, platform: str) -> str:
@@ -125,8 +127,13 @@ class SwitchManager:
     
     def discover_switch(self, fabric_name: str, role: str, switch_name: str, preserve_config: bool = False) -> bool:
         """Discover switch based on YAML configuration."""
-        print(f"[Switch] Discovering switch {switch_name} in fabric {fabric_name} with role {role}")
-        
+        print(f"[Switch] {self.GREEN}Discovering switch {switch_name} in fabric {fabric_name}{self.END}")
+        switch_data = switch_api.get_switches(fabric_name)
+        for switch in switch_data:
+            if switch['logicalName'] == switch_name:
+                print(f"[Switch] {self.YELLOW}Switch {switch_name} already exists in fabric {fabric_name}. Skipping discovery.{self.END}")
+                return True
+
         switch_data = self._load_switch_config(fabric_name, role, switch_name)
         if not switch_data:
             return False
@@ -134,11 +141,11 @@ class SwitchManager:
         switch_config = self._build_switch_config(fabric_name, role, switch_name, switch_data)
         payload = self._build_discovery_payload(switch_config, preserve_config)
         
-        return switch_api.discover_switch_from_payload(fabric_name, payload)
+        return switch_api.discover_switch(fabric_name, payload)
     
     def delete_switch(self, fabric_name: str, role: str, switch_name: str) -> bool:
         """Delete switch based on YAML configuration."""
-        print(f"[Switch] Deleting switch {switch_name} from fabric {fabric_name}")
+        print(f"[Switch] {self.YELLOW}{self.BOLD}Deleting switch {switch_name} from fabric {fabric_name}{self.END}")
         
         switch_data = self._load_switch_config(fabric_name, role, switch_name)
         if not switch_data:
@@ -148,14 +155,10 @@ class SwitchManager:
         if not serial_number:
             print(f"[Switch] Error: Serial Number not found in {switch_name} configuration")
             return False
-        
-        print(f"[Switch] Deleting switch {switch_name} with serial {serial_number}")
         return switch_api.delete_switch(fabric_name, serial_number)
     
     def set_switch_role(self, fabric_name: str, role: str, switch_name: str) -> bool:
         """Set switch role based on YAML configuration."""
-        print(f"[Switch] Setting role for switch {switch_name} in fabric {fabric_name}")
-        
         switch_data = self._load_switch_config(fabric_name, role, switch_name)
         if not switch_data:
             return False
@@ -176,8 +179,8 @@ class SwitchManager:
             return False
         
         switch_role_lower = switch_role.lower().strip()
-        print(f"[Switch] Setting role for switch {switch_name} to {switch_role_lower}")
-        
+        print(f"[Switch] {self.GREEN}Setting role for switch '{switch_name}' to '{switch_role_lower}'{self.END}")
+
         return switch_api.set_switch_role(serial_number, switch_role_lower)
     
     def change_switch_ip(self, fabric_name: str, role: str, switch_name: str, 
@@ -249,8 +252,8 @@ class SwitchManager:
     
     def set_switch_freeform(self, fabric_name: str, role: str, switch_name: str) -> bool:
         """Create a freeform policy for switch based on YAML configuration."""
-        print(f"[Switch] Creating freeform policy for switch {switch_name}")
-        
+        print(f"[Switch] {self.GREEN}Creating freeform policy for switch {switch_name}{self.END}")
+
         switch_data = self._load_switch_config(fabric_name, role, switch_name)
         if not switch_data:
             return False
@@ -260,30 +263,33 @@ class SwitchManager:
             print(f"[Switch] Error: Serial Number not found in {switch_name} configuration")
             return False
         
-        freeform_config_path = switch_data.get("Switch Freeform Config")
-        if not freeform_config_path:
-            print(f"[Switch] Error: Switch Freeform Config not found in {switch_name} configuration")
+        freeform_config_paths = switch_data.get("Switch Freeform Config")
+        if not freeform_config_paths:
+            print(f"[Switch] Switch Freeform Config not found in {switch_name} configuration, skipping freeform policy creation")
             return False
-        
-        print(f"[Switch] Using freeform config file: {freeform_config_path}")
-        
-        policy_api.delete_existing_policies_for_switch(switch_name, serial_number)
-        
-        cli_commands = self._parse_freeform_config(fabric_name, role, freeform_config_path)
-        if not cli_commands:
-            return False
-        
-        policy_id = policy_api.create_policy_with_random_id(
-            switch_name, serial_number, fabric_name, cli_commands
-        )
+        freeform_config_paths = freeform_config_paths.split(',')
+        for freeform_config_path in freeform_config_paths:
+            freeform_config_path = freeform_config_path.strip()
+            print(f"[Switch] Using freeform config file: {freeform_config_path}")
 
-        if not policy_id:
-            print(f"Failed to create policy for switch {switch_name}")
-            return False
+            policy_api.delete_existing_policies_for_switch(switch_name, serial_number)
 
-        print(f"[*] Retrieving and saving policy {policy_id}")
-        numeric_id = policy_id.split('-')[1]
-        return policy_api.get_policy_by_id(numeric_id, switch_name=switch_name)
+            cli_commands = self._parse_freeform_config(fabric_name, role, freeform_config_path)
+            if not cli_commands:
+                return False
+            
+            policy_id = policy_api.create_policy_with_random_id(
+                switch_name, serial_number, fabric_name, cli_commands
+            )
+
+            if not policy_id:
+                print(f"Failed to create policy for switch {switch_name}")
+                return False
+
+            print(f"[Switch] Retrieving and saving policy {policy_id}")
+            numeric_id = policy_id.split('-')[1]
+            policy_api.get_policy_by_id(numeric_id, switch_name=switch_name)
+        return True
     
     def _parse_freeform_config(self, fabric_name: str, role: str, freeform_config_path: str) -> Optional[str]:
         """Parse freeform configuration file and return CLI commands."""
@@ -296,7 +302,18 @@ class SwitchManager:
         
         # Use config_utils function to read the freeform config
         cli_commands = read_freeform_config(str(config_file_path))
-        
+
+        if "$BGP_ASN" in cli_commands:
+            fabric_dir = self.config_base_path / ".." / "1_vxlan_evpn" / "fabric"
+            fabric_config_path = fabric_dir / f"{fabric_name}.yaml"
+            fabric_config = load_yaml_file(str(fabric_config_path))
+            general = fabric_config.get("General Parameter")
+            bgp_asn = general.get("BGP ASN")
+            if not bgp_asn:
+                print(f"[Switch] Error: BGP ASN not found in fabric {fabric_name} configuration")
+                return None
+            cli_commands = cli_commands.replace("$BGP_ASN", str(bgp_asn))
+
         if not cli_commands:
             print(f"[Switch] Warning: No freeform config found or file is empty")
             return None
@@ -353,16 +370,30 @@ class SwitchManager:
         
     def rediscover_switch(self, fabric_name: str, role: str, switch_name: str) -> bool:
         """Rediscover a switch by its name."""
-        print(f"[Switch] Rediscovering switch {switch_name}")
-        
-        switch_data = self._load_switch_config(fabric_name, role, switch_name)
-        if not switch_data:
+        config = self._load_switch_config(fabric_name, role, switch_name)
+        if not config:
+            print(f"[Switch] Error: Switch {switch_name} configuration not found")
             return False
-        
-        serial_number = switch_data.get("Serial Number")
+
+        serial_number = config.get("Serial Number")
         if not serial_number:
             print(f"[Switch] Error: Serial Number not found in {switch_name} configuration")
             return False
         
-        print(f"[Switch] Rediscovering switch {switch_name} with serial {serial_number}")
-        return switch_api.rediscover_device(fabric_name, serial_number)
+        success = False
+        check_interval = 10
+        while not success:
+            print(f"[Switch] {self.GREEN}{self.BOLD}Rediscovering switch {switch_name} with serial {serial_number}{self.END}")
+            switch_data = switch_api.get_switches(fabric_name)
+            for switch in switch_data:
+                if switch['logicalName'] != switch_name:
+                    continue
+                status = switch["status"]
+                if status == "ok":
+                    print(f"[Switch] {self.GREEN}Status of switch {switch_name} is now OK.{self.END}")
+                    success = True
+                    break
+                print(f"[Switch] {self.YELLOW}Status of switch {switch_name} is {status}, retrying...{self.END}")
+                switch_api.rediscover_device(fabric_name, serial_number)
+                time.sleep(check_interval)
+        return True

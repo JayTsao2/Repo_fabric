@@ -22,9 +22,9 @@ Advanced:
   Enable Real Time Interface Statistics Collection: ENABLE_RT_INTF_STATS # Corp_Defaults
   Interface Statistics Load Interval: INTF_STAT_LOAD_INTERVAL # unused
   Fabric Freeform: 
-    freeform: FABRIC_FREEFORM # Corp_Defaults
+    Freeform: FABRIC_FREEFORM # Corp_Defaults
   AAA Freeform Config: 
-    freeform: AAA_SERVER_CONF # Corp_Defaults
+    Freeform: AAA_SERVER_CONF # Corp_Defaults
 
 Resources:
   Subinterface Dot1q Range: SUBINTERFACE_RANGE # Corp_Defaults

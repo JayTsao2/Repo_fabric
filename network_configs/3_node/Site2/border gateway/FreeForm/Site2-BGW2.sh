@@ -1,7 +1,7 @@
 route-map bdl_core permit 10
   match ip address prefix-list ms
 
-router bgp 4240650100
+router bgp 4240650200
   rd dual id 1
   template peer EBGP-PEER-TEMPLATE-CORE
     bfd
@@ -17,7 +17,7 @@ router bgp 4240650100
       inherit peer EBGP-PEER-TEMPLATE-CORE
       remote-as 4240600101
     neighbor Ethernet1/35
-     inherit peer EBGP-PEER-TEMPLATE-CORE
+      inherit peer EBGP-PEER-TEMPLATE-CORE
       remote-as 4240600101
     neighbor Ethernet1/36
       inherit peer EBGP-PEER-TEMPLATE-CORE
