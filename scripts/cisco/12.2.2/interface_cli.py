@@ -15,36 +15,6 @@ sys.path.append(str(Path(__file__).parent.absolute()))
 
 from modules.interface import InterfaceManager
 
-def handle_update(args):
-    """Handle the update subcommand."""
-    interface_manager = InterfaceManager()
-    success = interface_manager.update_switch_interfaces(
-        args.fabric_name, 
-        args.role, 
-        args.switch_name
-    )
-    return success
-
-def handle_deploy(args):
-    """Handle the deploy subcommand."""
-    interface_manager = InterfaceManager()
-    success = interface_manager.deploy_switch_interfaces(
-        args.fabric_name, 
-        args.role, 
-        args.switch_name
-    )
-    return success
-
-def handle_check(args):
-    """Handle the check subcommand."""
-    interface_manager = InterfaceManager()
-    success = interface_manager.check_interface_operation_status(
-        args.fabric_name, 
-        args.role, 
-        args.switch_name
-    )
-    return success
-
 def main():
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
@@ -67,29 +37,44 @@ Examples:
     update_parser.add_argument('fabric_name', help='Name of the fabric')
     update_parser.add_argument('role', help='Role of the switch (leaf, spine, etc.)')
     update_parser.add_argument('switch_name', help='Name of the switch')
-    update_parser.set_defaults(func=handle_update)
     
     # Deploy subcommand
     deploy_parser = subparsers.add_parser('deploy', help='Deploy switch interface configuration')
     deploy_parser.add_argument('fabric_name', help='Name of the fabric')
     deploy_parser.add_argument('role', help='Role of the switch (leaf, spine, etc.)')
     deploy_parser.add_argument('switch_name', help='Name of the switch')
-    deploy_parser.set_defaults(func=handle_deploy)
     
     # Check subcommand
     check_parser = subparsers.add_parser('check', help='Check interface operation status')
     check_parser.add_argument('fabric_name', help='Name of the fabric')
     check_parser.add_argument('role', help='Role of the switch (leaf, spine, etc.)')
     check_parser.add_argument('switch_name', help='Name of the switch')
-    check_parser.set_defaults(func=handle_check)
     
     args = parser.parse_args()
     
     try:
         # Call the appropriate handler function
-        success = args.func(args)
-        sys.exit(0 if success else 1)
-        
+        interface_manager = InterfaceManager()
+        if args.command == 'update':
+            success = interface_manager.update_switch_interfaces(
+                args.fabric_name,
+                args.role,
+                args.switch_name
+            )
+
+        elif args.command == 'deploy':
+            success = interface_manager.deploy_switch_interfaces(
+                args.fabric_name,
+                args.role,
+                args.switch_name
+            )
+        elif args.command == 'check':
+            success = interface_manager.check_interface_operation_status(
+                args.fabric_name,
+                args.role,
+                args.switch_name
+            )
+
     except Exception as e:
         print(f"Error: {e}")
         sys.exit(1)
