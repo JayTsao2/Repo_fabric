@@ -132,13 +132,20 @@ python network_cli.py --help
 **使用方式 (Usage):**
 ```bash
 # 在 /scripts/cisco/12.2.2/ 目錄下執行
-python interface_cli.py <fabric_name> <role> <switch_name>   # 更新指定交換器的所有介面
+python interface_cli.py update <fabric_name> <role> <switch_name>   # 更新指定交換器的介面配置
+python interface_cli.py deploy <fabric_name> <role> <switch_name>   # 部署介面配置到實體交換器
+python interface_cli.py check <fabric_name> <role> <switch_name>    # 檢查介面操作狀態
 
 # 範例
-python interface_cli.py Site1 leaf Site1-L1            # 更新 Site1-L1 交換器的所有介面配置
+python interface_cli.py update Site1 leaf Site1-L1    # 更新 Site1-L1 交換器的介面配置
+python interface_cli.py deploy Site1 leaf Site1-L1    # 部署介面配置到 Site1-L1 交換器
+python interface_cli.py check Site1 leaf Site1-L1     # 檢查 Site1-L1 交換器的介面狀態
 
 # 顯示幫助資訊
 python interface_cli.py --help
+python interface_cli.py update --help    # 查看 update 命令的詳細說明
+python interface_cli.py deploy --help    # 查看 deploy 命令的詳細說明
+python interface_cli.py check --help     # 查看 check 命令的詳細說明
 ```
 
 ## [Switch CLI](switch_cli.py)

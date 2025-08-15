@@ -4,7 +4,12 @@
   - 支援 Access、Trunk、Routed 介面政策配置
   - 支援 Port-Channel 介面配置和成員介面管理
   - 處理介面啟用/停用狀態
-  - 智能處理未在 YAML 中指定的現有介面
+- `deploy_switch_interfaces(fabric_name: str, role: str, switch_name: str)` - 部署介面配置到實體交換器
+  - 將 NDFC 中的介面配置推送到實體交換器硬體
+  - 執行配置部署並驗證結果
+- `check_interface_operation_status(fabric_name: str, role: str, switch_name: str)` - 檢查介面操作狀態
+  - 驗證介面操作狀態與管理狀態是否一致
+  - 用於故障排除和連線問題診斷
 
 ## InterfaceManager 配置檔案結構
 InterfaceManager 使用交換器 YAML 配置檔案來管理介面：
