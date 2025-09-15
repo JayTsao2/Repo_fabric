@@ -18,7 +18,15 @@
       Enable Interface: True
 
 ```
-而當 Switch Add 和 Switch Delete 的時候 , 也應該要有相對應的連線增加或減少
+- 當 Switch Add 和 Switch Delete 的時候 , 也應該要有相對應的連線增加或減少
+  - 同理 , 當增加 Site1-L3 Switch 的時候 , 同時也要增加 Site1-S1,Site2-S2 的以下
+
+```
+  - Ethernet1/3:
+      Interface Description: Site1-L3
+      Enable Interface: True
+```
+
 
 ## 2025/9/15 Jay 針對 Repo 上述問題進行修正 , 刪除不存在的連線
 
