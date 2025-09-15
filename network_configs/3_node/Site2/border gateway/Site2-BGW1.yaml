@@ -20,16 +20,8 @@ Interface:
       Interface Description: Site2-S2
       Enable Interface: True
 
-  - Ethernet1/3:
-      Interface Description: Site2-S3
-      Enable Interface: True
-
   - Ethernet1/4:
       Interface Description: Site1-DCI-1
-      Enable Interface: True
-
-  - Ethernet1/5:
-      Interface Description: Site1-DCI-2
       Enable Interface: True
 
   - Ethernet1/6:

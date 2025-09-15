@@ -33,10 +33,6 @@ Interface:
       Interface Description: Site1-S2
       Enable Interface: True
 
-  - Ethernet1/3:
-      Interface Description: Site1-S3
-      Enable Interface: True
-
   - Ethernet1/8:
       policy: int_access_host
       Access Vlan: 1118
