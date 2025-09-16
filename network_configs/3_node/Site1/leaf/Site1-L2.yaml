@@ -1,5 +1,8 @@
 ---
-Change Mode: Normal # Normal <> maintenance 
+Change Mode: Normal # Normal <> Maintenance
+# =============================
+# 只有 Normal, Maintenance 二個字串
+# =============================
 Hostname: Site1-L2
 IP Address: 10.192.195.72
 IP Netmask Length: 24 # For management interface
