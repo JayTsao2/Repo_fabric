@@ -29,7 +29,7 @@ Serial Number: 95H3IT6BGM0
 # Null        : Not allowed
 Platform: N9K-C9300v # For switch discovery
 # Description : 網路設備的軟體版本
-# Allowed     : 字串
+# Allowed     : 字串 
 # Null        : Not allowed
 Version: 9.3(15) # For switch discovery
 # Description : 交換器 Freeform Config
@@ -42,7 +42,7 @@ Interface:
   # Description : 介面配置
   - Port-channel1501:
       # Description : 介面使用的策略
-      # Allowed     : 字串 (policy 目錄下的檔案名稱)
+      # Allowed     : int_access_host, int_trunk_host, int_routed_host, int_port_channel_trunk_host, int_port_channel_trunk_member_11_1
       # Null        : Not allowed
       policy: int_port_channel_access_host
       # Description : Port Channel 成員介面
@@ -108,7 +108,7 @@ Interface:
 
   - Ethernet1/8:
       # Description : 介面使用的策略
-      # Allowed     : 字串 (policy 目錄下的檔案名稱)
+      # Allowed     : int_access_host, int_trunk_host, int_routed_host, int_port_channel_trunk_host, int_port_channel_trunk_member_11_1
       # Null        : Not allowed
       policy: int_access_host
       # Description : Access Vlan
@@ -138,7 +138,7 @@ Interface:
 
   - Ethernet1/9:
       # Description : 介面使用的策略
-      # Allowed     : 字串 (policy 目錄下的檔案名稱)
+      # Allowed     : int_access_host, int_trunk_host, int_routed_host, int_port_channel_trunk_host, int_port_channel_trunk_member_11_1
       # Null        : Not allowed
       policy: int_access_host
       # Description : Access Vlan
@@ -168,7 +168,7 @@ Interface:
 
   - Ethernet1/10:
       # Description : 介面使用的策略
-      # Allowed     : 字串 (policy 目錄下的檔案名稱)
+      # Allowed     : int_access_host, int_trunk_host, int_routed_host, int_port_channel_trunk_host, int_port_channel_trunk_member_11_1
       # Null        : Not allowed
       policy: int_access_host
       # Description : Access Vlan
@@ -198,7 +198,7 @@ Interface:
 
   - Ethernet1/11:
       # Description : 介面使用的策略
-      # Allowed     : 字串 (policy 目錄下的檔案名稱)
+      # Allowed     : int_access_host, int_trunk_host, int_routed_host, int_port_channel_trunk_host, int_port_channel_trunk_member_11_1
       # Null        : Not allowed
       policy: int_access_host
       # Description : Access Vlan
@@ -228,7 +228,7 @@ Interface:
 
   - Ethernet1/12:
       # Description : 介面使用的策略
-      # Allowed     : 字串 (policy 目錄下的檔案名稱)
+      # Allowed     : int_access_host, int_trunk_host, int_routed_host, int_port_channel_trunk_host, int_port_channel_trunk_member_11_1
       # Null        : Not allowed
       policy: int_access_host
       # Description : Access Vlan
@@ -258,7 +258,7 @@ Interface:
 
   - Ethernet1/13:
       # Description : 介面使用的策略
-      # Allowed     : 字串 (policy 目錄下的檔案名稱)
+      # Allowed     : int_access_host, int_trunk_host, int_routed_host, int_port_channel_trunk_host, int_port_channel_trunk_member_11_1
       # Null        : Not allowed
       policy: int_trunk_host
       # Description : Trunk 允許的 Vlan
@@ -288,7 +288,7 @@ Interface:
 
   - Ethernet1/14:
       # Description : 介面使用的策略
-      # Allowed     : 字串 (policy 目錄下的檔案名稱)
+      # Allowed     : int_access_host, int_trunk_host, int_routed_host, int_port_channel_trunk_host, int_port_channel_trunk_member_11_1
       # Null        : Not allowed
       policy: int_trunk_host
       # Description : Trunk 允許的 Vlan
@@ -318,7 +318,7 @@ Interface:
 
   - Ethernet1/15:
       # Description : 介面使用的策略
-      # Allowed     : 字串 (policy 目錄下的檔案名稱)
+      # Allowed     : int_access_host, int_trunk_host, int_routed_host, int_port_channel_trunk_host, int_port_channel_trunk_member_11_1
       # Null        : Not allowed
       policy: int_routed_host
       Interface VRF: VPC10
@@ -347,7 +347,7 @@ Interface:
 
   - Ethernet1/16:
       # Description : 介面使用的策略
-      # Allowed     : 字串 (policy 目錄下的檔案名稱)
+      # Allowed     : int_access_host, int_trunk_host, int_routed_host, int_port_channel_trunk_host, int_port_channel_trunk_member_11_1
       # Null        : Not allowed
       policy: int_routed_host
       Interface VRF: VPC10
@@ -376,7 +376,7 @@ Interface:
 
   - Ethernet1/17:
       # Description : 介面使用的策略
-      # Allowed     : 字串 (policy 目錄下的檔案名稱)
+      # Allowed     : int_access_host, int_trunk_host, int_routed_host, int_port_channel_trunk_host, int_port_channel_trunk_member_11_1
       # Null        : Not allowed
       policy: int_port_channel_access_member_11_1
       # Description : 介面描述
@@ -390,7 +390,7 @@ Interface:
 
   - Ethernet1/18: 
       # Description : 介面使用的策略
-      # Allowed     : 字串 (policy 目錄下的檔案名稱)
+      # Allowed     : int_access_host, int_trunk_host, int_routed_host, int_port_channel_trunk_host, int_port_channel_trunk_member_11_1
       # Null        : Not allowed
       policy: int_port_channel_access_member_11_1
       # Description : 介面描述
@@ -404,7 +404,7 @@ Interface:
 
   - Ethernet1/19:
       # Description : 介面使用的策略
-      # Allowed     : 字串 (policy 目錄下的檔案名稱)
+      # Allowed     : int_access_host, int_trunk_host, int_routed_host, int_port_channel_trunk_host, int_port_channel_trunk_member_11_1
       # Null        : Not allowed
       policy: int_port_channel_access_member_11_1
       # Description : 介面描述
@@ -418,7 +418,7 @@ Interface:
 
   - Ethernet1/20:
       # Description : 介面使用的策略
-      # Allowed     : 字串 (policy 目錄下的檔案名稱)
+      # Allowed     : int_access_host, int_trunk_host, int_routed_host, int_port_channel_trunk_host, int_port_channel_trunk_member_11_1
       # Null        : Not allowed
       policy: int_port_channel_access_member_11_1
       # Description : 介面描述
