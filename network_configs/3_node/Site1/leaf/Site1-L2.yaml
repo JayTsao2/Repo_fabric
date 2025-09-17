@@ -1,8 +1,7 @@
 ---
-Change Mode: Normal # Normal <> Maintenance
-# =============================
-# 只有 Normal, Maintenance 二個字串
-# =============================
+# Change Mode = 交換器狀態設定
+# Allowed values: [Normal, Maintenance] (Null not allowed)
+Change Mode: Normal
 Hostname: Site1-L2
 IP Address: 10.192.195.72
 IP Netmask Length: 24 # For management interface
