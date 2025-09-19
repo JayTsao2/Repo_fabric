@@ -1,10 +1,10 @@
 ---
 Network:
 
-- Fabric: MSD_DCI
+- Fabric: MSD_DCI # 檢查 Fabric 檔案是否存在
   Network Name: Z01_NET_1118
   Layer 2 Only: False
-  VRF Name: Z01
+  VRF Name: Z01 # 檢查 VRF 檔案是否存在
   Network ID: 31118
   VLAN ID: 1118
   IPv4 Gateway/NetMask: 100.118.0.254/24

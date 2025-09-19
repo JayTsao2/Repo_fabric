@@ -39,10 +39,10 @@ Switch Freeform Config: FreeForm\Route_Leak.sh, FreeForm\VPC10.sh
 
 Interface:
   # Description : 介面配置
-  - name: Port-channel1501 # Port-channel[1-4094]
+  - name: Port-channel1501 # Port-channel[1-4094]; Ethernet1/[1-64]
     # Description : 介面使用的策略
-    # Allowed     : int_access_host, int_trunk_host, int_routed_host, int_port_channel_trunk_host, int_port_channel_trunk_member_11_1, int_loopback
-    # Null        : Not allowed
+    # Allowed     : int_access_host(name+7,共8項) int_trunk_host(1+7), int_routed_host(1+9,共10項), int_port_channel_trunk_host(1+11), int_port_channel_trunk_member_11_1(1+3), int_loopback(1+2)
+    # Null        : allowed / 設備對接的部分沒有 policy
     policy: int_port_channel_access_host
     # Description : Port Channel 成員介面
     # Allowed     : 字串 (e1/[1-64]-[1-64]，或是用逗號分隔的多組 e1/[1-64],e1/[1-64])
@@ -61,7 +61,7 @@ Interface:
     # Null        : Not allowed
     Enable Port Type Fast: False
     # Description : MTU
-    # Allowed     : jumbo, default, 或 576-9216 的整數
+    # Allowed     : jumbo, default, 576-9216 的整數 (只有 int_routed_host 策略使用數字)
     # Null        : Not allowed
     MTU: jumbo
     # Description : 介面速度
@@ -88,8 +88,8 @@ Interface:
   - name: Ethernet1/1
     # Description : 介面描述
     # Allowed     : 字串
-    # Null        : Allowed
-    Interface Description: Site1-S1
+    # Null        : Not Allowed
+    Interface Description: Site1-S1 # 沒有 policy 的，一定要這個欄位，並且和 Hostname 的條件相同
     # Description : 啟用介面
     # Allowed     : True, False
     # Null        : Not allowed
@@ -98,8 +98,8 @@ Interface:
   - name: Ethernet1/2
     # Description : 介面描述
     # Allowed     : 字串
-    # Null        : Allowed
-    Interface Description: Site1-S2
+    # Null        : Not Allowed
+    Interface Description: Site1-S2 # 沒有 policy 的，一定要這個欄位，並且和 Hostname 的條件相同
     # Description : 啟用介面
     # Allowed     : True, False
     # Null        : Not allowed
@@ -432,8 +432,8 @@ Interface:
   - name: Ethernet1/23
     # Description : 介面描述
     # Allowed     : 字串
-    # Null        : Allowed
-    Interface Description: Site1-L2
+    # Null        : Not Allowed
+    Interface Description: Site1-L2 # 沒有 policy 的，一定要這個欄位，並且和 Hostname 的條件相同
     # Description : 啟用介面
     # Allowed     : True, False
     # Null        : Not allowed
@@ -442,8 +442,8 @@ Interface:
   - name: Ethernet1/24
     # Description : 介面描述
     # Allowed     : 字串
-    # Null        : Allowed
-    Interface Description: Site1-L2
+    # Null        : Not Allowed
+    Interface Description: Site1-L2 # 沒有 policy 的，一定要這個欄位，並且和 Hostname 的條件相同
     # Description : 啟用介面
     # Allowed     : True, False
     # Null        : Not allowed
