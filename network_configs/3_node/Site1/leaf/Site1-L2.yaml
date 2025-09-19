@@ -41,7 +41,7 @@ Interface:
   # Description : 介面配置
   - name: Port-channel1501 # Port-channel[1-4094]
     # Description : 介面使用的策略
-    # Allowed     : int_access_host, int_trunk_host, int_routed_host, int_port_channel_trunk_host, int_port_channel_trunk_member_11_1
+    # Allowed     : int_access_host, int_trunk_host, int_routed_host, int_port_channel_trunk_host, int_port_channel_trunk_member_11_1, int_loopback
     # Null        : Not allowed
     policy: int_port_channel_access_host
     # Description : Port Channel 成員介面

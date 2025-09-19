@@ -12,18 +12,18 @@ Switch Freeform Config: FreeForm\Route_Leak.sh, FreeForm\VPC11.sh
 
 Interface:
 
-  - Ethernet1/1:
-      Interface Description: Site2-S1
-      Enable Interface: True
+  - name: Ethernet1/1
+    Interface Description: Site2-S1
+    Enable Interface: True
 
-  - Ethernet1/2:
-      Interface Description: Site2-S2
-      Enable Interface: True
-      
-  - Ethernet1/23:
-      Interface Description: Site2-L2
-      Enable Interface: True
+  - name: Ethernet1/2
+    Interface Description: Site2-S2
+    Enable Interface: True
 
-  - Ethernet1/24:
-      Interface Description: Site2-L2
-      Enable Interface: True
+  - name: Ethernet1/23
+    Interface Description: Site2-L2
+    Enable Interface: True
+
+  - name: Ethernet1/24
+    Interface Description: Site2-L2
+    Enable Interface: True
