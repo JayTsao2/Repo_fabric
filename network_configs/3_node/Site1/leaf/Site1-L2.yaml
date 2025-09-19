@@ -50,7 +50,7 @@ Interface:
       # Null        : Not allowed
       Port Channel Member Interfaces: e1/17-20
       # Description : Port Channel 模式
-      # Allowed     : active, passive
+      # Allowed     : on, active, passive
       # Null        : Not allowed
       Port Channel Mode: active
       # Description : 啟用 BPDU Guard
