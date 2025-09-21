@@ -1,450 +1,147 @@
 ---
-# Description : 交換器狀態設定
-# Allowed     : [Normal, Maintenance]
-# Null        : Not allowed
 Change Mode: Normal
-# Description : 交換器 hostname
-# Allowed     : [字母、數字、dash (-)]（不要用 period (.)）
-# Length Max  : 建議 ≤ 32 字元（ NX-OS 限制）
-# Null        : Not allowed
 Hostname: Site1-L2
-# Description : 網路設備的 IP 位址
-# Allowed     : IPv4 位址
-# Null        : Not allowed
 IP Address: 10.192.195.72
-# Description : 網路設備的 IP 網路遮罩長度
-# Allowed     : 0-32 的整數
-# Null        : Not allowed
-IP Netmask Length: 24 # For management interface
-# Description : 網路設備的角色
-# Allowed     : 字串 (Leaf, Spine, Border Gateway)
-# Null        : Not allowed
+IP Netmask Length: 24 
 Role: Leaf
-# Description : 網路設備的序號
-# Allowed     : 字串
-# Null        : Not allowed
-Serial Number: 95H3IT6BGM0
-# Description : 網路設備的平台
-# Allowed     : 字串 ( 限定 N9K-C93 開頭) 
-# Null        : Not allowed
-Platform: N9K-C9300v # For switch discovery
-# Description : 網路設備的軟體版本
-# Allowed     : 字串 
-# Null        : Not allowed
-Version: 9.3(15) # For switch discovery
-# Description : 交換器 Freeform Config
-# Allowed     : 字串 (FreeForm 目錄下的檔案名稱)
-# Null        : Allowed
+Serial Number: 9WYTE6K1SWX
+Platform: N9K-C9300v 
+Version: 9.3(15) 
+
 Switch Freeform Config: FreeForm\Route_Leak.sh, FreeForm\VPC10.sh
 
 Interface:
-  # Description : 介面配置
-  - name: Port-channel1501 # Port-channel[1-4094]; Ethernet1/[1-64]
-    # Description : 介面使用的策略
-    # Allowed     : int_access_host(name+7,共8項) int_trunk_host(1+7), int_routed_host(1+9,共10項), int_port_channel_trunk_host(1+11), int_port_channel_trunk_member_11_1(1+3), int_loopback(1+2)
-    # Null        : allowed / 設備對接的部分沒有 policy
-    policy: int_port_channel_access_host
-    # Description : Port Channel 成員介面
-    # Allowed     : 字串 (e1/[1-64]-[1-64]，或是用逗號分隔的多組 e1/[1-64],e1/[1-64])
-    # Null        : Not allowed
+
+  - Name: Port-channel1501
+    Policy: int_port_channel_access_host
     Port Channel Member Interfaces: e1/17-20
-    # Description : Port Channel 模式
-    # Allowed     : on, active, passive
-    # Null        : Not allowed
     Port Channel Mode: active
-    # Description : 啟用 BPDU Guard
-    # Allowed     : True, False
-    # Null        : Not allowed
     Enable BPDU Guard: False
-    # Description : 啟用 Port Type Fast
-    # Allowed     : True, False
-    # Null        : Not allowed
     Enable Port Type Fast: False
-    # Description : MTU
-    # Allowed     : jumbo, default, 576-9216 的整數 (只有 int_routed_host 策略使用數字)
-    # Null        : Not allowed
     MTU: jumbo
-    # Description : 介面速度
-    # Allowed     : Auto, 10Mb, 100Mb, 1Gb, 2.5Gb, 5Gb, 10Gb, 25Gb, 40Gb, 50Gb, 100Gb, 200Gb, 400Gb
-    # Null        : Not allowed
     SPEED: Auto
-    # Description : Access Vlan
-    # Allowed     : 1-4094 的整數
-    # Null        : Not allowed
     Access Vlan: 1120
-    # Description : Port Channel 描述
-    # Allowed     : 字串
-    # Null        : Allowed
     Port Channel Description:
-    # Description : 啟用 Port Channel
-    # Allowed     : True, False
-    # Null        : Not allowed
     Enable Port Channel: True
-    # Description : Freeform Config
-    # Allowed     : 字串 (FreeForm 目錄下的檔案名稱)
-    # Null        : Allowed
     Freeform Config: 
 
-  - name: Ethernet1/1
-    # Description : 介面描述
-    # Allowed     : 字串
-    # Null        : Not Allowed
-    Interface Description: Site1-S1 # 沒有 policy 的，一定要這個欄位，並且和 Hostname 的條件相同
-    # Description : 啟用介面
-    # Allowed     : True, False
-    # Null        : Not allowed
+  - Name: Ethernet1/1
+    Interface Description: Site1-S1
     Enable Interface: True
 
-  - name: Ethernet1/2
-    # Description : 介面描述
-    # Allowed     : 字串
-    # Null        : Not Allowed
-    Interface Description: Site1-S2 # 沒有 policy 的，一定要這個欄位，並且和 Hostname 的條件相同
-    # Description : 啟用介面
-    # Allowed     : True, False
-    # Null        : Not allowed
+  - Name: Ethernet1/2
+    Interface Description: Site1-S2
     Enable Interface: True
 
-  - name: Ethernet1/8
-    # Description : 介面使用的策略
-    # Allowed     : int_access_host, int_trunk_host, int_routed_host, int_port_channel_trunk_host, int_port_channel_trunk_member_11_1
-    # Null        : Not allowed
-    policy: int_access_host
-    # Description : Access Vlan
-    # Allowed     : 1-4094 的整數
-    # Null        : Not allowed
+  - Name: Ethernet1/8
+    Policy: int_access_host
     Access Vlan: 1118
-    # Description : 介面描述
-    # Allowed     : 字串
-    # Null        : Allowed
     Interface Description:
-    # Description : MTU
-    # Allowed     : jumbo, default, 或 576-9216 的整數
-    # Null        : Not allowed
     MTU: jumbo
-    # Description : 介面速度
-    # Allowed     : Auto, 10Mb, 100Mb, 1Gb, 2.5Gb, 5Gb, 10Gb, 25Gb, 40Gb, 50Gb, 100Gb, 200Gb, 400Gb
-    # Null        : Not allowed
     SPEED: Auto
-    # Description : 啟用介面
-    # Allowed     : True, False
-    # Null        : Not allowed
     Enable Interface: True
-    # Description : Freeform Config
-    # Allowed     : 字串 (FreeForm 目錄下的檔案名稱)
-    # Null        : Allowed
     Freeform Config: 
 
-  - name: Ethernet1/9
-    # Description : 介面使用的策略
-    # Allowed     : int_access_host, int_trunk_host, int_routed_host, int_port_channel_trunk_host, int_port_channel_trunk_member_11_1
-    # Null        : Not allowed
-    policy: int_access_host
-    # Description : Access Vlan
-    # Allowed     : 1-4094 的整數
-    # Null        : Not allowed
+  - Name: Ethernet1/9
+    Policy: int_access_host
     Access Vlan: 2023
-    # Description : 介面描述
-    # Allowed     : 字串
-    # Null        : Allowed
     Interface Description:
-    # Description : MTU
-    # Allowed     : jumbo, default, 或 576-9216 的整數
-    # Null        : Not allowed
     MTU: jumbo
-    # Description : 介面速度
-    # Allowed     : Auto, 10Mb, 100Mb, 1Gb, 2.5Gb, 5Gb, 10Gb, 25Gb, 40Gb, 50Gb, 100Gb, 200Gb, 400Gb
-    # Null        : Not allowed
     SPEED: Auto
-    # Description : 啟用介面
-    # Allowed     : True, False
-    # Null        : Not allowed
     Enable Interface: True
-    # Description : Freeform Config
-    # Allowed     : 字串 (FreeForm 目錄下的檔案名稱)
-    # Null        : Allowed
     Freeform Config: 
 
-  - name: Ethernet1/10
-    # Description : 介面使用的策略
-    # Allowed     : int_access_host, int_trunk_host, int_routed_host, int_port_channel_trunk_host, int_port_channel_trunk_member_11_1
-    # Null        : Not allowed
-    policy: int_access_host
-    # Description : Access Vlan
-    # Allowed     : 1-4094 的整數
-    # Null        : Not allowed
+  - Name: Ethernet1/10
+    Policy: int_access_host
     Access Vlan: 2253
-    # Description : 介面描述
-    # Allowed     : 字串
-    # Null        : Allowed
     Interface Description:
-    # Description : MTU
-    # Allowed     : jumbo, default, 或 576-9216 的整數
-    # Null        : Not allowed
     MTU: jumbo
-    # Description : 介面速度
-    # Allowed     : Auto, 10Mb, 100Mb, 1Gb, 2.5Gb, 5Gb, 10Gb, 25Gb, 40Gb, 50Gb, 100Gb, 200Gb, 400Gb
-    # Null        : Not allowed
     SPEED: Auto
-    # Description : 啟用介面
-    # Allowed     : True, False
-    # Null        : Not allowed
     Enable Interface: True
-    # Description : Freeform Config
-    # Allowed     : 字串 (FreeForm 目錄下的檔案名稱)
-    # Null        : Allowed
     Freeform Config: 
 
-  - name: Ethernet1/11
-    # Description : 介面使用的策略
-    # Allowed     : int_access_host, int_trunk_host, int_routed_host, int_port_channel_trunk_host, int_port_channel_trunk_member_11_1
-    # Null        : Not allowed
-    policy: int_access_host
-    # Description : Access Vlan
-    # Allowed     : 1-4094 的整數
-    # Null        : Not allowed
+  - Name: Ethernet1/11
+    Policy: int_access_host
     Access Vlan: 1120
-    # Description : 介面描述
-    # Allowed     : 字串
-    # Null        : Allowed
     Interface Description:
-    # Description : MTU
-    # Allowed     : jumbo, default, 或 576-9216 的整數
-    # Null        : Not allowed
     MTU: jumbo
-    # Description : 介面速度
-    # Allowed     : Auto, 10Mb, 100Mb, 1Gb, 2.5Gb, 5Gb, 10Gb, 25Gb, 40Gb, 50Gb, 100Gb, 200Gb, 400Gb
-    # Null        : Not allowed
     SPEED: Auto
-    # Description : 啟用介面
-    # Allowed     : True, False
-    # Null        : Not allowed
     Enable Interface: True
-    # Description : Freeform Config
-    # Allowed     : 字串 (FreeForm 目錄下的檔案名稱)
-    # Null        : Allowed
     Freeform Config: 
 
-  - name: Ethernet1/12
-    # Description : 介面使用的策略
-    # Allowed     : int_access_host, int_trunk_host, int_routed_host, int_port_channel_trunk_host, int_port_channel_trunk_member_11_1
-    # Null        : Not allowed
-    policy: int_access_host
-    # Description : Access Vlan
-    # Allowed     : 1-4094 的整數
-    # Null        : Not allowed
+  - Name: Ethernet1/12
+    Policy: int_access_host
     Access Vlan: 1121
-    # Description : 介面描述
-    # Allowed     : 字串
-    # Null        : Allowed
     Interface Description:
-    # Description : MTU
-    # Allowed     : jumbo, default, 或 576-9216 的整數
-    # Null        : Not allowed
     MTU: jumbo
-    # Description : 介面速度
-    # Allowed     : Auto, 10Mb, 100Mb, 1Gb, 2.5Gb, 5Gb, 10Gb, 25Gb, 40Gb, 50Gb, 100Gb, 200Gb, 400Gb
-    # Null        : Not allowed
     SPEED: Auto
-    # Description : 啟用介面
-    # Allowed     : True, False
-    # Null        : Not allowed
     Enable Interface: True
-    # Description : Freeform Config
-    # Allowed     : 字串 (FreeForm 目錄下的檔案名稱)
-    # Null        : Allowed
     Freeform Config: 
 
-  - name: Ethernet1/13
-    # Description : 介面使用的策略
-    # Allowed     : int_access_host, int_trunk_host, int_routed_host, int_port_channel_trunk_host, int_port_channel_trunk_member_11_1
-    # Null        : Not allowed
-    policy: int_trunk_host
-    # Description : Trunk 允許的 Vlan
-    # Allowed     : all, 或 1-4094 的整數，以逗號分隔
-    # Null        : Not allowed
+  - Name: Ethernet1/13
+    Policy: int_trunk_host
     Trunk Allowed Vlans: all
-    # Description : 介面描述
-    # Allowed     : 字串
-    # Null        : Allowed
     Interface Description:
-    # Description : MTU
-    # Allowed     : jumbo, default, 或 576-9216 的整數
-    # Null        : Not allowed
     MTU: jumbo
-    # Description : 介面速度
-    # Allowed     : Auto, 10Mb, 100Mb, 1Gb, 2.5Gb, 5Gb, 10Gb, 25Gb, 40Gb, 50Gb, 100Gb, 200Gb, 400Gb
-    # Null        : Not allowed
     SPEED: Auto
-    # Description : 啟用介面
-    # Allowed     : True, False
-    # Null        : Not allowed
     Enable Interface: True
-    # Description : Freeform Config
-    # Allowed     : 字串 (FreeForm 目錄下的檔案名稱)
-    # Null        : Allowed
     Freeform Config: 
 
-  - name: Ethernet1/14
-    # Description : 介面使用的策略
-    # Allowed     : int_access_host, int_trunk_host, int_routed_host, int_port_channel_trunk_host, int_port_channel_trunk_member_11_1
-    # Null        : Not allowed
-    policy: int_trunk_host
-    # Description : Trunk 允許的 Vlan
-    # Allowed     : all, 或 1-4094 的整數，以逗號分隔
-    # Null        : Not allowed
+  - Name: Ethernet1/14
+    Policy: int_trunk_host
     Trunk Allowed Vlans: all
-    # Description : 介面描述
-    # Allowed     : 字串
-    # Null        : Allowed
     Interface Description:
-    # Description : MTU
-    # Allowed     : jumbo, default, 或 576-9216 的整數
-    # Null        : Not allowed
     MTU: jumbo
-    # Description : 介面速度
-    # Allowed     : Auto, 10Mb, 100Mb, 1Gb, 2.5Gb, 5Gb, 10Gb, 25Gb, 40Gb, 50Gb, 100Gb, 200Gb, 400Gb
-    # Null        : Not allowed
     SPEED: Auto
-    # Description : 啟用介面
-    # Allowed     : True, False
-    # Null        : Not allowed
     Enable Interface: True
-    # Description : Freeform Config
-    # Allowed     : 字串 (FreeForm 目錄下的檔案名稱)
-    # Null        : Allowed
     Freeform Config: 
 
-  - name: Ethernet1/15
-    # Description : 介面使用的策略
-    # Allowed     : int_access_host, int_trunk_host, int_routed_host, int_port_channel_trunk_host, int_port_channel_trunk_member_11_1
-    # Null        : Not allowed
-    policy: int_routed_host
+  - Name: Ethernet1/15
+    Policy: int_routed_host
     Interface VRF: VPC10
     Interface IP: 
     IP Netmask Length: 
-    # Description : 介面描述
-    # Allowed     : 字串
-    # Null        : Allowed
     Interface Description: 
-    # Description : MTU
-    # Allowed     : jumbo, default, 或 576-9216 的整數
-    # Null        : Not allowed
     MTU: 9100
-    # Description : 介面速度
-    # Allowed     : Auto, 10Mb, 100Mb, 1Gb, 2.5Gb, 5Gb, 10Gb, 25Gb, 40Gb, 50Gb, 100Gb, 200Gb, 400Gb
-    # Null        : Not allowed
     SPEED: Auto
-    # Description : 啟用介面
-    # Allowed     : True, False
-    # Null        : Not allowed
     Enable Interface: True
-    # Description : Freeform Config
-    # Allowed     : 字串 (FreeForm 目錄下的檔案名稱)
-    # Null        : Allowed
     Freeform Config: FreeForm\L3_Link_Local.sh
 
-  - name: Ethernet1/16
-    # Description : 介面使用的策略
-    # Allowed     : int_access_host, int_trunk_host, int_routed_host, int_port_channel_trunk_host, int_port_channel_trunk_member_11_1
-    # Null        : Not allowed
-    policy: int_routed_host
+  - Name: Ethernet1/16
+    Policy: int_routed_host
     Interface VRF: VPC10
     Interface IP: 
     IP Netmask Length: 
-    # Description : 介面描述
-    # Allowed     : 字串
-    # Null        : Allowed
     Interface Description: 
-    # Description : MTU
-    # Allowed     : jumbo, default, 或 576-9216 的整數
-    # Null        : Not allowed
     MTU: 9100
-    # Description : 介面速度
-    # Allowed     : Auto, 10Mb, 100Mb, 1Gb, 2.5Gb, 5Gb, 10Gb, 25Gb, 40Gb, 50Gb, 100Gb, 200Gb, 400Gb
-    # Null        : Not allowed
     SPEED: Auto
-    # Description : 啟用介面
-    # Allowed     : True, False
-    # Null        : Not allowed
     Enable Interface: True
-    # Description : Freeform Config
-    # Allowed     : 字串 (FreeForm 目錄下的檔案名稱)
-    # Null        : Allowed
     Freeform Config: FreeForm\L3_Link_Local.sh
 
-  - name: Ethernet1/17
-    # Description : 介面使用的策略
-    # Allowed     : int_access_host, int_trunk_host, int_routed_host, int_port_channel_trunk_host, int_port_channel_trunk_member_11_1
-    # Null        : Not allowed
-    policy: int_port_channel_access_member_11_1
-    # Description : 介面描述
-    # Allowed     : 字串
-    # Null        : Allowed
+  - Name: Ethernet1/17
+    Policy: int_port_channel_access_member_11_1
     Interface Description: Port-channel1501
-    # Description : 啟用介面
-    # Allowed     : True, False
-    # Null        : Not allowed
     Enable Interface: True
 
-  - name: Ethernet1/18
-    # Description : 介面使用的策略
-    # Allowed     : int_access_host, int_trunk_host, int_routed_host, int_port_channel_trunk_host, int_port_channel_trunk_member_11_1
-    # Null        : Not allowed
-    policy: int_port_channel_access_member_11_1
-    # Description : 介面描述
-    # Allowed     : 字串
-    # Null        : Allowed
+  - Name: Ethernet1/18
+    Policy: int_port_channel_access_member_11_1
     Interface Description: Port-channel1501
-    # Description : 啟用介面
-    # Allowed     : True, False
-    # Null        : Not allowed
     Enable Interface: True
 
-  - name: Ethernet1/19
-    # Description : 介面使用的策略
-    # Allowed     : int_access_host, int_trunk_host, int_routed_host, int_port_channel_trunk_host, int_port_channel_trunk_member_11_1
-    # Null        : Not allowed
-    policy: int_port_channel_access_member_11_1
-    # Description : 介面描述
-    # Allowed     : 字串
-    # Null        : Allowed
+  - Name: Ethernet1/19
+    Policy: int_port_channel_access_member_11_1
     Interface Description: Port-channel1501
-    # Description : 啟用介面
-    # Allowed     : True, False
-    # Null        : Not allowed
     Enable Interface: True
 
-  - name: Ethernet1/20
-    # Description : 介面使用的策略
-    # Allowed     : int_access_host, int_trunk_host, int_routed_host, int_port_channel_trunk_host, int_port_channel_trunk_member_11_1
-    # Null        : Not allowed
-    policy: int_port_channel_access_member_11_1
-    # Description : 介面描述
-    # Allowed     : 字串
-    # Null        : Allowed
+  - Name: Ethernet1/20
+    Policy: int_port_channel_access_member_11_1
     Interface Description: Port-channel1501
-    # Description : 啟用介面
-    # Allowed     : True, False
-    # Null        : Not allowed
     Enable Interface: True
 
-  - name: Ethernet1/23
-    # Description : 介面描述
-    # Allowed     : 字串
-    # Null        : Not Allowed
-    Interface Description: Site1-L2 # 沒有 policy 的，一定要這個欄位，並且和 Hostname 的條件相同
-    # Description : 啟用介面
-    # Allowed     : True, False
-    # Null        : Not allowed
+  - Name: Ethernet1/23
+    Interface Description: Site1-L2
     Enable Interface: True
 
-  - name: Ethernet1/24
-    # Description : 介面描述
-    # Allowed     : 字串
-    # Null        : Not Allowed
-    Interface Description: Site1-L2 # 沒有 policy 的，一定要這個欄位，並且和 Hostname 的條件相同
-    # Description : 啟用介面
-    # Allowed     : True, False
-    # Null        : Not allowed
+  - Name: Ethernet1/24
+    Interface Description: Site1-L2
     Enable Interface: True
