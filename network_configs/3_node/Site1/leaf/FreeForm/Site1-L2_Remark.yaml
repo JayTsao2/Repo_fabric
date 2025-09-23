@@ -17,7 +17,7 @@ IP Address: 10.192.195.72
 # Null        : Not allowed
 IP Netmask Length: 24 # For management interface
 # Description : 網路設備的角色
-# Allowed     : 字串 (Leaf, Spine, Border Gateway)
+# Allowed     : 字串 (Leaf, Spine, Border Gateway, Core Router)
 # Null        : Not allowed
 Role: Leaf
 # Description : 網路設備的序號
