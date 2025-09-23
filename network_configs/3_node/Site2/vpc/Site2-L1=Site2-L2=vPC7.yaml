@@ -4,7 +4,7 @@ Peer-2 Serial Number: 99EUUY917LX # peerTwoId
 
 Policy:
 
-  Name: int_vpc_access_host
+  Name: int_vpc_access_host # int_vpc_access_host, int_vpc_trunk_host
 
   Policy Options:
 
