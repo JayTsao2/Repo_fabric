@@ -142,7 +142,7 @@ class InterfaceManager:
 
             # Process all interfaces
             for interface_dict in switch_config["Interface"]:
-                interface_name = next(iter(interface_dict.keys()))
+                interface_name = interface_dict["Name"]
                 if not interface_api.deploy_interface(serial_number, interface_name):
                     print(f"[Interface] {self.RED}Error deploying interface '{interface_name}' on switch '{switch_name}'{self.END}")
             print(f"[Interface] {self.GREEN}{self.BOLD}Successfully deployed interfaces for switch '{switch_name}'{self.END}")
