@@ -62,7 +62,7 @@ class InterfaceManager:
             if admin_status_config == False:
                 print(f"[Interface] {self.YELLOW}Interface '{interface_name}' is administratively down, skip interface operation status check.{self.END}")
                 continue
-            policy = interface_config.get("policy", "").lower()
+            policy = interface_config.get("Policy", "").lower()
             if policy:
                 continue
             # print(f"[Interface] Interface '{interface_name}' does not have a policy defined, checking the operation status.{self.END}")
@@ -98,22 +98,21 @@ class InterfaceManager:
             updated_interfaces = {}
             port_channel_map = {}
             for interface_dict in switch_config["Interface"]:
-                interface_name = next(iter(interface_dict.keys()))
-                interface_config = interface_dict[interface_name]
+                interface_name = interface_dict.get("Name", "")
 
-                policy = interface_config.get("policy", "").lower()
+                policy = interface_dict.get("Policy", "").lower()
                 if not policy:
-                    self._handle_no_policy_interface(interface_name, serial_number, interface_config)
+                    self._handle_no_policy_interface(interface_name, serial_number, interface_dict)
                     continue
 
-                nv_pairs = self._get_nv_pairs(interface_config, interface_name)
+                nv_pairs = self._get_nv_pairs(interface_dict, interface_name)
                 if interface_name.lower().startswith('port-channel'):
-                    port_channel_map.update(self._create_port_channel_mapping(interface_name, interface_config))
+                    port_channel_map.update(self._create_port_channel_mapping(interface_name, interface_dict))
 
                 if "port_channel" in policy and "member" in policy:
                     nv_pairs.update(self._get_port_member_nv_pairs(interface_name, port_channel_map))
 
-                nv_pairs["CONF"] = self._get_freeform_config(interface_config, fabric_name, role)
+                nv_pairs["CONF"] = self._get_freeform_config(interface_dict, fabric_name, role)
                 if policy not in updated_interfaces:
                     updated_interfaces[policy] = []
 
@@ -160,10 +159,10 @@ class InterfaceManager:
 
         vlan = ""
         vlan_type = ""
-        if data.get("policy") == "int_port_channel_trunk_host":
+        if data.get("Policy") == "int_port_channel_trunk_host":
             vlan = data.get("Trunk Allowed Vlans", "none")
             vlan_type = "trunk"
-        elif data.get("policy") == "int_port_channel_access_host":
+        elif data.get("Policy") == "int_port_channel_access_host":
             vlan = data.get("Access Vlan", "")
             vlan_type = "access"
 
@@ -263,7 +262,7 @@ class InterfaceManager:
         nv_pairs["DESC"] = str(config.get("Interface Description")) if config.get("Interface Description") else ""
         nv_pairs["ADMIN_STATE"] = "true" if config.get("Enable Interface", False) else "false"
         nv_pairs["SPEED"] = str(config.get("SPEED", "Auto"))
-        policy = config.get("policy", "")
+        policy = config.get("Policy", "")
         
         # Policy-specific updates
         if policy == "int_access_host":
